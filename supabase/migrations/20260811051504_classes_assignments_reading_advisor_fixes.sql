@@ -20,3 +20,4 @@ create extension pg_net with schema extensions;
 -- Two FK-covering indexes the performance advisor flagged as missing.
 create index attempt_counters_student_id_idx on private.attempt_counters (student_id);
 create index upload_intents_task_word_id_idx on public.upload_intents (task_word_id);
+;

@@ -1,14 +1,3 @@
--- Phase 2 follow-up: normalize empty-string description to NULL
---
--- The generated Supabase TypeScript RPC arg type for `p_description text`
--- is a plain (non-nullable) `string`, unlike table Update types which do
--- carry `| null` for nullable columns -- a generator limitation across all
--- RPC text args, not specific to this function. Rather than fighting that
--- with a type assertion on the client, the client now always sends a
--- string ("" for "no description") and this function normalizes it here,
--- the same treatment vocabulary_words.image_url already gets per word.
--- CREATE OR REPLACE keeps the existing EXECUTE grant to authenticated
--- (grants survive a same-signature replace).
 create or replace function public.create_vocabulary_set_with_words(
   p_title text,
   p_description text,
@@ -58,3 +47,4 @@ begin
   return v_set_id;
 end;
 $$;
+;

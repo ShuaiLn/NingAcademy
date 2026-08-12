@@ -1,23 +1,3 @@
--- Phase 2 bugfix: record_vocabulary_attempt graded every fresh (never-
--- before-answered) word as incorrect, regardless of what was submitted
---
--- `v_correct_term` was reused for two different purposes: (1) holding the
--- frozen snapshot's correct answer, read from practice_session_words, and
--- (2) receiving the previously-recorded correct_term during the
--- idempotency check against vocabulary_attempts. In PL/pgSQL, a
--- `SELECT ... INTO` that matches zero rows assigns NULL to every target
--- variable -- so for the normal case (a genuinely new word, no prior
--- attempt), the idempotency check's "no rows found" silently clobbered
--- v_correct_term back to NULL before the grading comparison ran, making
--- every fresh submission compare the student's spelling against NULL
--- (normalized to '') instead of the real answer, which is always false.
--- Fixed by giving the idempotency check its own variables
--- (v_existing_is_correct / v_existing_correct_term) so the snapshot's
--- v_correct_term is never touched by that lookup. Caught by directly
--- calling the RPC end-to-end (a fresh, never-attempted word still came
--- back is_correct=false for a correct answer) -- not visible from reading
--- the function body in isolation without tracing PL/pgSQL's INTO
--- semantics on a zero-row result.
 create or replace function public.record_vocabulary_attempt(
   p_session_id uuid,
   p_word_id uuid,
@@ -82,3 +62,4 @@ begin
   return query select v_is_correct, v_correct_term, false;
 end;
 $$;
+;

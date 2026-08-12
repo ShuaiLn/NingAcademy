@@ -896,3 +896,4 @@ grant execute on function public.start_practice_session(uuid) to authenticated;
 grant execute on function public.get_practice_words(uuid) to authenticated;
 grant execute on function public.record_vocabulary_attempt(uuid, uuid, text) to authenticated;
 grant execute on function public.complete_practice_session(uuid) to authenticated;
+;

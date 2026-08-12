@@ -265,17 +265,18 @@ alter table public.students enable row level security;
 alter table public.audit_log enable row level security;
 
 -- profiles: everyone can see their own row; a teacher can see (and rename)
--- the profiles of their own students. Combined into one permissive policy
--- per the Postgres/Supabase performance advisor (multiple permissive
--- policies for the same role+action are evaluated and OR'd on every query).
-create policy "profiles_select_self_or_own_students"
+-- the profiles of their own students.
+create policy "profiles_select_self"
 on public.profiles
 for select
 to authenticated
-using (
-  id = (select auth.uid())
-  or (role = 'student' and private.teacher_owns_student(id))
-);
+using (id = (select auth.uid()));
+
+create policy "profiles_select_own_students"
+on public.profiles
+for select
+to authenticated
+using (role = 'student' and private.teacher_owns_student(id));
 
 create policy "profiles_update_own_students_full_name"
 on public.profiles
@@ -291,16 +292,18 @@ for select
 to authenticated
 using (id = (select auth.uid()));
 
--- students: self, or the owning teacher. Combined into one permissive
--- policy for the same reason as profiles above.
-create policy "students_select_self_or_own_teacher"
+-- students: self, or the owning teacher.
+create policy "students_select_self"
 on public.students
 for select
 to authenticated
-using (
-  id = (select auth.uid())
-  or teacher_id = private.current_teacher_id()
-);
+using (id = (select auth.uid()));
+
+create policy "students_select_own_teacher"
+on public.students
+for select
+to authenticated
+using (teacher_id = private.current_teacher_id());
 
 -- audit_log: append-only, and only ever self-attributed when written
 -- directly by an authenticated client (RPC-driven writes run as the table
@@ -313,26 +316,16 @@ with check (actor_user_id = (select auth.uid()));
 
 -- ============================================================================
 -- Table-level grants (column-level where narrower access is required)
---
--- service_role has BYPASSRLS but, on this project, table privileges are NOT
--- granted to it automatically the way they might be on some Supabase
--- defaults — it needs the same explicit GRANTs as any other role. It gets
--- full CRUD here since utils/supabase/admin.ts is the single, narrowly-used
--- trusted surface everything else in this migration is designed around.
 -- ============================================================================
 
 grant select on public.profiles to authenticated;
 grant update (full_name) on public.profiles to authenticated;
-grant select, insert, update, delete on public.profiles to service_role;
 
 grant select on public.teachers to authenticated;
-grant select, insert, update, delete on public.teachers to service_role;
 
 grant select on public.students to authenticated;
-grant select, insert, update, delete on public.students to service_role;
 
 grant insert on public.audit_log to authenticated;
-grant select, insert on public.audit_log to service_role;
 
 -- ============================================================================
 -- Account-creation RPCs
@@ -340,19 +333,7 @@ grant select, insert on public.audit_log to service_role;
 -- Both are called exclusively by trusted server code using the secret
 -- (service_role) Supabase client, immediately after auth.admin.createUser.
 -- They are never exposed to anon/authenticated (EXECUTE stays revoked from
--- PUBLIC below, and is only re-granted to service_role).
---
--- Both return boolean rather than raising on the "expected" failure paths
--- (teacher already exists / target teacher missing / username taken): a
--- single RPC call is one transaction, so an exception that escapes the
--- function rolls back everything the function did in that call — including
--- any compensating audit_log row an EXCEPTION handler tried to insert before
--- re-raising. Returning false instead lets the function commit its own
--- 'failed' audit_log row normally while still telling the caller to roll
--- back the just-created Auth user. A raised exception here means something
--- genuinely unexpected happened (not one of the anticipated business
--- failures), and it's acceptable for that rarer case to not have a durable
--- audit row.
+-- PUBLIC below, and is deliberately not re-granted to authenticated).
 -- ============================================================================
 
 create function public.finalize_teacher_bootstrap(
@@ -361,7 +342,7 @@ create function public.finalize_teacher_bootstrap(
   p_full_name text,
   p_request_id uuid
 )
-returns boolean
+returns void
 language plpgsql
 security definer
 set search_path = ''
@@ -374,12 +355,7 @@ begin
   select count(*) into v_teacher_count from public.teachers;
 
   if v_teacher_count > 0 then
-    insert into public.audit_log
-      (actor_user_id, actor_type, action, target_table, request_id, outcome, error_code, detail)
-    values
-      (null, 'system', 'teacher_bootstrap', 'teachers', p_request_id, 'failed', 'teacher_already_exists',
-       jsonb_build_object('username', p_username));
-    return false;
+    raise exception 'a teacher account already exists' using errcode = 'P0001';
   end if;
 
   insert into public.profiles (id, username, full_name, role, is_active, must_change_password)
@@ -392,8 +368,14 @@ begin
   values
     (null, 'system', 'teacher_bootstrap', 'teachers', p_user_id, p_request_id, 'succeeded',
      jsonb_build_object('username', p_username));
-
-  return true;
+exception
+  when others then
+    insert into public.audit_log
+      (actor_user_id, actor_type, action, target_table, target_id, request_id, outcome, error_code, detail)
+    values
+      (null, 'system', 'teacher_bootstrap', 'teachers', null, p_request_id, 'failed', sqlstate,
+       jsonb_build_object('username', p_username, 'error', sqlerrm));
+    raise;
 end;
 $$;
 
@@ -404,50 +386,39 @@ create function public.finalize_student_creation(
   p_teacher_id uuid,
   p_request_id uuid
 )
-returns boolean
+returns void
 language plpgsql
 security definer
 set search_path = ''
 as $$
 begin
   if not exists (select 1 from public.teachers where id = p_teacher_id) then
-    insert into public.audit_log
-      (actor_user_id, actor_type, action, target_table, request_id, outcome, error_code, detail)
-    values
-      (p_teacher_id, 'teacher', 'student_create', 'students', p_request_id, 'failed', 'teacher_not_found',
-       jsonb_build_object('username', p_username));
-    return false;
+    raise exception 'teacher % does not exist', p_teacher_id using errcode = 'P0001';
   end if;
 
-  begin
-    insert into public.profiles (id, username, full_name, role, is_active, must_change_password)
-    values (p_user_id, p_username, p_full_name, 'student', true, true);
+  insert into public.profiles (id, username, full_name, role, is_active, must_change_password)
+  values (p_user_id, p_username, p_full_name, 'student', true, true);
 
-    insert into public.students (id, teacher_id) values (p_user_id, p_teacher_id);
-  exception
-    when unique_violation then
-      insert into public.audit_log
-        (actor_user_id, actor_type, action, target_table, request_id, outcome, error_code, detail)
-      values
-        (p_teacher_id, 'teacher', 'student_create', 'students', p_request_id, 'failed', 'username_taken',
-         jsonb_build_object('username', p_username));
-      return false;
-  end;
+  insert into public.students (id, teacher_id) values (p_user_id, p_teacher_id);
 
   insert into public.audit_log
     (actor_user_id, actor_type, action, target_table, target_id, request_id, outcome, detail)
   values
     (p_teacher_id, 'teacher', 'student_create', 'students', p_user_id, p_request_id, 'succeeded',
      jsonb_build_object('username', p_username));
-
-  return true;
+exception
+  when others then
+    insert into public.audit_log
+      (actor_user_id, actor_type, action, target_table, target_id, request_id, outcome, error_code, detail)
+    values
+      (p_teacher_id, 'teacher', 'student_create', 'students', null, p_request_id, 'failed', sqlstate,
+       jsonb_build_object('username', p_username, 'error', sqlerrm));
+    raise;
 end;
 $$;
 
 revoke execute on function public.finalize_teacher_bootstrap(uuid, text, text, uuid) from public;
 revoke execute on function public.finalize_student_creation(uuid, text, text, uuid, uuid) from public;
-grant execute on function public.finalize_teacher_bootstrap(uuid, text, text, uuid) to service_role;
-grant execute on function public.finalize_student_creation(uuid, text, text, uuid, uuid) to service_role;
 
 -- ============================================================================
 -- complete_password_change RPC
@@ -482,8 +453,17 @@ begin
     (actor_user_id, actor_type, action, target_table, target_id, request_id, outcome, detail)
   values
     (v_uid, coalesce(v_role, 'system'), 'change_password', 'profiles', v_uid, p_request_id, 'succeeded', '{}'::jsonb);
+exception
+  when others then
+    insert into public.audit_log
+      (actor_user_id, actor_type, action, target_table, target_id, request_id, outcome, error_code, detail)
+    values
+      (v_uid, coalesce(v_role, 'system'), 'change_password', 'profiles', v_uid, p_request_id, 'failed', sqlstate,
+       jsonb_build_object('error', sqlerrm));
+    raise;
 end;
 $$;
 
 revoke execute on function public.complete_password_change(uuid) from public;
 grant execute on function public.complete_password_change(uuid) to authenticated;
+;

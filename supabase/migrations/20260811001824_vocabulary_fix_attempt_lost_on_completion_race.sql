@@ -1,24 +1,3 @@
--- Phase 2 bugfix: a fresh attempt for the last word could be permanently
--- lost if complete_practice_session won the race to lock the session row
---
--- record_vocabulary_attempt raised and rejected any brand-new (never-
--- before-recorded) attempt once practice_sessions.completed_at was set,
--- even though the `for update` row lock only guarantees the two functions
--- don't corrupt each other's writes -- it says nothing about which of two
--- concurrent calls (finishing the round vs. submitting the last word)
--- acquires the lock first. If complete_practice_session won, the
--- student's already-typed last answer was rejected outright and never
--- persisted anywhere: a silent loss of real input, exactly the "漏记最后
--- 一词" failure mode the Phase 2 plan calls out as unacceptable. Fixed by
--- dropping the completed-session rejection for fresh attempts entirely --
--- uniqueness is still fully enforced by vocabulary_attempts'
--- unique(session_id, word_id), and the word must still belong to the
--- session's snapshot, so this cannot be abused to record extra or
--- out-of-scope attempts; it only stops a legitimate in-flight answer from
--- being thrown away because completion happened to land first. Caught by
--- concurrently racing record_vocabulary_attempt (last word) against
--- complete_practice_session and finding only 1 of 2 expected attempt rows
--- afterward.
 create or replace function public.record_vocabulary_attempt(
   p_session_id uuid,
   p_word_id uuid,
@@ -79,3 +58,4 @@ begin
   return query select v_is_correct, v_correct_term, false;
 end;
 $$;
+;

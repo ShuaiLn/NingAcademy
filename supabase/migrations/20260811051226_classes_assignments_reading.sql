@@ -1926,3 +1926,4 @@ grant execute on function public.publish_pronunciation_task(uuid) to authenticat
 grant execute on function public.assign_pronunciation_task_to_targets(uuid, uuid[], uuid[]) to authenticated;
 grant execute on function public.create_audio_submission(uuid, text) to authenticated;
 grant execute on function public.finish_audio_submission(uuid) to authenticated;
+;

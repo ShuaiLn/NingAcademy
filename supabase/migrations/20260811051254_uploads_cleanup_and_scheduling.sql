@@ -90,3 +90,4 @@ select cron.schedule(
   );
   $$
 );
+;

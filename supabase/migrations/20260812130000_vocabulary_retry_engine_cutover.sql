@@ -278,7 +278,9 @@ begin
     raise exception 'vocabulary_set % is already on the v2 engine', p_set_id using errcode = 'P0001';
   end if;
   if exists (select 1 from public.practice_sessions where set_id = p_set_id and completed_at is null) then
-    raise exception 'vocabulary_set % has a student practice session in progress; it cannot be upgraded until that session is finished' using errcode = 'P0001';
+    raise exception 'vocabulary_set % has a student practice session in progress; it cannot be upgraded until that session is finished',
+    p_set_id
+  using errcode = 'P0001';
   end if;
   update public.vocabulary_sets set
     practice_engine_version = 2,

@@ -1331,3 +1331,4 @@ grant execute on function public.create_lesson_summary_with_students(text, text,
 grant execute on function public.add_students_to_lesson_summary(uuid, uuid[], uuid[]) to authenticated;
 grant execute on function public.delete_exam_score_file(uuid) to authenticated;
 grant execute on function public.delete_lesson_summary_file(uuid) to authenticated;
+;

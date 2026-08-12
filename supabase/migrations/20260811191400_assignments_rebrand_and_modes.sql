@@ -527,3 +527,4 @@ revoke execute on function public.create_and_publish_pronunciation_task(text, te
 grant execute on function public.create_and_publish_vocabulary_set(text, text, text, boolean, boolean, timestamptz, uuid[]) to authenticated;
 grant execute on function public.create_and_publish_assignment(text, text, timestamptz, uuid[], uuid[]) to authenticated;
 grant execute on function public.create_and_publish_pronunciation_task(text, text, timestamptz, uuid[], uuid[]) to authenticated;
+;

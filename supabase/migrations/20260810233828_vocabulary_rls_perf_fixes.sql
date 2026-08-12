@@ -80,3 +80,4 @@ using (
 );
 
 create index practice_session_words_word_id_idx on public.practice_session_words (word_id);
+;
