@@ -9,3 +9,82 @@ body {
   background: var(--color-bg);
   color: var(--color-fg);
 }
+
+/* Vocabulary practice page (v2 engine) -- scoped to that route only, per
+   the visual-overhaul plan. Only ever animates transform/opacity/box-shadow
+   (paint/composite-only, never triggers layout/reflow) so the extra visual
+   punch never costs frame smoothness. Wrapped in prefers-reduced-motion so
+   motion is fully skipped, not merely reduced, for users who opt out. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes card-enter {
+    0% {
+      opacity: 0;
+      transform: translateX(28px) scale(0.9) rotate(1deg);
+    }
+    60% {
+      opacity: 1;
+      transform: translateX(-4px) scale(1.02) rotate(0deg);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0) scale(1) rotate(0deg);
+    }
+  }
+  @keyframes feedback-pop-correct {
+    0% {
+      opacity: 0;
+      transform: scale(0.7);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.12);
+    }
+    75% {
+      transform: scale(0.96);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes glow-ring-correct {
+    0% {
+      box-shadow: 0 0 0 0 rgb(34 197 94 / 0.45);
+    }
+    70% {
+      box-shadow: 0 0 0 14px rgb(34 197 94 / 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgb(34 197 94 / 0);
+    }
+  }
+  @keyframes feedback-shake-incorrect {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20% {
+      transform: translateX(-8px);
+    }
+    40% {
+      transform: translateX(8px);
+    }
+    60% {
+      transform: translateX(-5px);
+    }
+    80% {
+      transform: translateX(5px);
+    }
+  }
+  .practice-card-enter {
+    animation: card-enter 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .practice-feedback-correct {
+    animation:
+      feedback-pop-correct 380ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      glow-ring-correct 600ms ease-out;
+  }
+  .practice-feedback-incorrect {
+    animation: feedback-shake-incorrect 380ms ease-in-out;
+  }
+}

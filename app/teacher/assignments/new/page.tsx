@@ -19,13 +19,6 @@ export default function NewAssignmentTypePage() {
           <p className="font-medium">普通作业</p>
           <p className="text-sm text-slate-500">附件说明，学生上传文件提交</p>
         </Link>
-        <Link
-          href="/teacher/assignments/new/reading"
-          className="rounded-md border border-slate-200 p-4 hover:border-slate-400"
-        >
-          <p className="font-medium">朗读作业</p>
-          <p className="text-sm text-slate-500">学生朗读内容并录音提交</p>
-        </Link>
       </div>
     </div>
   );

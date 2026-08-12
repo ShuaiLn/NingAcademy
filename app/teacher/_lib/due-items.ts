@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/supabase/database.types";
+import { computeVocabularySessionCompletion } from "@/app/_lib/vocabulary-completion";
 
 export type ItemType = "vocabulary" | "assignment" | "pronunciation";
 
@@ -22,12 +23,16 @@ type AssignmentTargetRow = ClassScopedTargetRow & { assignment_id: string };
 type PronunciationTargetRow = ClassScopedTargetRow & { task_id: string };
 type EnrollmentRow = { class_id: string; student_id: string };
 type SessionRow = {
+  id: string;
   student_id: string;
   set_id: string;
   completed_at: string | null;
   total_words: number;
-  vocabulary_attempts: { is_correct: boolean }[];
+  audio_word_count: number;
+  vocabulary_attempts: { word_id: string; attempt_no: number; is_correct: boolean }[];
 };
+type AudioSubmissionRow = { id: string; session_id: string };
+type AudioFileRow = { word_id: string; vocabulary_audio_submission_id: string };
 type SubmissionRow = { student_id: string; assignment_id: string; submitted_at: string | null };
 type AudioRow = { student_id: string; task_id: string; submitted_at: string | null };
 
@@ -165,10 +170,13 @@ export async function getDueItemsWithIncompleteStudents(
       : opts.studentId
         ? supabase
             .from("practice_sessions")
-            .select("student_id, set_id, completed_at, total_words, vocabulary_attempts(is_correct)")
+            .select("id, student_id, set_id, completed_at, total_words, audio_word_count, vocabulary_attempts(word_id, attempt_no, is_correct)")
             .in("set_id", setIds)
             .eq("student_id", opts.studentId)
-        : supabase.from("practice_sessions").select("student_id, set_id, completed_at, total_words, vocabulary_attempts(is_correct)").in("set_id", setIds);
+        : supabase
+            .from("practice_sessions")
+            .select("id, student_id, set_id, completed_at, total_words, audio_word_count, vocabulary_attempts(word_id, attempt_no, is_correct)")
+            .in("set_id", setIds);
   const submissionsQuery =
     assignmentIds.length === 0
       ? Promise.resolve({ data: [] as SubmissionRow[], error: null })
@@ -188,20 +196,50 @@ export async function getDueItemsWithIncompleteStudents(
     return FAIL;
   }
 
-  const vocabAgg = new Map<string, { completedFull: boolean; correct: number; total: number }>();
-  for (const s of sessionsRes.data ?? []) {
-    const key = `${s.student_id}:${s.set_id}`;
-    const attempts = s.vocabulary_attempts ?? [];
-    const entry = vocabAgg.get(key) ?? { completedFull: false, correct: 0, total: 0 };
-    if (s.completed_at && attempts.length === s.total_words) entry.completedFull = true;
-    entry.correct += attempts.filter((a) => a.is_correct).length;
-    entry.total += attempts.length;
-    vocabAgg.set(key, entry);
+  // Vocabulary audio recordings, needed by the shared completion formula's
+  // audioPassed check -- fetched in two steps (submissions, then their
+  // files) rather than a nested embed-filter, matching this file's existing
+  // convention of merging RLS-scoped reads in JS.
+  const sessionIds = (sessionsRes.data ?? []).map((s) => s.id);
+  const audioSubsRes =
+    sessionIds.length === 0
+      ? { data: [] as AudioSubmissionRow[], error: null }
+      : await supabase.from("vocabulary_audio_submissions").select("id, session_id").in("session_id", sessionIds);
+  if (audioSubsRes.error) {
+    console.error("due-items: vocabulary audio submissions query failed", audioSubsRes.error);
+    return FAIL;
   }
-  const vocabDone = (studentId: string, setId: string) => {
-    const agg = vocabAgg.get(`${studentId}:${setId}`);
-    return !!agg && agg.completedFull && agg.total > 0 && agg.correct / agg.total >= 0.6;
-  };
+  const audioSubmissionIds = (audioSubsRes.data ?? []).map((a) => a.id);
+  const audioFilesRes =
+    audioSubmissionIds.length === 0
+      ? { data: [] as AudioFileRow[], error: null }
+      : await supabase.from("vocabulary_audio_submission_files").select("word_id, vocabulary_audio_submission_id").in("vocabulary_audio_submission_id", audioSubmissionIds);
+  if (audioFilesRes.error) {
+    console.error("due-items: vocabulary audio files query failed", audioFilesRes.error);
+    return FAIL;
+  }
+  const sessionIdBySubmissionId = new Map((audioSubsRes.data ?? []).map((a) => [a.id, a.session_id]));
+  const audioWordIdsBySession = new Map<string, string[]>();
+  for (const f of audioFilesRes.data ?? []) {
+    const sessionId = sessionIdBySubmissionId.get(f.vocabulary_audio_submission_id);
+    if (!sessionId) continue;
+    audioWordIdsBySession.set(sessionId, [...(audioWordIdsBySession.get(sessionId) ?? []), f.word_id]);
+  }
+
+  // "some(session => completedFull)" per (student, set) pair -- once truly
+  // completed once, it stays completed for reporting even if a later,
+  // lower-scoring review session exists.
+  const vocabDoneKeys = new Set<string>();
+  for (const s of sessionsRes.data ?? []) {
+    const attempts = (s.vocabulary_attempts ?? []).map((a) => ({ wordId: a.word_id, attemptNo: a.attempt_no, isCorrect: a.is_correct }));
+    const completion = computeVocabularySessionCompletion(
+      { totalWords: s.total_words, audioWordCount: s.audio_word_count, completedAt: s.completed_at },
+      attempts,
+      audioWordIdsBySession.get(s.id) ?? []
+    );
+    if (completion.completedFull) vocabDoneKeys.add(`${s.student_id}:${s.set_id}`);
+  }
+  const vocabDone = (studentId: string, setId: string) => vocabDoneKeys.has(`${studentId}:${setId}`);
   const doneByAssignment = new Map<string, Set<string>>();
   for (const s of submissionsRes.data ?? []) {
     if (s.submitted_at) doneByAssignment.set(s.assignment_id, (doneByAssignment.get(s.assignment_id) ?? new Set()).add(s.student_id));

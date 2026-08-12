@@ -28,7 +28,11 @@ export function StudentNav({ fullName }: { fullName: string | null }) {
           </nav>
         </div>
         <div className="flex items-center gap-4">
-          {fullName ? <span className="hidden text-sm text-slate-600 sm:inline">{fullName}</span> : null}
+          {fullName ? (
+            <Link href="/student" className="hidden text-sm text-slate-600 hover:text-slate-900 sm:inline">
+              {fullName}
+            </Link>
+          ) : null}
           <form action={logout} className="hidden sm:block">
             <button type="submit" className="text-sm text-slate-600 hover:text-slate-900">
               退出登录
@@ -56,7 +60,11 @@ export function StudentNav({ fullName }: { fullName: string | null }) {
               {link.label}
             </Link>
           ))}
-          {fullName ? <span className="text-sm text-slate-600">{fullName}</span> : null}
+          {fullName ? (
+            <Link href="/student" onClick={() => setOpen(false)} className="text-sm text-slate-600 hover:text-slate-900">
+              {fullName}
+            </Link>
+          ) : null}
           <form action={logout}>
             <button type="submit" className="text-sm text-slate-600 hover:text-slate-900">
               退出登录

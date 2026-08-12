@@ -21,7 +21,12 @@ export function PromptRecorder({
       {existingUrls.map((url, i) => (
         <audio key={i} controls src={url} className="w-full" />
       ))}
-      <AudioRecorder audioSubmissionId={audioSubmissionId} taskWordId={taskWordId} onUploaded={() => router.refresh()} />
+      <AudioRecorder
+        purpose="audio_submission_file"
+        audioSubmissionId={audioSubmissionId}
+        wordId={taskWordId}
+        onUploaded={() => router.refresh()}
+      />
     </div>
   );
 }

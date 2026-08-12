@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
 import { StartPracticeButton } from "../start-practice-button";
 import { DueDateBadge } from "@/app/_components/due-date-badge";
@@ -17,7 +18,7 @@ export default async function StudentVocabularySetDetailPage({
 
   const { data: set } = await supabase
     .from("vocabulary_sets")
-    .select("id, title, description, due_at")
+    .select("id, title, description, due_at, practice_engine_version")
     .eq("id", id)
     .maybeSingle();
 
@@ -54,16 +55,20 @@ export default async function StudentVocabularySetDetailPage({
         ) : null}
       </div>
 
-      <StartPracticeButton setId={set.id} resuming={!!openSession} />
+      <StartPracticeButton setId={set.id} engineVersion={set.practice_engine_version} resuming={!!openSession} />
 
       {pastSessions && pastSessions.length > 0 ? (
         <div className="flex flex-col gap-2 rounded-md border border-slate-200 p-4">
           <h2 className="font-medium">练习记录</h2>
           {pastSessions.map((s) => (
-            <div key={s.id} className="flex items-center justify-between text-sm">
+            <Link
+              key={s.id}
+              href={`/student/vocabulary/${id}/sessions/${s.id}`}
+              className="flex items-center justify-between text-sm hover:underline"
+            >
               <span>{new Date(s.completed_at!).toLocaleString("zh-CN")}</span>
               <span className="text-slate-500">共 {s.total_words} 个单词</span>
-            </div>
+            </Link>
           ))}
         </div>
       ) : null}

@@ -42,7 +42,7 @@ export async function uploadAttachment(
     return { ok: false, error: "上传失败，请稍后重试" };
   }
 
-  const finalize = await finalizeUpload(begin.intentId);
+  const finalize = await finalizeUpload(purpose, begin.intentId);
   if (!finalize.ok) {
     return { ok: false, error: finalize.error };
   }

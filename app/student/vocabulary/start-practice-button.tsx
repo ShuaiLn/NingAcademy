@@ -1,12 +1,23 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { startPracticeSession } from "@/app/actions/practice";
+import { startPracticeSession, startPracticeSessionV2 } from "@/app/actions/practice";
 
-// start_practice_session() is idempotent server-side, so this same button
-// covers both "开始练习" and "继续练习" -- on success it redirects and this
-// component never sees a resolved value.
-export function StartPracticeButton({ setId, resuming }: { setId: string; resuming: boolean }) {
+// start_practice_session()/start_practice_session_v2() are both idempotent
+// server-side, so this same button covers both "开始练习" and "继续练习" --
+// on success it redirects and this component never sees a resolved value.
+// Branches on the *set's* practice_engine_version, mirroring the engine
+// router in app/student/vocabulary/practice/[sessionId]/page.tsx -- a v1
+// set must never be started through the v2 RPC or vice versa.
+export function StartPracticeButton({
+  setId,
+  engineVersion,
+  resuming,
+}: {
+  setId: string;
+  engineVersion: number;
+  resuming: boolean;
+}) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -18,7 +29,7 @@ export function StartPracticeButton({ setId, resuming }: { setId: string; resumi
         onClick={() => {
           setError(null);
           startTransition(async () => {
-            const result = await startPracticeSession(setId);
+            const result = await (engineVersion === 2 ? startPracticeSessionV2(setId) : startPracticeSession(setId));
             if (!result.ok) {
               setError(result.error);
             }

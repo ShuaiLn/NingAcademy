@@ -679,30 +679,57 @@ export type Database = {
       }
       practice_session_words: {
         Row: {
+          autoplay_audio: boolean
           correct_answer: string
+          correct_answers: string[]
           created_at: string
+          input_mode: string
+          play_audio: boolean
           prompt_image_url: string | null
+          prompt_meaning: string | null
+          prompt_term: string | null
           prompt_text: string
           session_id: string
+          show_chinese: boolean
+          show_english: boolean
           sort_order: number
+          source_sort_order: number | null
           word_id: string
         }
         Insert: {
+          autoplay_audio?: boolean
           correct_answer: string
+          correct_answers?: string[]
           created_at?: string
+          input_mode?: string
+          play_audio?: boolean
           prompt_image_url?: string | null
+          prompt_meaning?: string | null
+          prompt_term?: string | null
           prompt_text: string
           session_id: string
+          show_chinese?: boolean
+          show_english?: boolean
           sort_order: number
+          source_sort_order?: number | null
           word_id: string
         }
         Update: {
+          autoplay_audio?: boolean
           correct_answer?: string
+          correct_answers?: string[]
           created_at?: string
+          input_mode?: string
+          play_audio?: boolean
           prompt_image_url?: string | null
+          prompt_meaning?: string | null
+          prompt_term?: string | null
           prompt_text?: string
           session_id?: string
+          show_chinese?: boolean
+          show_english?: boolean
           sort_order?: number
+          source_sort_order?: number | null
           word_id?: string
         }
         Relationships: [
@@ -724,27 +751,42 @@ export type Database = {
       }
       practice_sessions: {
         Row: {
+          allow_student_order_choice: boolean
+          audio_word_count: number
           completed_at: string | null
           created_at: string
+          default_word_order: string
           id: string
+          practice_engine_version: number
+          selected_word_order: string | null
           set_id: string
           started_at: string
           student_id: string
           total_words: number
         }
         Insert: {
+          allow_student_order_choice?: boolean
+          audio_word_count?: number
           completed_at?: string | null
           created_at?: string
+          default_word_order?: string
           id?: string
+          practice_engine_version?: number
+          selected_word_order?: string | null
           set_id: string
           started_at?: string
           student_id: string
           total_words: number
         }
         Update: {
+          allow_student_order_choice?: boolean
+          audio_word_count?: number
           completed_at?: string | null
           created_at?: string
+          default_word_order?: string
           id?: string
+          practice_engine_version?: number
+          selected_word_order?: string | null
           set_id?: string
           started_at?: string
           student_id?: string
@@ -1097,6 +1139,7 @@ export type Database = {
           subject_id: string
           task_word_id: string | null
           uploader_id: string
+          vocabulary_word_id: string | null
         }
         Insert: {
           created_at?: string
@@ -1112,6 +1155,7 @@ export type Database = {
           subject_id: string
           task_word_id?: string | null
           uploader_id: string
+          vocabulary_word_id?: string | null
         }
         Update: {
           created_at?: string
@@ -1127,6 +1171,7 @@ export type Database = {
           subject_id?: string
           task_word_id?: string | null
           uploader_id?: string
+          vocabulary_word_id?: string | null
         }
         Relationships: [
           {
@@ -1143,38 +1188,57 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "upload_intents_vocabulary_word_id_fkey"
+            columns: ["vocabulary_word_id"]
+            isOneToOne: false
+            referencedRelation: "vocabulary_words"
+            referencedColumns: ["id"]
+          },
         ]
       }
       vocabulary_attempts: {
         Row: {
           answered_at: string
+          attempt_no: number
           correct_answer: string
+          correct_answers: string[]
           created_at: string
           id: string
+          input_mode: string
           is_correct: boolean
           prompt_text: string
+          prompt_term: string | null
           session_id: string
           submitted_spelling: string
           word_id: string
         }
         Insert: {
           answered_at?: string
+          attempt_no?: number
           correct_answer: string
+          correct_answers?: string[]
           created_at?: string
           id?: string
+          input_mode?: string
           is_correct: boolean
           prompt_text: string
+          prompt_term?: string | null
           session_id: string
           submitted_spelling: string
           word_id: string
         }
         Update: {
           answered_at?: string
+          attempt_no?: number
           correct_answer?: string
+          correct_answers?: string[]
           created_at?: string
           id?: string
+          input_mode?: string
           is_correct?: boolean
           prompt_text?: string
+          prompt_term?: string | null
           session_id?: string
           submitted_spelling?: string
           word_id?: string
@@ -1196,48 +1260,184 @@ export type Database = {
           },
         ]
       }
+      vocabulary_audio_submission_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          mime_type: string
+          size_bytes: number
+          storage_object_key: string
+          vocabulary_audio_submission_id: string
+          word_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          mime_type: string
+          size_bytes: number
+          storage_object_key: string
+          vocabulary_audio_submission_id: string
+          word_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          mime_type?: string
+          size_bytes?: number
+          storage_object_key?: string
+          vocabulary_audio_submission_id?: string
+          word_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vocabulary_audio_submission_files_vocabulary_audio_submission_id_fkey"
+            columns: ["vocabulary_audio_submission_id"]
+            isOneToOne: false
+            referencedRelation: "vocabulary_audio_submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vocabulary_audio_submission_files_word_id_fkey"
+            columns: ["word_id"]
+            isOneToOne: false
+            referencedRelation: "vocabulary_words"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vocabulary_audio_submissions: {
+        Row: {
+          attempt_no: number
+          created_at: string
+          feedback_text: string | null
+          graded_at: string | null
+          id: string
+          note: string | null
+          score: number | null
+          session_id: string
+          set_id: string
+          student_id: string
+          submitted_at: string | null
+        }
+        Insert: {
+          attempt_no: number
+          created_at?: string
+          feedback_text?: string | null
+          graded_at?: string | null
+          id?: string
+          note?: string | null
+          score?: number | null
+          session_id: string
+          set_id: string
+          student_id: string
+          submitted_at?: string | null
+        }
+        Update: {
+          attempt_no?: number
+          created_at?: string
+          feedback_text?: string | null
+          graded_at?: string | null
+          id?: string
+          note?: string | null
+          score?: number | null
+          session_id?: string
+          set_id?: string
+          student_id?: string
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vocabulary_audio_submissions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "practice_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vocabulary_audio_submissions_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "vocabulary_sets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vocabulary_audio_submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vocabulary_sets: {
         Row: {
+          allow_student_order_choice: boolean
           archived_at: string | null
           audio_only: boolean
           created_at: string
           description: string | null
+          display_autoplay_audio: boolean
+          display_play_audio: boolean
+          display_show_chinese: boolean
+          display_show_english: boolean
           due_at: string | null
           id: string
+          input_mode: string
+          practice_engine_version: number
           prompt_field: string
           published_at: string | null
           show_image: boolean
           teacher_id: string
           title: string
           updated_at: string
+          word_order: string
         }
         Insert: {
+          allow_student_order_choice?: boolean
           archived_at?: string | null
           audio_only?: boolean
           created_at?: string
           description?: string | null
+          display_autoplay_audio?: boolean
+          display_play_audio?: boolean
+          display_show_chinese?: boolean
+          display_show_english?: boolean
           due_at?: string | null
           id?: string
+          input_mode?: string
+          practice_engine_version?: number
           prompt_field?: string
           published_at?: string | null
           show_image?: boolean
           teacher_id: string
           title: string
           updated_at?: string
+          word_order?: string
         }
         Update: {
+          allow_student_order_choice?: boolean
           archived_at?: string | null
           audio_only?: boolean
           created_at?: string
           description?: string | null
+          display_autoplay_audio?: boolean
+          display_play_audio?: boolean
+          display_show_chinese?: boolean
+          display_show_english?: boolean
           due_at?: string | null
           id?: string
+          input_mode?: string
+          practice_engine_version?: number
           prompt_field?: string
           published_at?: string | null
           show_image?: boolean
           teacher_id?: string
           title?: string
           updated_at?: string
+          word_order?: string
         }
         Relationships: [
           {
@@ -1291,6 +1491,38 @@ export type Database = {
           },
         ]
       }
+      vocabulary_word_alt_meanings: {
+        Row: {
+          alt_meaning: string
+          created_at: string
+          id: string
+          sort_order: number
+          word_id: string
+        }
+        Insert: {
+          alt_meaning: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          word_id: string
+        }
+        Update: {
+          alt_meaning?: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          word_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vocabulary_word_alt_meanings_word_id_fkey"
+            columns: ["word_id"]
+            isOneToOne: false
+            referencedRelation: "vocabulary_words"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vocabulary_words: {
         Row: {
           archived_at: string | null
@@ -1298,6 +1530,12 @@ export type Database = {
           id: string
           image_url: string | null
           meaning: string
+          override_autoplay_audio: boolean | null
+          override_input_mode: string | null
+          override_play_audio: boolean | null
+          override_show_chinese: boolean | null
+          override_show_english: boolean | null
+          override_show_image: boolean | null
           set_id: string
           sort_order: number
           term: string
@@ -1309,6 +1547,12 @@ export type Database = {
           id?: string
           image_url?: string | null
           meaning: string
+          override_autoplay_audio?: boolean | null
+          override_input_mode?: string | null
+          override_play_audio?: boolean | null
+          override_show_chinese?: boolean | null
+          override_show_english?: boolean | null
+          override_show_image?: boolean | null
           set_id: string
           sort_order?: number
           term: string
@@ -1320,6 +1564,12 @@ export type Database = {
           id?: string
           image_url?: string | null
           meaning?: string
+          override_autoplay_audio?: boolean | null
+          override_input_mode?: string | null
+          override_play_audio?: boolean | null
+          override_show_chinese?: boolean | null
+          override_show_english?: boolean | null
+          override_show_image?: boolean | null
           set_id?: string
           sort_order?: number
           term?: string
@@ -1390,12 +1640,31 @@ export type Database = {
           storage_object_key: string
         }[]
       }
+      begin_upload_v2: {
+        Args: {
+          p_file_name: string
+          p_mime_type: string
+          p_purpose: string
+          p_size_bytes: number
+          p_subject_id: string
+          p_task_word_id?: string
+          p_vocabulary_word_id?: string
+        }
+        Returns: {
+          intent_id: string
+          storage_object_key: string
+        }[]
+      }
       cancel_upload: { Args: { p_intent_id: string }; Returns: undefined }
       complete_password_change: {
         Args: { p_request_id: string }
         Returns: undefined
       }
       complete_practice_session: {
+        Args: { p_session_id: string }
+        Returns: undefined
+      }
+      complete_practice_session_v2: {
         Args: { p_session_id: string }
         Returns: undefined
       }
@@ -1431,6 +1700,23 @@ export type Database = {
         }
         Returns: string
       }
+      create_and_publish_vocabulary_set_v2: {
+        Args: {
+          p_allow_student_order_choice: boolean
+          p_description: string
+          p_display_autoplay_audio: boolean
+          p_display_play_audio: boolean
+          p_display_show_chinese: boolean
+          p_display_show_english: boolean
+          p_due_at: string
+          p_input_mode: string
+          p_show_image: boolean
+          p_student_ids: string[]
+          p_title: string
+          p_word_order: string
+        }
+        Returns: string
+      }
       create_audio_submission: {
         Args: { p_note: string; p_task_id: string }
         Returns: string
@@ -1458,6 +1744,10 @@ export type Database = {
       }
       create_submission: {
         Args: { p_assignment_id: string; p_note: string }
+        Returns: string
+      }
+      create_vocabulary_audio_submission: {
+        Args: { p_note?: string; p_session_id: string }
         Returns: string
       }
       create_vocabulary_set_with_words: {
@@ -1496,6 +1786,7 @@ export type Database = {
         Returns: boolean
       }
       finalize_upload: { Args: { p_intent_id: string }; Returns: string }
+      finalize_upload_v2: { Args: { p_intent_id: string }; Returns: string }
       finish_audio_submission: {
         Args: { p_audio_submission_id: string }
         Returns: undefined
@@ -1504,12 +1795,51 @@ export type Database = {
         Args: { p_submission_id: string }
         Returns: undefined
       }
+      get_practice_session_state_v2: {
+        Args: { p_session_id: string }
+        Returns: {
+          allow_student_order_choice: boolean
+          audio_word_count: number
+          completed_at: string
+          completed_audio_count: number
+          completed_typed_count: number
+          default_word_order: string
+          selected_word_order: string
+          total_words: number
+          typed_word_count: number
+        }[]
+      }
       get_practice_words: {
         Args: { p_session_id: string }
         Returns: {
           prompt_image_url: string
           prompt_text: string
           sort_order: number
+          word_id: string
+        }[]
+      }
+      get_practice_words_v2: {
+        Args: { p_session_id: string }
+        Returns: {
+          autoplay_audio: boolean
+          input_mode: string
+          play_audio: boolean
+          prompt_image_url: string
+          prompt_meaning: string
+          prompt_term: string
+          show_chinese: boolean
+          show_english: boolean
+          source_sort_order: number
+          word_id: string
+        }[]
+      }
+      get_vocabulary_session_words_review: {
+        Args: { p_session_id: string }
+        Returns: {
+          input_mode: string
+          prompt_meaning: string
+          prompt_term: string
+          source_sort_order: number
           word_id: string
         }[]
       }
@@ -1538,7 +1868,36 @@ export type Database = {
           was_already_recorded: boolean
         }[]
       }
+      record_vocabulary_attempt_v2: {
+        Args: {
+          p_session_id: string
+          p_submitted_spelling: string
+          p_word_id: string
+        }
+        Returns: {
+          attempt_no: number
+          correct_answers: string[]
+          is_correct: boolean
+          was_already_recorded: boolean
+        }[]
+      }
+      replace_vocabulary_word_alt_meanings: {
+        Args: { p_alt_meanings: string[]; p_word_id: string }
+        Returns: undefined
+      }
+      set_practice_session_word_order: {
+        Args: { p_session_id: string; p_word_order: string }
+        Returns: undefined
+      }
       start_practice_session: { Args: { p_set_id: string }; Returns: string }
+      start_practice_session_v2: {
+        Args: { p_set_id: string }
+        Returns: string
+      }
+      upgrade_vocabulary_set_to_v2: {
+        Args: { p_set_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

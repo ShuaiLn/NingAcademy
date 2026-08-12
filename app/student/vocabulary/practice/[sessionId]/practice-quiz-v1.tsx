@@ -6,7 +6,13 @@ import { submitVocabularyAttempt, finishPracticeSession } from "@/app/actions/pr
 
 type Word = { word_id: string; prompt_text: string; prompt_image_url: string | null; sort_order: number };
 
-export function PracticeQuiz({
+// The legacy, one-shot practice engine -- moved to this filename by the v1/
+// v2 engine split (app/student/vocabulary/practice/[sessionId]/page.tsx),
+// otherwise untouched: still calls the original startPracticeSession/
+// submitVocabularyAttempt/finishPracticeSession actions, one-shot grading,
+// no retry queue, no audio. Only rendered for a session whose
+// practice_engine_version is 1.
+export function PracticeQuizV1({
   sessionId,
   words,
   alreadyCompleted,

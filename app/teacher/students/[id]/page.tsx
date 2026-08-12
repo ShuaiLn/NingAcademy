@@ -11,6 +11,7 @@ import { WorkStatsSection, type WorkStatRow, type WorkStatus } from "./work-stat
 import { ExamScoresSection, type ExamScoreRow } from "./exam-scores-section";
 import { RecentSummariesSection, type SummaryRow } from "./recent-summaries-section";
 import { IncompleteItemsSection } from "./incomplete-items-section";
+import { computeVocabularySessionCompletion } from "@/app/_lib/vocabulary-completion";
 
 function submissionStatus(sub: { submitted_at: string | null; score: number | null } | undefined): WorkStatus {
   if (!sub) return "未提交";
@@ -56,7 +57,7 @@ export default async function StudentDetailPage({
   ] = await Promise.all([
     supabase
       .from("practice_sessions")
-      .select("set_id, completed_at, total_words, vocabulary_attempts(is_correct), vocabulary_sets(title)")
+      .select("id, set_id, completed_at, total_words, audio_word_count, vocabulary_attempts(word_id, attempt_no, is_correct), vocabulary_sets(title)")
       .eq("student_id", id),
     supabase.from("vocabulary_targets").select("set_id, vocabulary_sets(title)").eq("student_id", id).is("revoked_at", null),
     supabase.from("enrollments").select("class_id").eq("student_id", id).is("unenrolled_at", null),
@@ -117,8 +118,30 @@ export default async function StudentDetailPage({
   // regardless of target status), falling back to the targets query's title
   // only for sets with zero sessions (assigned but never opened). This
   // avoids a set with real session history losing its title if its target
-  // was later revoked.
-  const vocabFailed = !!sessionsRes.error || !!vocabTargetsRes.error;
+  // was later revoked. 完整完成次数 uses the shared completion formula
+  // (app/_lib/vocabulary-completion.ts), not "every word attempted."
+  const sessionIds = (sessionsRes.data ?? []).map((s) => s.id);
+  const audioSubsRes =
+    sessionIds.length === 0
+      ? { data: [] as { id: string; session_id: string }[], error: null }
+      : await supabase.from("vocabulary_audio_submissions").select("id, session_id").in("session_id", sessionIds);
+  const audioSubmissionIds = (audioSubsRes.data ?? []).map((a) => a.id);
+  const audioFilesRes =
+    audioSubmissionIds.length === 0
+      ? { data: [] as { word_id: string; vocabulary_audio_submission_id: string }[], error: null }
+      : await supabase
+          .from("vocabulary_audio_submission_files")
+          .select("word_id, vocabulary_audio_submission_id")
+          .in("vocabulary_audio_submission_id", audioSubmissionIds);
+  const sessionIdBySubmissionId = new Map((audioSubsRes.data ?? []).map((a) => [a.id, a.session_id]));
+  const audioWordIdsBySession = new Map<string, string[]>();
+  for (const f of audioFilesRes.data ?? []) {
+    const sid = sessionIdBySubmissionId.get(f.vocabulary_audio_submission_id);
+    if (!sid) continue;
+    audioWordIdsBySession.set(sid, [...(audioWordIdsBySession.get(sid) ?? []), f.word_id]);
+  }
+
+  const vocabFailed = !!sessionsRes.error || !!vocabTargetsRes.error || !!audioSubsRes.error || !!audioFilesRes.error;
   const vocabMap = new Map<string, VocabStatRow>();
   for (const session of sessionsRes.data ?? []) {
     const entry = vocabMap.get(session.set_id) ?? {
@@ -131,7 +154,12 @@ export default async function StudentDetailPage({
     };
     const attempts = session.vocabulary_attempts ?? [];
     if (attempts.length > 0) entry.started += 1;
-    if (session.completed_at && attempts.length === session.total_words) entry.completed += 1;
+    const completion = computeVocabularySessionCompletion(
+      { totalWords: session.total_words, audioWordCount: session.audio_word_count, completedAt: session.completed_at },
+      attempts.map((a) => ({ wordId: a.word_id, attemptNo: a.attempt_no, isCorrect: a.is_correct })),
+      audioWordIdsBySession.get(session.id) ?? []
+    );
+    if (completion.completedFull) entry.completed += 1;
     entry.correct += attempts.filter((a) => a.is_correct).length;
     entry.total += attempts.length;
     vocabMap.set(session.set_id, entry);

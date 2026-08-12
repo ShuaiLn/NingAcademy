@@ -57,3 +57,30 @@ export async function gradeAudioSubmission(
   revalidatePath("/teacher/pronunciation");
   return { ok: true };
 }
+
+export type GradeVocabularyAudioSubmissionResult = { ok: true } | { ok: false; error: string };
+
+// One aggregate score/feedback per vocabulary_audio_submissions row (never
+// per-word) -- mirrors gradeAudioSubmission exactly.
+export async function gradeVocabularyAudioSubmission(
+  vocabularyAudioSubmissionId: string,
+  score: number | null,
+  feedbackText: string
+): Promise<GradeVocabularyAudioSubmissionResult> {
+  if (score !== null && (Number.isNaN(score) || score < 0)) {
+    return { ok: false, error: "分数格式不正确" };
+  }
+
+  const supabase = await createClient();
+  const { error, count } = await supabase
+    .from("vocabulary_audio_submissions")
+    .update({ score, feedback_text: feedbackText || null }, { count: "exact" })
+    .eq("id", vocabularyAudioSubmissionId);
+
+  if (error || !count) {
+    return { ok: false, error: "批改失败，该提交可能尚未提交" };
+  }
+
+  revalidatePath("/teacher/vocabulary");
+  return { ok: true };
+}

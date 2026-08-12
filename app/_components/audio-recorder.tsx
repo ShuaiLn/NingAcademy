@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { uploadAttachment } from "./file-uploader";
+import type { UploadPurpose } from "@/app/actions/uploads";
 
 // Feature-detects MediaRecorder + webm support; when unsupported (or mic
 // permission denied), falls back to a plain file-picker accepting the same
-// audio MIME whitelist finalize_upload() enforces server-side for
-// audio_submission_file. The DB/upload pipeline is identical either way --
-// the fallback isn't a parallel system, just this component minus the
-// record button.
+// audio MIME whitelist finalize_upload()/finalize_upload_v2() enforce
+// server-side for their respective audio purposes. The DB/upload pipeline
+// is identical either way -- the fallback isn't a parallel system, just
+// this component minus the record button.
 const AUDIO_ACCEPT = "audio/mpeg,audio/mp4,audio/webm";
 
 function recorderSupported() {
@@ -20,13 +21,21 @@ function recorderSupported() {
 }
 
 export function AudioRecorder({
+  purpose,
   audioSubmissionId,
-  taskWordId,
+  wordId,
   onUploaded,
+  onUploadingChange,
 }: {
+  purpose: UploadPurpose;
   audioSubmissionId: string;
-  taskWordId?: string;
+  wordId?: string;
   onUploaded: (fileId: string) => void;
+  // Optional: reports upload-in-flight state so a caller can disable other
+  // controls for the duration (e.g. the v2 practice loop's race guard
+  // against complete_practice_session_v2 auto-submitting the draft mid-
+  // upload -- see practice-quiz-v2.tsx).
+  onUploadingChange?: (uploading: boolean) => void;
 }) {
   const [supported] = useState(recorderSupported);
   const [recording, setRecording] = useState(false);
@@ -47,6 +56,10 @@ export function AudioRecorder({
     setAudioUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [blob]);
+
+  useEffect(() => {
+    onUploadingChange?.(pending);
+  }, [pending, onUploadingChange]);
 
   async function startRecording() {
     setError(null);
@@ -77,10 +90,11 @@ export function AudioRecorder({
   function upload(file: File) {
     setError(null);
     startTransition(async () => {
-      // begin_upload()'s audio_submission_file branch requires p_subject_id
-      // to be the audio_submissions row's own id (the in-progress draft),
-      // not the parent pronunciation_tasks id -- see its ownership check.
-      const result = await uploadAttachment(file, "audio_submission_file", audioSubmissionId, taskWordId);
+      // begin_upload()/begin_upload_v2()'s audio-submission branches require
+      // p_subject_id to be the (audio_submissions | vocabulary_audio_submissions)
+      // row's own id (the in-progress draft), not the parent task/set id --
+      // see their ownership checks.
+      const result = await uploadAttachment(file, purpose, audioSubmissionId, wordId);
       if (!result.ok) {
         setError(result.error);
         return;

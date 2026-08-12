@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
 import { StartPracticeButton } from "./start-practice-button";
 import { DueDateBadge } from "@/app/_components/due-date-badge";
@@ -7,7 +8,7 @@ export default async function StudentVocabularyPage() {
 
   const { data: targets } = await supabase
     .from("vocabulary_targets")
-    .select("set_id, vocabulary_sets(id, title, description, due_at)")
+    .select("set_id, vocabulary_sets(id, title, description, due_at, practice_engine_version)")
     .is("revoked_at", null);
 
   const assignedSets = (targets ?? [])
@@ -17,6 +18,7 @@ export default async function StudentVocabularyPage() {
       title: t.vocabulary_sets!.title,
       description: t.vocabulary_sets!.description,
       dueAt: t.vocabulary_sets!.due_at,
+      engineVersion: t.vocabulary_sets!.practice_engine_version,
     }));
 
   const setIds = assignedSets.map((s) => s.setId);
@@ -52,7 +54,17 @@ export default async function StudentVocabularyPage() {
                   </p>
                 ) : null}
               </div>
-              <StartPracticeButton setId={s.setId} resuming={openSetIds.has(s.setId)} />
+              <div className="flex items-center gap-3">
+                <Link
+                  href={`/student/vocabulary/${s.setId}`}
+                  aria-label="查看练习记录"
+                  title="查看练习记录"
+                  className="text-slate-400 hover:text-slate-700"
+                >
+                  🕐
+                </Link>
+                <StartPracticeButton setId={s.setId} engineVersion={s.engineVersion} resuming={openSetIds.has(s.setId)} />
+              </div>
             </div>
           );
         })}
