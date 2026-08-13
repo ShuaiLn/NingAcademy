@@ -7,7 +7,7 @@ import {
   deleteVocabularyWord,
   type UpdateVocabularyWordResult,
 } from "@/app/actions/vocabulary";
-import { AltMeaningsEditor } from "./alt-meanings-editor";
+import { AltAnswersEditor } from "./alt-answers-editor";
 
 const initialState: UpdateVocabularyWordResult = { ok: false, error: "" };
 
@@ -24,6 +24,7 @@ export type EditableWord = {
   override_autoplay_audio: boolean | null;
   override_input_mode: string | null;
   altMeanings: string[];
+  altTerms: string[];
 };
 
 // Tri-state (继承/是/否) <select> for one override_* column -- an empty
@@ -58,11 +59,14 @@ export function WordRow({
   setId,
   word,
   isV2,
+  setInputMode,
 }: {
   setId: string;
   word: EditableWord;
   isV2: boolean;
+  setInputMode: string;
 }) {
+  const effectiveInputMode = word.override_input_mode ?? setInputMode;
   const [state, formAction, pending] = useActionState(updateVocabularyWord, initialState);
   const [archivePending, startArchiveTransition] = useTransition();
   const [deletePending, startDeleteTransition] = useTransition();
@@ -179,9 +183,14 @@ export function WordRow({
           ) : null}
         </form>
 
-        {isV2 && showOverrides ? (
+        {isV2 && showOverrides && effectiveInputMode === "type_chinese" ? (
           <div className="mt-2">
-            <AltMeaningsEditor wordId={word.id} setId={setId} initialAltMeanings={word.altMeanings} />
+            <AltAnswersEditor kind="chinese" wordId={word.id} setId={setId} initialValues={word.altMeanings} />
+          </div>
+        ) : null}
+        {isV2 && showOverrides && effectiveInputMode === "type_english" ? (
+          <div className="mt-2">
+            <AltAnswersEditor kind="english" wordId={word.id} setId={setId} initialValues={word.altTerms} />
           </div>
         ) : null}
 

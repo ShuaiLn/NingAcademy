@@ -50,6 +50,15 @@ export default async function VocabularySetDetailPage({
     altMeaningsByWord.set(row.word_id, [...(altMeaningsByWord.get(row.word_id) ?? []), row.alt_meaning]);
   }
 
+  const { data: altTermsRows } =
+    isV2 && wordIds.length > 0
+      ? await supabase.from("vocabulary_word_alt_terms").select("word_id, alt_term").in("word_id", wordIds).order("sort_order", { ascending: true })
+      : { data: [] as { word_id: string; alt_term: string }[] };
+  const altTermsByWord = new Map<string, string[]>();
+  for (const row of altTermsRows ?? []) {
+    altTermsByWord.set(row.word_id, [...(altTermsByWord.get(row.word_id) ?? []), row.alt_term]);
+  }
+
   const { data: students } = await supabase
     .from("students")
     .select("id, profiles(full_name)")
@@ -147,7 +156,17 @@ export default async function VocabularySetDetailPage({
         <table className="w-full border-collapse text-sm">
           <tbody>
             {words?.map((word) => (
-              <WordRow key={word.id} setId={set.id} isV2={isV2} word={{ ...word, altMeanings: altMeaningsByWord.get(word.id) ?? [] }} />
+              <WordRow
+                key={word.id}
+                setId={set.id}
+                isV2={isV2}
+                setInputMode={set.input_mode}
+                word={{
+                  ...word,
+                  altMeanings: altMeaningsByWord.get(word.id) ?? [],
+                  altTerms: altTermsByWord.get(word.id) ?? [],
+                }}
+              />
             ))}
             {!words || words.length === 0 ? (
               <tr>
@@ -156,7 +175,7 @@ export default async function VocabularySetDetailPage({
             ) : null}
           </tbody>
         </table>
-        <AddWordsForm setId={set.id} />
+        <AddWordsForm setId={set.id} isV2={isV2} inputMode={set.input_mode} />
       </div>
 
       <AssignPanel setId={set.id} allStudents={allStudents} assignedStudentIds={assignedStudentIds} />

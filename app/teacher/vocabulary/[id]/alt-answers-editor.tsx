@@ -1,21 +1,25 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { updateVocabularyWordAltMeanings } from "@/app/actions/vocabulary";
+import { updateVocabularyWordAltMeanings, updateVocabularyWordAltTerms } from "@/app/actions/vocabulary";
 
 // Same "add/remove rows, save as one array" pattern as word-rows-editor.tsx,
-// scoped to one word's alternative accepted Chinese translations (v2 sets,
-// input_mode=type_chinese only -- rendered conditionally by word-row.tsx).
-export function AltMeaningsEditor({
+// scoped to one word's alternative accepted answers (v2 sets only, rendered
+// conditionally by word-row.tsx). `kind` picks which direction this word's
+// input_mode is: "chinese" (type_chinese, alt translations) or "english"
+// (type_english, alt spellings) -- each backed by its own table/RPC pair.
+export function AltAnswersEditor({
+  kind,
   wordId,
   setId,
-  initialAltMeanings,
+  initialValues,
 }: {
+  kind: "chinese" | "english";
   wordId: string;
   setId: string;
-  initialAltMeanings: string[];
+  initialValues: string[];
 }) {
-  const [items, setItems] = useState<string[]>(initialAltMeanings.length > 0 ? initialAltMeanings : [""]);
+  const [items, setItems] = useState<string[]>(initialValues.length > 0 ? initialValues : [""]);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -38,11 +42,11 @@ export function AltMeaningsEditor({
     setError(null);
     setSaved(false);
     startTransition(async () => {
-      const result = await updateVocabularyWordAltMeanings(
-        wordId,
-        setId,
-        items.map((v) => v.trim()).filter((v) => v.length > 0)
-      );
+      const values = items.map((v) => v.trim()).filter((v) => v.length > 0);
+      const result =
+        kind === "chinese"
+          ? await updateVocabularyWordAltMeanings(wordId, setId, values)
+          : await updateVocabularyWordAltTerms(wordId, setId, values);
       if (result.ok) {
         setSaved(true);
       } else {
@@ -51,9 +55,11 @@ export function AltMeaningsEditor({
     });
   }
 
+  const label = kind === "chinese" ? "其他可接受的中文译文（可选，最多 10 个）" : "其他可接受的英文拼写（可选，最多 10 个）";
+
   return (
     <div className="flex flex-col gap-1 text-sm">
-      <span className="text-slate-500">其他可接受的中文译文（可选，最多 10 个）</span>
+      <span className="text-slate-500">{label}</span>
       <div className="flex flex-wrap items-center gap-2">
         {items.map((value, i) => (
           <div key={i} className="flex items-center gap-1">
@@ -87,7 +93,7 @@ export function AltMeaningsEditor({
           disabled={pending}
           className="rounded-md bg-slate-900 px-2 py-1 text-xs text-white disabled:opacity-50"
         >
-          {pending ? "保存中…" : "保存译文"}
+          {pending ? "保存中…" : "保存"}
         </button>
         {saved ? <span className="text-xs text-green-700">已保存</span> : null}
         {error ? <span className="text-xs text-red-600">{error}</span> : null}

@@ -1207,8 +1207,8 @@ export type Database = {
           id: string
           input_mode: string
           is_correct: boolean
-          prompt_text: string
           prompt_term: string | null
+          prompt_text: string
           session_id: string
           submitted_spelling: string
           word_id: string
@@ -1222,8 +1222,8 @@ export type Database = {
           id?: string
           input_mode?: string
           is_correct: boolean
-          prompt_text: string
           prompt_term?: string | null
+          prompt_text: string
           session_id: string
           submitted_spelling: string
           word_id: string
@@ -1237,8 +1237,8 @@ export type Database = {
           id?: string
           input_mode?: string
           is_correct?: boolean
-          prompt_text?: string
           prompt_term?: string | null
+          prompt_text?: string
           session_id?: string
           submitted_spelling?: string
           word_id?: string
@@ -1293,7 +1293,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "vocabulary_audio_submission_files_vocabulary_audio_submission_id_fkey"
+            foreignKeyName: "vocabulary_audio_submission_f_vocabulary_audio_submission__fkey"
             columns: ["vocabulary_audio_submission_id"]
             isOneToOne: false
             referencedRelation: "vocabulary_audio_submissions"
@@ -1523,6 +1523,38 @@ export type Database = {
           },
         ]
       }
+      vocabulary_word_alt_terms: {
+        Row: {
+          alt_term: string
+          created_at: string
+          id: string
+          sort_order: number
+          word_id: string
+        }
+        Insert: {
+          alt_term: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          word_id: string
+        }
+        Update: {
+          alt_term?: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          word_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vocabulary_word_alt_terms_word_id_fkey"
+            columns: ["word_id"]
+            isOneToOne: false
+            referencedRelation: "vocabulary_words"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vocabulary_words: {
         Row: {
           archived_at: string | null
@@ -1604,6 +1636,10 @@ export type Database = {
           p_student_ids: string[]
           p_summary_id: string
         }
+        Returns: undefined
+      }
+      add_vocabulary_words_with_answers: {
+        Args: { p_set_id: string; p_words: Json }
         Returns: undefined
       }
       assign_assignment_to_targets: {
@@ -1885,15 +1921,16 @@ export type Database = {
         Args: { p_alt_meanings: string[]; p_word_id: string }
         Returns: undefined
       }
+      replace_vocabulary_word_alt_terms: {
+        Args: { p_alt_terms: string[]; p_word_id: string }
+        Returns: undefined
+      }
       set_practice_session_word_order: {
         Args: { p_session_id: string; p_word_order: string }
         Returns: undefined
       }
       start_practice_session: { Args: { p_set_id: string }; Returns: string }
-      start_practice_session_v2: {
-        Args: { p_set_id: string }
-        Returns: string
-      }
+      start_practice_session_v2: { Args: { p_set_id: string }; Returns: string }
       upgrade_vocabulary_set_to_v2: {
         Args: { p_set_id: string }
         Returns: undefined

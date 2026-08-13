@@ -269,18 +269,19 @@ export default async function StudentDetailPage({
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">词汇作业统计</h2>
-        <VocabularyStatsSection failed={vocabFailed} rows={vocabRows} />
+        <h2 className="text-lg font-medium">词汇 / 朗读作业统计</h2>
+        <VocabularyStatsSection
+          vocabFailed={vocabFailed}
+          pronunciationFailed={pronunciationFailed}
+          vocabRows={vocabRows}
+          pronunciationRows={pronunciationRows}
+          now={now}
+        />
       </section>
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-medium">普通作业统计</h2>
         <WorkStatsSection failed={assignmentFailed} rows={assignmentRows} emptyLabel="还没有分配任何普通作业。" hrefPrefix="/teacher/assignments" now={now} />
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">朗读作业统计</h2>
-        <WorkStatsSection failed={pronunciationFailed} rows={pronunciationRows} emptyLabel="还没有分配任何朗读作业。" hrefPrefix="/teacher/pronunciation" now={now} />
       </section>
 
       <section className="flex flex-col gap-3">

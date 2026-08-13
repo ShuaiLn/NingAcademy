@@ -55,15 +55,13 @@ export default async function StudentVocabularyPage() {
                 ) : null}
               </div>
               <div className="flex items-center gap-3">
+                <StartPracticeButton setId={s.setId} engineVersion={s.engineVersion} resuming={openSetIds.has(s.setId)} />
                 <Link
                   href={`/student/vocabulary/${s.setId}`}
-                  aria-label="查看练习记录"
-                  title="查看练习记录"
-                  className="text-slate-400 hover:text-slate-700"
+                  className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:border-slate-400"
                 >
-                  🕐
+                  历史记录
                 </Link>
-                <StartPracticeButton setId={s.setId} engineVersion={s.engineVersion} resuming={openSetIds.has(s.setId)} />
               </div>
             </div>
           );

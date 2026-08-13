@@ -8,6 +8,7 @@ export type VocabularyWordInput = {
   term: string;
   meaning: string;
   imageUrl: string;
+  altAnswers: string[];
 };
 
 // The create/add-words forms serialize their dynamic row list into one
@@ -23,6 +24,12 @@ function parseWordsField(raw: FormDataEntryValue | null): VocabularyWordInput[] 
         term: String(w?.term ?? "").trim(),
         meaning: String(w?.meaning ?? "").trim(),
         imageUrl: String(w?.imageUrl ?? "").trim(),
+        altAnswers: Array.isArray(w?.altAnswers)
+          ? w.altAnswers
+              .map((a: unknown) => String(a ?? "").trim())
+              .filter((a: string) => a.length > 0)
+              .slice(0, 10)
+          : [],
       }))
       .filter((w) => w.term && w.meaning);
   } catch {
@@ -169,9 +176,10 @@ export async function updateVocabularySetDetails(
 
 export type AddVocabularyWordsResult = { ok: false; error: string };
 
-// Appends more words to an existing (possibly already published) set. A
-// plain INSERT is safe here -- format/length validation is enforced by
-// vocabulary_words' own CHECK constraints regardless of the write path.
+// Appends more words to an existing (possibly already published) set.
+// Delegates to add_vocabulary_words_with_answers(), which inserts every word
+// and its alt-answers in one function body -- a constraint violation or a
+// failed alt-answer write rolls back the entire batch, not just one row.
 export async function addVocabularyWords(
   _prevState: AddVocabularyWordsResult,
   formData: FormData
@@ -187,20 +195,10 @@ export async function addVocabularyWords(
   }
 
   const supabase = await createClient();
-  const { count: existingCount } = await supabase
-    .from("vocabulary_words")
-    .select("id", { count: "exact", head: true })
-    .eq("set_id", setId);
-
-  const { error } = await supabase.from("vocabulary_words").insert(
-    words.map((w, i) => ({
-      set_id: setId,
-      term: w.term,
-      meaning: w.meaning,
-      image_url: w.imageUrl || null,
-      sort_order: (existingCount ?? 0) + i,
-    }))
-  );
+  const { error } = await supabase.rpc("add_vocabulary_words_with_answers", {
+    p_set_id: setId,
+    p_words: words,
+  });
 
   if (error) {
     return { ok: false, error: "添加失败，请稍后重试" };
@@ -548,6 +546,27 @@ export async function updateVocabularyWordAltMeanings(
   const { error } = await supabase.rpc("replace_vocabulary_word_alt_meanings", {
     p_word_id: wordId,
     p_alt_meanings: altMeanings,
+  });
+
+  if (error) {
+    return { ok: false, error: "保存失败，请稍后重试" };
+  }
+
+  revalidatePath(`/teacher/vocabulary/${setId}`);
+  return { ok: true };
+}
+
+export type UpdateAltTermsResult = { ok: true } | { ok: false; error: string };
+
+export async function updateVocabularyWordAltTerms(
+  wordId: string,
+  setId: string,
+  altTerms: string[]
+): Promise<UpdateAltTermsResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("replace_vocabulary_word_alt_terms", {
+    p_word_id: wordId,
+    p_alt_terms: altTerms,
   });
 
   if (error) {

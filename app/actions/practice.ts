@@ -107,8 +107,18 @@ export async function submitVocabularyAttemptV2(
     p_submitted_spelling: submittedSpelling,
   });
 
+  if (error) {
+    console.error("record_vocabulary_attempt_v2 failed", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
+    return { ok: false, error: "提交失败，请稍后重试" };
+  }
+
   const row = data?.[0];
-  if (error || !row) {
+  if (!row) {
     return { ok: false, error: "提交失败，请稍后重试" };
   }
 
