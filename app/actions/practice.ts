@@ -163,6 +163,23 @@ export async function startVocabularyAudioSubmission(sessionId: string): Promise
   return { ok: true, audioSubmissionId };
 }
 
+export type LogTabEventResult = { ok: true } | { ok: false; error: string };
+
+// Fire-and-forget from the client: callers must swallow failures, a failed
+// log can never interrupt practice.
+export async function logPracticeSessionTabEvent(
+  sessionId: string,
+  eventType: "hidden" | "visible"
+): Promise<LogTabEventResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("log_practice_session_tab_event", {
+    p_session_id: sessionId,
+    p_event_type: eventType,
+  });
+  if (error) return { ok: false, error: "记录失败" };
+  return { ok: true };
+}
+
 export type SetPracticeSessionWordOrderResult = { ok: true } | { ok: false; error: string };
 
 // Used exactly once per session, before the first word is presented -- the

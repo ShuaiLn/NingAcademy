@@ -87,4 +87,15 @@ body {
   .practice-feedback-incorrect {
     animation: feedback-shake-incorrect 380ms ease-in-out;
   }
+  .practice-no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  .practice-no-select input,
+  .practice-no-select textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    user-select: text;
+  }
 }

@@ -1,10 +1,16 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
+import { useEffect, useState, useTransition, type FormEvent, type SyntheticEvent } from "react";
 import Link from "next/link";
-import { submitVocabularyAttempt, finishPracticeSession } from "@/app/actions/practice";
+import { submitVocabularyAttempt, finishPracticeSession, logPracticeSessionTabEvent } from "@/app/actions/practice";
 
 type Word = { word_id: string; prompt_text: string; prompt_image_url: string | null; sort_order: number };
+
+function blockCopyOutsideInputs(e: SyntheticEvent) {
+  const tag = (e.target as HTMLElement).tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA") return;
+  e.preventDefault();
+}
 
 // The legacy, one-shot practice engine -- moved to this filename by the v1/
 // v2 engine split (app/student/vocabulary/practice/[sessionId]/page.tsx),
@@ -34,6 +40,53 @@ export function PracticeQuizV1({
   const [error, setError] = useState<string | null>(null);
 
   const currentWord = words[index];
+
+  // Tab-switch/away logging -- see practice-quiz-v2.tsx's copy of this
+  // effect for the full reasoning behind the visibilitychange/blur-fallback/
+  // pagehide split.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    let lastLogged: "hidden" | "visible" = document.hidden ? "hidden" : "visible";
+    let blurTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function logIfChanged(next: "hidden" | "visible") {
+      if (next === lastLogged) return;
+      lastLogged = next;
+      logPracticeSessionTabEvent(sessionId, next).catch(() => {});
+    }
+
+    function onVisibilityChange() {
+      logIfChanged(document.hidden ? "hidden" : "visible");
+    }
+
+    function onBlurOrFocus() {
+      if (blurTimer) clearTimeout(blurTimer);
+      blurTimer = setTimeout(() => {
+        logIfChanged(document.hidden || !document.hasFocus() ? "hidden" : "visible");
+      }, 400);
+    }
+
+    function onPageHide() {
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(
+          "/api/practice-tab-event",
+          new Blob([JSON.stringify({ sessionId, eventType: "hidden" })], { type: "application/json" })
+        );
+      }
+    }
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("blur", onBlurOrFocus);
+    window.addEventListener("focus", onBlurOrFocus);
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("blur", onBlurOrFocus);
+      window.removeEventListener("focus", onBlurOrFocus);
+      window.removeEventListener("pagehide", onPageHide);
+      if (blurTimer) clearTimeout(blurTimer);
+    };
+  }, [sessionId]);
 
   // Only ever triggered from a manual button click, never on mount -- see
   // the migration's audio_only column comment.
@@ -120,7 +173,11 @@ export function PracticeQuizV1({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div
+      className="practice-no-select flex flex-col gap-4"
+      onCopy={blockCopyOutsideInputs}
+      onContextMenu={blockCopyOutsideInputs}
+    >
       <p className="text-sm text-slate-500">
         第 {index + 1} / {words.length} 个
       </p>

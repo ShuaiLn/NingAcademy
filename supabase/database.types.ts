@@ -677,9 +677,52 @@ export type Database = {
           },
         ]
       }
+      practice_session_tab_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          occurred_at: string
+          session_id: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          occurred_at?: string
+          session_id: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          occurred_at?: string
+          session_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practice_session_tab_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "practice_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "practice_session_tab_events_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       practice_session_words: {
         Row: {
           autoplay_audio: boolean
+          choices: Json
           correct_answer: string
           correct_answers: string[]
           created_at: string
@@ -687,6 +730,7 @@ export type Database = {
           play_audio: boolean
           prompt_image_url: string | null
           prompt_meaning: string | null
+          prompt_question: string | null
           prompt_term: string | null
           prompt_text: string
           session_id: string
@@ -698,6 +742,7 @@ export type Database = {
         }
         Insert: {
           autoplay_audio?: boolean
+          choices?: Json
           correct_answer: string
           correct_answers?: string[]
           created_at?: string
@@ -705,6 +750,7 @@ export type Database = {
           play_audio?: boolean
           prompt_image_url?: string | null
           prompt_meaning?: string | null
+          prompt_question?: string | null
           prompt_term?: string | null
           prompt_text: string
           session_id: string
@@ -716,6 +762,7 @@ export type Database = {
         }
         Update: {
           autoplay_audio?: boolean
+          choices?: Json
           correct_answer?: string
           correct_answers?: string[]
           created_at?: string
@@ -723,6 +770,7 @@ export type Database = {
           play_audio?: boolean
           prompt_image_url?: string | null
           prompt_meaning?: string | null
+          prompt_question?: string | null
           prompt_term?: string | null
           prompt_text?: string
           session_id?: string
@@ -1555,6 +1603,41 @@ export type Database = {
           },
         ]
       }
+      vocabulary_word_choices: {
+        Row: {
+          choice_text: string
+          created_at: string
+          id: string
+          is_correct: boolean
+          sort_order: number
+          word_id: string
+        }
+        Insert: {
+          choice_text: string
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          sort_order?: number
+          word_id: string
+        }
+        Update: {
+          choice_text?: string
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          sort_order?: number
+          word_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vocabulary_word_choices_word_id_fkey"
+            columns: ["word_id"]
+            isOneToOne: false
+            referencedRelation: "vocabulary_words"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vocabulary_words: {
         Row: {
           archived_at: string | null
@@ -1568,6 +1651,7 @@ export type Database = {
           override_show_chinese: boolean | null
           override_show_english: boolean | null
           override_show_image: boolean | null
+          question_prompt: string | null
           set_id: string
           sort_order: number
           term: string
@@ -1585,6 +1669,7 @@ export type Database = {
           override_show_chinese?: boolean | null
           override_show_english?: boolean | null
           override_show_image?: boolean | null
+          question_prompt?: string | null
           set_id: string
           sort_order?: number
           term: string
@@ -1602,6 +1687,7 @@ export type Database = {
           override_show_chinese?: boolean | null
           override_show_english?: boolean | null
           override_show_image?: boolean | null
+          question_prompt?: string | null
           set_id?: string
           sort_order?: number
           term?: string
@@ -1858,10 +1944,12 @@ export type Database = {
         Args: { p_session_id: string }
         Returns: {
           autoplay_audio: boolean
+          choices: Json
           input_mode: string
           play_audio: boolean
           prompt_image_url: string
           prompt_meaning: string
+          prompt_question: string
           prompt_term: string
           show_chinese: boolean
           show_english: boolean
@@ -1874,10 +1962,15 @@ export type Database = {
         Returns: {
           input_mode: string
           prompt_meaning: string
+          prompt_question: string
           prompt_term: string
           source_sort_order: number
           word_id: string
         }[]
+      }
+      log_practice_session_tab_event: {
+        Args: { p_event_type: string; p_session_id: string }
+        Returns: undefined
       }
       publish_assignment: {
         Args: { p_assignment_id: string }
@@ -1923,6 +2016,10 @@ export type Database = {
       }
       replace_vocabulary_word_alt_terms: {
         Args: { p_alt_terms: string[]; p_word_id: string }
+        Returns: undefined
+      }
+      replace_vocabulary_word_choices: {
+        Args: { p_choices: Json; p_word_id: string }
         Returns: undefined
       }
       set_practice_session_word_order: {

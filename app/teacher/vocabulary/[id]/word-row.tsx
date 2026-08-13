@@ -8,6 +8,7 @@ import {
   type UpdateVocabularyWordResult,
 } from "@/app/actions/vocabulary";
 import { AltAnswersEditor } from "./alt-answers-editor";
+import { ChoicesEditor } from "./choices-editor";
 
 const initialState: UpdateVocabularyWordResult = { ok: false, error: "" };
 
@@ -23,8 +24,10 @@ export type EditableWord = {
   override_show_image: boolean | null;
   override_autoplay_audio: boolean | null;
   override_input_mode: string | null;
+  question_prompt: string | null;
   altMeanings: string[];
   altTerms: string[];
+  choices: { choiceText: string; isCorrect: boolean }[];
 };
 
 // Tri-state (继承/是/否) <select> for one override_* column -- an empty
@@ -72,6 +75,15 @@ export function WordRow({
   const [deletePending, startDeleteTransition] = useTransition();
   const [actionError, setActionError] = useState<string | null>(null);
   const [showOverrides, setShowOverrides] = useState(false);
+  // Tracked separately from word.override_input_mode (the last-saved,
+  // server-confirmed value) so the question-prompt textarea can appear the
+  // instant the teacher picks 多选题 from the select, in the same form
+  // submit as the mode flip itself -- required because
+  // vocabulary_words_question_prompt_required_for_mc is a same-row CHECK: a
+  // save that flips override_input_mode to multiple_choice without also
+  // writing a non-null question_prompt in that same statement fails outright.
+  const [liveInputMode, setLiveInputMode] = useState(word.override_input_mode ?? "");
+  const mcModeActive = liveInputMode === "multiple_choice";
 
   if (word.archived_at) {
     return (
@@ -90,16 +102,21 @@ export function WordRow({
         <form action={formAction} className="flex flex-wrap items-end gap-2">
           <input type="hidden" name="wordId" value={word.id} />
           <input type="hidden" name="setId" value={setId} />
+          {/* hidden (not type="hidden") when MC is active: still submits its
+              unchanged value, just not shown -- switching back to a typed
+              mode later reveals the original term/meaning untouched. */}
           <input
             name="term"
             type="text"
             defaultValue={word.term}
+            hidden={mcModeActive}
             className="w-32 rounded-md border border-slate-300 px-2 py-1 text-sm outline-none focus:border-slate-500"
           />
           <input
             name="meaning"
             type="text"
             defaultValue={word.meaning}
+            hidden={mcModeActive}
             className="w-32 rounded-md border border-slate-300 px-2 py-1 text-sm outline-none focus:border-slate-500"
           />
           <input
@@ -169,16 +186,30 @@ export function WordRow({
                   输入方式
                   <select
                     name="overrideInputMode"
-                    defaultValue={word.override_input_mode ?? ""}
+                    value={liveInputMode}
+                    onChange={(e) => setLiveInputMode(e.target.value)}
                     className="rounded border border-slate-300 px-1 py-0.5 text-xs outline-none focus:border-slate-500"
                   >
                     <option value="">继承</option>
                     <option value="type_english">拼写英文</option>
                     <option value="type_chinese">填写中文</option>
                     <option value="audio">朗读录音</option>
+                    <option value="multiple_choice">多选题</option>
                   </select>
                 </label>
               </div>
+              {mcModeActive ? (
+                <label className="flex flex-col gap-1 text-xs text-slate-600">
+                  题目
+                  <textarea
+                    name="questionPrompt"
+                    defaultValue={word.question_prompt ?? ""}
+                    maxLength={500}
+                    placeholder="多选题的题干文本"
+                    className="w-full rounded-md border border-slate-300 px-2 py-1 text-sm outline-none focus:border-slate-500"
+                  />
+                </label>
+              ) : null}
             </div>
           ) : null}
         </form>
@@ -191,6 +222,14 @@ export function WordRow({
         {isV2 && showOverrides && effectiveInputMode === "type_english" ? (
           <div className="mt-2">
             <AltAnswersEditor kind="english" wordId={word.id} setId={setId} initialValues={word.altTerms} />
+          </div>
+        ) : null}
+        {/* Always visible whenever this mode is server-confirmed active --
+            not gated behind 个性化设置, since the choices are the question's
+            actual content, not an optional refinement. */}
+        {isV2 && effectiveInputMode === "multiple_choice" ? (
+          <div className="mt-2">
+            <ChoicesEditor wordId={word.id} setId={setId} initialChoices={word.choices} />
           </div>
         ) : null}
 

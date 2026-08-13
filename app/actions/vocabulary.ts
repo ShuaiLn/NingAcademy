@@ -226,6 +226,12 @@ export async function updateVocabularyWord(
   // overrides untouched) from "field present but empty" (v2 row: write
   // null, i.e. explicit inherit).
   const hasOverrides = formData.has("overrideInputMode");
+  // Present only while the row's live (client-side, not-yet-saved) mode
+  // select reads multiple_choice -- see word-row.tsx. Gating the write on
+  // presence, rather than always writing questionPrompt || null, means
+  // switching a word away from multiple_choice and back never silently
+  // wipes a previously-entered question.
+  const hasQuestionPrompt = formData.has("questionPrompt");
 
   if (!term || !meaning) {
     return { ok: false, error: "单词和释义不能为空" };
@@ -249,6 +255,7 @@ export async function updateVocabularyWord(
               override_input_mode: String(formData.get("overrideInputMode") ?? "") || null,
             }
           : {}),
+        ...(hasQuestionPrompt ? { question_prompt: String(formData.get("questionPrompt") ?? "").trim() || null } : {}),
       },
       { count: "exact" }
     )
@@ -571,6 +578,31 @@ export async function updateVocabularyWordAltTerms(
 
   if (error) {
     return { ok: false, error: "保存失败，请稍后重试" };
+  }
+
+  revalidatePath(`/teacher/vocabulary/${setId}`);
+  return { ok: true };
+}
+
+export type UpdateVocabularyWordChoicesResult = { ok: true } | { ok: false; error: string };
+
+// Whole-array replace, same shape as updateVocabularyWordAltMeanings/Terms
+// above -- replace_vocabulary_word_choices() itself rejects <2 or >8
+// choices, duplicate choice text, and anything other than exactly one
+// correct choice.
+export async function updateVocabularyWordChoices(
+  wordId: string,
+  setId: string,
+  choices: { choiceText: string; isCorrect: boolean }[]
+): Promise<UpdateVocabularyWordChoicesResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("replace_vocabulary_word_choices", {
+    p_word_id: wordId,
+    p_choices: choices,
+  });
+
+  if (error) {
+    return { ok: false, error: "保存失败：请检查选项是否为 2-8 个、内容不重复，且恰好一个标记为正确答案" };
   }
 
   revalidatePath(`/teacher/vocabulary/${setId}`);

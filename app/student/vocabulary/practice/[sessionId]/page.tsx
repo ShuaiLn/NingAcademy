@@ -60,7 +60,16 @@ export default async function PracticeSessionPage({
       show_chinese: w.show_chinese,
       play_audio: w.play_audio,
       autoplay_audio: w.autoplay_audio,
-      input_mode: w.input_mode === "type_chinese" ? "type_chinese" : w.input_mode === "audio" ? "audio" : "type_english",
+      input_mode:
+        w.input_mode === "type_chinese"
+          ? "type_chinese"
+          : w.input_mode === "audio"
+            ? "audio"
+            : w.input_mode === "multiple_choice"
+              ? "multiple_choice"
+              : "type_english",
+      prompt_question: w.prompt_question,
+      choices: Array.isArray(w.choices) ? (w.choices as string[]) : null,
     }));
 
     return <PracticeQuizV2 sessionId={sessionId} initialWords={words} state={state} />;

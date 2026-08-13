@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useRef, useState, useTransition, type FormEvent, type SyntheticEvent } from "react";
 import Link from "next/link";
 import {
   submitVocabularyAttemptV2,
   finishPracticeSessionV2,
   startVocabularyAudioSubmission,
   setPracticeSessionWordOrder,
+  logPracticeSessionTabEvent,
 } from "@/app/actions/practice";
 import { AudioRecorder } from "@/app/_components/audio-recorder";
 
@@ -20,7 +21,9 @@ export type WordV2 = {
   show_chinese: boolean;
   play_audio: boolean;
   autoplay_audio: boolean;
-  input_mode: "type_english" | "type_chinese" | "audio";
+  input_mode: "type_english" | "type_chinese" | "audio" | "multiple_choice";
+  prompt_question: string | null;
+  choices: string[] | null;
 };
 
 export type SessionStateV2 = {
@@ -46,6 +49,12 @@ function orderWords(words: WordV2[], order: "sequential" | "random"): WordV2[] {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
+}
+
+function blockCopyOutsideInputs(e: SyntheticEvent) {
+  const tag = (e.target as HTMLElement).tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA") return;
+  e.preventDefault();
 }
 
 function speak(text: string) {
@@ -100,6 +109,70 @@ export function PracticeQuizV2({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current?.word_id]);
 
+  // Tab-switch/away logging. visibilitychange is the authoritative signal --
+  // it fires immediately on the real transition, unaffected by the timer
+  // throttling browsers apply to backgrounded tabs, so it must never be
+  // debounced. blur/focus are a secondary fallback only, for OS-level focus
+  // loss that doesn't flip document.hidden (e.g. another app overlapping the
+  // browser without covering the tab); independently debounced, and a no-op
+  // via logIfChanged when visibilitychange already logged the same
+  // transition (the common tab-switch case fires both almost together --
+  // this must not double-log it). pagehide sends a best-effort
+  // navigator.sendBeacon, since a normal fetch/server-action call can be
+  // aborted mid-flight when the page actually unloads.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    let lastLogged: "hidden" | "visible" = document.hidden ? "hidden" : "visible";
+    let blurTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function logIfChanged(next: "hidden" | "visible") {
+      if (next === lastLogged) return;
+      lastLogged = next;
+      logPracticeSessionTabEvent(sessionId, next).catch(() => {});
+    }
+
+    function onVisibilityChange() {
+      logIfChanged(document.hidden ? "hidden" : "visible");
+    }
+
+    function onBlurOrFocus() {
+      if (blurTimer) clearTimeout(blurTimer);
+      blurTimer = setTimeout(() => {
+        logIfChanged(document.hidden || !document.hasFocus() ? "hidden" : "visible");
+      }, 400);
+    }
+
+    // Deliberately UNCONDITIONAL -- do not gate this on lastLogged !==
+    // "hidden". visibilitychange typically fires before pagehide and sets
+    // lastLogged synchronously, but the server-action request it kicked off
+    // is asynchronous and can still be aborted by the browser mid-flight a
+    // moment later when the page actually unloads -- gating the beacon on
+    // lastLogged would then skip the one fallback meant to cover exactly
+    // that failure. The RPC's own dedup makes a redundant "hidden" beacon a
+    // safe no-op when the original request did land, so there is no cost to
+    // always sending it here.
+    function onPageHide() {
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(
+          "/api/practice-tab-event",
+          new Blob([JSON.stringify({ sessionId, eventType: "hidden" })], { type: "application/json" })
+        );
+      }
+    }
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("blur", onBlurOrFocus);
+    window.addEventListener("focus", onBlurOrFocus);
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("blur", onBlurOrFocus);
+      window.removeEventListener("focus", onBlurOrFocus);
+      window.removeEventListener("pagehide", onPageHide);
+      if (blurTimer) clearTimeout(blurTimer);
+    };
+  }, [sessionId]);
+
   // Lazily create (or resume) the one audio submission for this session the
   // moment the student reaches the first audio-input word.
   useEffect(() => {
@@ -148,12 +221,13 @@ export function PracticeQuizV2({
     });
   }
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!current || current.input_mode === "audio" || pending) return;
+  function handleSubmit(eOrValue: FormEvent | string) {
+    const value = typeof eOrValue === "string" ? eOrValue : answer;
+    if (typeof eOrValue !== "string") eOrValue.preventDefault();
+    if (!current || current.input_mode === "audio" || pending || feedback) return;
     setError(null);
     startTransition(async () => {
-      const result = await submitVocabularyAttemptV2(sessionId, current.word_id, answer);
+      const result = await submitVocabularyAttemptV2(sessionId, current.word_id, value);
       if (!result.ok) {
         setError(result.error);
         return;
@@ -168,8 +242,7 @@ export function PracticeQuizV2({
     if (feedback.kind === "incorrect") {
       setQueue((prev) => {
         const [word, ...rest] = prev;
-        const offset = Math.floor(Math.random() * Math.min(5, rest.length + 1));
-        const pos = Math.min(offset, rest.length);
+        const pos = rest.length === 0 ? 0 : 1 + Math.floor(Math.random() * Math.min(4, rest.length));
         return [...rest.slice(0, pos), word, ...rest.slice(pos)];
       });
     } else {
@@ -292,7 +365,12 @@ export function PracticeQuizV2({
 
   return (
     <div className={outerClass}>
-      <div key={current.word_id} className={cardClass}>
+      <div
+        key={current.word_id}
+        className={`${cardClass} practice-no-select`}
+        onCopy={blockCopyOutsideInputs}
+        onContextMenu={blockCopyOutsideInputs}
+      >
         <div className="flex flex-col gap-4">
           <p className="text-sm text-slate-500">
             已完成 {completedCount} / {totalWords} 个
@@ -309,6 +387,9 @@ export function PracticeQuizV2({
             ) : null}
             {current.show_chinese && current.prompt_meaning ? (
               <p className="text-xl font-medium sm:text-2xl lg:text-4xl">{current.prompt_meaning}</p>
+            ) : null}
+            {current.input_mode === "multiple_choice" && current.prompt_question ? (
+              <p className="text-xl font-medium sm:text-2xl lg:text-4xl">{current.prompt_question}</p>
             ) : null}
             {current.play_audio && current.prompt_term ? (
               <button
@@ -341,6 +422,20 @@ export function PracticeQuizV2({
             ) : (
               <p className="text-sm text-slate-400">正在准备录音…</p>
             )
+          ) : current.input_mode === "multiple_choice" ? (
+            <div className="flex flex-col gap-2">
+              {(current.choices ?? []).map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  disabled={pending || feedback !== null}
+                  onClick={() => handleSubmit(choice)}
+                  className="rounded-md border border-slate-300 px-4 py-3 text-left text-sm hover:border-slate-500 disabled:opacity-50"
+                >
+                  {choice}
+                </button>
+              ))}
+            </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex items-end gap-3">
               <label className="flex flex-1 flex-col gap-1 text-sm">

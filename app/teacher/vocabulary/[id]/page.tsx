@@ -35,7 +35,7 @@ export default async function VocabularySetDetailPage({
   const { data: words } = await supabase
     .from("vocabulary_words")
     .select(
-      "id, term, meaning, image_url, archived_at, override_show_english, override_show_chinese, override_play_audio, override_show_image, override_autoplay_audio, override_input_mode"
+      "id, term, meaning, image_url, archived_at, override_show_english, override_show_chinese, override_play_audio, override_show_image, override_autoplay_audio, override_input_mode, question_prompt"
     )
     .eq("set_id", id)
     .order("sort_order", { ascending: true });
@@ -57,6 +57,22 @@ export default async function VocabularySetDetailPage({
   const altTermsByWord = new Map<string, string[]>();
   for (const row of altTermsRows ?? []) {
     altTermsByWord.set(row.word_id, [...(altTermsByWord.get(row.word_id) ?? []), row.alt_term]);
+  }
+
+  const { data: choicesRows } =
+    isV2 && wordIds.length > 0
+      ? await supabase
+          .from("vocabulary_word_choices")
+          .select("word_id, choice_text, is_correct")
+          .in("word_id", wordIds)
+          .order("sort_order", { ascending: true })
+      : { data: [] as { word_id: string; choice_text: string; is_correct: boolean }[] };
+  const choicesByWord = new Map<string, { choiceText: string; isCorrect: boolean }[]>();
+  for (const row of choicesRows ?? []) {
+    choicesByWord.set(row.word_id, [
+      ...(choicesByWord.get(row.word_id) ?? []),
+      { choiceText: row.choice_text, isCorrect: row.is_correct },
+    ]);
   }
 
   const { data: students } = await supabase
@@ -165,6 +181,7 @@ export default async function VocabularySetDetailPage({
                   ...word,
                   altMeanings: altMeaningsByWord.get(word.id) ?? [],
                   altTerms: altTermsByWord.get(word.id) ?? [],
+                  choices: choicesByWord.get(word.id) ?? [],
                 }}
               />
             ))}
