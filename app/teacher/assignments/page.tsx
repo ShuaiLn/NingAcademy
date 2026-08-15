@@ -3,11 +3,12 @@ import { createClient } from "@/utils/supabase/server";
 import { StretchedRowLink } from "@/app/_components/stretched-row-link";
 import { DueDateBadge } from "@/app/_components/due-date-badge";
 
-type AssignmentType = "vocabulary" | "assignment" | "pronunciation";
+type AssignmentType = "vocabulary" | "assignment" | "game" | "pronunciation";
 
 const TYPE_LABELS: Record<AssignmentType, string> = {
   vocabulary: "词汇作业",
   assignment: "普通作业",
+  game: "游戏作业",
   pronunciation: "朗读作业",
 };
 
@@ -43,7 +44,7 @@ export default async function AssignmentsHubPage() {
     .order("created_at", { ascending: false });
   const { data: assignments } = await supabase
     .from("assignments")
-    .select("id, title, published_at, archived_at, due_at, created_at")
+    .select("id, title, published_at, archived_at, due_at, created_at, assignment_kind")
     .order("created_at", { ascending: false });
   const { data: tasks } = await supabase
     .from("pronunciation_tasks")
@@ -87,7 +88,7 @@ export default async function AssignmentsHubPage() {
     ...(assignments ?? []).map((a) => ({
       id: a.id,
       title: a.title,
-      type: "assignment" as const,
+      type: a.assignment_kind === "game" ? "game" as const : "assignment" as const,
       publishedAt: a.published_at,
       archivedAt: a.archived_at,
       dueAt: a.due_at,

@@ -16,6 +16,9 @@ export default function RootLayout({
     <html lang="zh-CN">
       <body className="min-h-screen antialiased">
         {children}
+        <footer className="fixed bottom-2 right-3 text-xs text-slate-400">
+          Developed by Ning 鲁宁
+        </footer>
         <SpeedInsights />
       </body>
     </html>

@@ -2,11 +2,12 @@ import { createClient } from "@/utils/supabase/server";
 import { StretchedRowLink } from "@/app/_components/stretched-row-link";
 import { DueDateBadge } from "@/app/_components/due-date-badge";
 
-type AssignmentType = "vocabulary" | "assignment" | "pronunciation";
+type AssignmentType = "vocabulary" | "assignment" | "game" | "pronunciation";
 
 const TYPE_LABELS: Record<AssignmentType, string> = {
   vocabulary: "词汇作业",
   assignment: "普通作业",
+  game: "游戏作业",
   pronunciation: "朗读作业",
 };
 
@@ -36,7 +37,7 @@ export default async function StudentAssignmentsHubPage() {
 
   const { data: assignmentTargets } = await supabase
     .from("assignment_targets")
-    .select("assignment_id, assignments(id, title, due_at, created_at)")
+    .select("assignment_id, assignments(id, title, due_at, created_at, assignment_kind)")
     .is("revoked_at", null);
 
   const { data: pronunciationTargets } = await supabase
@@ -64,7 +65,7 @@ export default async function StudentAssignmentsHubPage() {
     rowsById.set(`assignment-${a.id}`, {
       id: a.id,
       title: a.title,
-      type: "assignment",
+      type: a.assignment_kind === "game" ? "game" : "assignment",
       dueAt: a.due_at,
       createdAt: a.created_at,
       href: `/student/assignments/${a.id}`,

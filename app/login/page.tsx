@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useActionState } from "react";
 import { login, type LoginResult } from "@/app/actions/auth";
 
@@ -11,6 +12,7 @@ export default function LoginPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 p-6">
       <div>
+        <Image src="/logo.png" alt="NingAcademy" width={48} height={48} className="mb-3" priority />
         <h1 className="text-2xl font-semibold">NingAcademy</h1>
         <p className="mt-2 text-sm text-slate-600">请输入用户名和密码登录。</p>
       </div>

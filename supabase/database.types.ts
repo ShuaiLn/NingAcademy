@@ -107,6 +107,7 @@ export type Database = {
       assignments: {
         Row: {
           archived_at: string | null
+          assignment_kind: "plain" | "game"
           created_at: string
           description: string | null
           due_at: string | null
@@ -118,6 +119,7 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          assignment_kind?: "plain" | "game"
           created_at?: string
           description?: string | null
           due_at?: string | null
@@ -129,6 +131,7 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          assignment_kind?: "plain" | "game"
           created_at?: string
           description?: string | null
           due_at?: string | null

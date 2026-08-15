@@ -14,12 +14,39 @@ export default async function AssignmentDetailPage({ params }: { params: Promise
 
   const { data: assignment } = await supabase
     .from("assignments")
-    .select("id, title, description, published_at, archived_at, due_at")
+    .select("id, title, description, published_at, archived_at, due_at, assignment_kind")
     .eq("id", id)
     .maybeSingle();
 
   if (!assignment) {
     notFound();
+  }
+
+  const overdue = !!assignment.due_at && !assignment.archived_at && new Date(assignment.due_at) < new Date();
+
+  // Game assignments have their own attempt/report model and must not show
+  // plain attachment, submission, or grading controls.
+  if (assignment.assignment_kind === "game") {
+    return (
+      <div className="flex max-w-3xl flex-col gap-6">
+        <div>
+          <p className="text-sm font-medium text-violet-700">NingAcademy 游戏作业</p>
+          <h1 className="text-2xl font-semibold">{assignment.title}</h1>
+          <p className="text-sm text-slate-500">
+            {assignment.archived_at ? "已归档" : assignment.published_at ? "已发布" : "草稿"}
+          </p>
+          {assignment.description ? <p className="text-sm text-slate-600">{assignment.description}</p> : null}
+          {assignment.due_at ? (
+            <p className="text-sm">
+              <DueDateBadge dueAt={assignment.due_at} overdue={overdue} />
+            </p>
+          ) : null}
+        </div>
+        <div className="rounded-md border border-violet-200 bg-violet-50 p-4 text-sm text-slate-700">
+          游戏作业使用独立的学习尝试与教师报告，不使用普通文件提交和评分流程。
+        </div>
+      </div>
+    );
   }
 
   const { data: files } = await supabase
@@ -47,8 +74,6 @@ export default async function AssignmentDetailPage({ params }: { params: Promise
     .is("revoked_at", null);
 
   const targetRows = (targets ?? []).map((t) => ({ id: t.id, classId: t.class_id, studentId: t.student_id }));
-
-  const overdue = !!assignment.due_at && !assignment.archived_at && new Date(assignment.due_at) < new Date();
 
   return (
     <div className="flex max-w-3xl flex-col gap-6">

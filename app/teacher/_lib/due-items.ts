@@ -1,8 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/supabase/database.types";
 import { computeVocabularySessionCompletion } from "@/app/_lib/vocabulary-completion";
+import { getGameAssignmentCompletion } from "@/app/_lib/game-main-site";
 
-export type ItemType = "vocabulary" | "assignment" | "pronunciation";
+export type ItemType = "vocabulary" | "assignment" | "game" | "pronunciation";
 
 export type DueItem = {
   id: string;
@@ -46,7 +47,7 @@ export async function getDueItemsWithIncompleteStudents(
   opts: { studentId?: string; dueBefore?: string; dueSince?: string } = {}
 ): Promise<DueItemsResult> {
   let setsQuery = supabase.from("vocabulary_sets").select("id, title, due_at").is("archived_at", null).not("due_at", "is", null);
-  let assignmentsQuery = supabase.from("assignments").select("id, title, due_at").is("archived_at", null).not("due_at", "is", null);
+  let assignmentsQuery = supabase.from("assignments").select("id, title, due_at, assignment_kind").is("archived_at", null).not("due_at", "is", null);
   let tasksQuery = supabase.from("pronunciation_tasks").select("id, title, due_at").is("archived_at", null).not("due_at", "is", null);
   if (opts.dueBefore) {
     setsQuery = setsQuery.lte("due_at", opts.dueBefore);
@@ -69,6 +70,8 @@ export async function getDueItemsWithIncompleteStudents(
   const tasks = tasksRes.data ?? [];
   const setIds = sets.map((s) => s.id);
   const assignmentIds = assignments.map((a) => a.id);
+  const plainAssignmentIds = assignments.filter((a) => a.assignment_kind === "plain").map((a) => a.id);
+  const gameAssignmentIds = assignments.filter((a) => a.assignment_kind === "game").map((a) => a.id);
   const taskIds = tasks.map((t) => t.id);
   if (setIds.length === 0 && assignmentIds.length === 0 && taskIds.length === 0) return { ok: true, items: [] };
 
@@ -178,11 +181,11 @@ export async function getDueItemsWithIncompleteStudents(
             .select("id, student_id, set_id, completed_at, total_words, audio_word_count, vocabulary_attempts(word_id, attempt_no, is_correct)")
             .in("set_id", setIds);
   const submissionsQuery =
-    assignmentIds.length === 0
+    plainAssignmentIds.length === 0
       ? Promise.resolve({ data: [] as SubmissionRow[], error: null })
       : opts.studentId
-        ? supabase.from("submissions").select("student_id, assignment_id, submitted_at").in("assignment_id", assignmentIds).eq("student_id", opts.studentId)
-        : supabase.from("submissions").select("student_id, assignment_id, submitted_at").in("assignment_id", assignmentIds);
+        ? supabase.from("submissions").select("student_id, assignment_id, submitted_at").in("assignment_id", plainAssignmentIds).eq("student_id", opts.studentId)
+        : supabase.from("submissions").select("student_id, assignment_id, submitted_at").in("assignment_id", plainAssignmentIds);
   const audioQuery =
     taskIds.length === 0
       ? Promise.resolve({ data: [] as AudioRow[], error: null })
@@ -190,8 +193,13 @@ export async function getDueItemsWithIncompleteStudents(
         ? supabase.from("audio_submissions").select("student_id, task_id, submitted_at").in("task_id", taskIds).eq("student_id", opts.studentId)
         : supabase.from("audio_submissions").select("student_id, task_id, submitted_at").in("task_id", taskIds);
 
-  const [sessionsRes, submissionsRes, audioRes] = await Promise.all([sessionsQuery, submissionsQuery, audioQuery]);
-  if (sessionsRes.error || submissionsRes.error || audioRes.error) {
+  const [sessionsRes, submissionsRes, audioRes, gameCompletionRes] = await Promise.all([
+    sessionsQuery,
+    submissionsQuery,
+    audioQuery,
+    getGameAssignmentCompletion(supabase, gameAssignmentIds, opts.studentId ?? null),
+  ]);
+  if (sessionsRes.error || submissionsRes.error || audioRes.error || !gameCompletionRes.ok) {
     console.error("due-items: completion query failed", sessionsRes.error, submissionsRes.error, audioRes.error);
     return FAIL;
   }
@@ -244,6 +252,14 @@ export async function getDueItemsWithIncompleteStudents(
   for (const s of submissionsRes.data ?? []) {
     if (s.submitted_at) doneByAssignment.set(s.assignment_id, (doneByAssignment.get(s.assignment_id) ?? new Set()).add(s.student_id));
   }
+  for (const row of gameCompletionRes.rows) {
+    if (row.completed) {
+      doneByAssignment.set(
+        row.assignmentId,
+        (doneByAssignment.get(row.assignmentId) ?? new Set()).add(row.studentId)
+      );
+    }
+  }
   const doneByTask = new Map<string, Set<string>>();
   for (const s of audioRes.data ?? []) {
     if (s.submitted_at) doneByTask.set(s.task_id, (doneByTask.get(s.task_id) ?? new Set()).add(s.student_id));
@@ -266,7 +282,7 @@ export async function getDueItemsWithIncompleteStudents(
     const done = doneByAssignment.get(a.id) ?? new Set<string>();
     items.push({
       id: a.id,
-      type: "assignment",
+      type: a.assignment_kind === "game" ? "game" : "assignment",
       title: a.title,
       dueAt: a.due_at!,
       href: `/teacher/assignments/${a.id}`,

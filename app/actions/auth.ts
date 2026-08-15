@@ -4,6 +4,7 @@ import { randomUUID } from "crypto";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { internalEmailFor } from "@/utils/supabase/internal-email";
+import { revokeGameSessionsForUser } from "@/app/_lib/game-main-site";
 
 export type LoginResult = { ok: false; error: string };
 
@@ -34,7 +35,21 @@ export async function login(_prevState: LoginResult, formData: FormData): Promis
 
 export async function logout() {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Revoke the game credential first. If that fails, keep the main-site
+  // session so the user can retry instead of falsely reporting a complete
+  // logout while a game session remains active.
+  if (user && !(await revokeGameSessionsForUser(user.id, "main_site_logout"))) {
+    throw new Error("无法安全退出，请稍后重试");
+  }
+
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    throw new Error("退出失败，请稍后重试");
+  }
   redirect("/login");
 }
 
@@ -55,6 +70,18 @@ export async function changePassword(
   }
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { ok: false, error: "请重新登录后再修改密码" };
+  }
+
+  // Revoke first so an old game credential cannot survive a successful
+  // password change. Revoking on a later Auth failure is safe and expected.
+  if (!(await revokeGameSessionsForUser(user.id, "main_site_password_change"))) {
+    return { ok: false, error: "暂时无法安全修改密码，请稍后重试" };
+  }
 
   // Auth-side password change first; only on success do we flip
   // must_change_password via the RPC. If updateUser succeeds but the RPC

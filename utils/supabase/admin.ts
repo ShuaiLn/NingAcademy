@@ -10,7 +10,8 @@ import type { LastSignInLookup } from "./last-sign-in-lookup";
 // deleteUser (orphan rollback) — plus the two account-bootstrap RPCs
 // (finalize_teacher_bootstrap / finalize_student_creation), which are
 // deliberately never granted to `authenticated` and so can only be called
-// through this client. Every other read or write must go through
+// through this client), plus revoke_game_sessions_v1 for synchronized
+// logout/password-change revocation. Every other read or write must go through
 // utils/supabase/server.ts so RLS stays the single source of truth for
 // authorization.
 //

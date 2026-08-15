@@ -6,6 +6,7 @@ import { DueDateBadge } from "@/app/_components/due-date-badge";
 const TYPE_LABELS = {
   vocabulary: "词汇作业",
   assignment: "作业",
+  game: "游戏作业",
   pronunciation: "朗读作业",
 } as const;
 

@@ -28,6 +28,9 @@ SUPABASE_SECRET_KEY=
 # One-time /setup teacher-bootstrap token, generated locally -- not derived
 # from any Supabase secret.
 SETUP_TOKEN=
+# Server-only HTTPS endpoint on the game deployment. Receives a one-time
+# `ticket` field by POST; never prefix this variable with NEXT_PUBLIC_.
+GAME_LAUNCH_EXCHANGE_URL=
 ```
 
 ## Development

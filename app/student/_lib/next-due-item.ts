@@ -1,10 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/supabase/database.types";
 import { computeVocabularySessionCompletion } from "@/app/_lib/vocabulary-completion";
+import { getGameAssignmentCompletion } from "@/app/_lib/game-main-site";
 
 export type NextDueItem = {
   id: string;
-  type: "vocabulary" | "assignment" | "pronunciation";
+  type: "vocabulary" | "assignment" | "game" | "pronunciation";
   title: string;
   dueAt: string;
   href: string;
@@ -26,7 +27,7 @@ const FAIL: NextDueItemResult = { ok: false, error: "无法加载到期提醒，
 export async function getNextDueItem(supabase: SupabaseClient<Database>, studentId: string): Promise<NextDueItemResult> {
   const [setsRes, assignmentsRes, tasksRes] = await Promise.all([
     supabase.from("vocabulary_sets").select("id, title, due_at").is("archived_at", null).not("due_at", "is", null),
-    supabase.from("assignments").select("id, title, due_at").is("archived_at", null).not("due_at", "is", null),
+    supabase.from("assignments").select("id, title, due_at, assignment_kind").is("archived_at", null).not("due_at", "is", null),
     supabase.from("pronunciation_tasks").select("id, title, due_at").is("archived_at", null).not("due_at", "is", null),
   ]);
   if (setsRes.error || assignmentsRes.error || tasksRes.error) {
@@ -38,12 +39,14 @@ export async function getNextDueItem(supabase: SupabaseClient<Database>, student
   const tasks = tasksRes.data ?? [];
   const setIds = sets.map((s) => s.id);
   const assignmentIds = assignments.map((a) => a.id);
+  const plainAssignmentIds = assignments.filter((a) => a.assignment_kind === "plain").map((a) => a.id);
+  const gameAssignmentIds = assignments.filter((a) => a.assignment_kind === "game").map((a) => a.id);
   const taskIds = tasks.map((t) => t.id);
   if (setIds.length === 0 && assignmentIds.length === 0 && taskIds.length === 0) {
     return { ok: true, item: null };
   }
 
-  const [sessionsRes, submissionsRes, audioRes] = await Promise.all([
+  const [sessionsRes, submissionsRes, audioRes, gameCompletionRes] = await Promise.all([
     setIds.length === 0
       ? Promise.resolve({ data: [] as { id: string; set_id: string; completed_at: string | null; total_words: number; audio_word_count: number; vocabulary_attempts: { word_id: string; attempt_no: number; is_correct: boolean }[] }[], error: null })
       : supabase
@@ -51,14 +54,15 @@ export async function getNextDueItem(supabase: SupabaseClient<Database>, student
           .select("id, set_id, completed_at, total_words, audio_word_count, vocabulary_attempts(word_id, attempt_no, is_correct)")
           .in("set_id", setIds)
           .eq("student_id", studentId),
-    assignmentIds.length === 0
+    plainAssignmentIds.length === 0
       ? Promise.resolve({ data: [] as { assignment_id: string; submitted_at: string | null }[], error: null })
-      : supabase.from("submissions").select("assignment_id, submitted_at").in("assignment_id", assignmentIds).eq("student_id", studentId),
+      : supabase.from("submissions").select("assignment_id, submitted_at").in("assignment_id", plainAssignmentIds).eq("student_id", studentId),
     taskIds.length === 0
       ? Promise.resolve({ data: [] as { task_id: string; submitted_at: string | null }[], error: null })
       : supabase.from("audio_submissions").select("task_id, submitted_at").in("task_id", taskIds).eq("student_id", studentId),
+    getGameAssignmentCompletion(supabase, gameAssignmentIds, studentId),
   ]);
-  if (sessionsRes.error || submissionsRes.error || audioRes.error) {
+  if (sessionsRes.error || submissionsRes.error || audioRes.error || !gameCompletionRes.ok) {
     console.error("next-due-item: completion query failed", sessionsRes.error, submissionsRes.error, audioRes.error);
     return FAIL;
   }
@@ -103,11 +107,14 @@ export async function getNextDueItem(supabase: SupabaseClient<Database>, student
     if (completion.completedFull) vocabDoneSetIds.add(s.set_id);
   }
   const assignmentDoneIds = new Set((submissionsRes.data ?? []).filter((s) => s.submitted_at).map((s) => s.assignment_id));
+  for (const row of gameCompletionRes.rows) {
+    if (row.completed) assignmentDoneIds.add(row.assignmentId);
+  }
   const taskDoneIds = new Set((audioRes.data ?? []).filter((a) => a.submitted_at).map((a) => a.task_id));
 
   const items: NextDueItem[] = [
     ...sets.filter((s) => !vocabDoneSetIds.has(s.id)).map((s) => ({ id: s.id, type: "vocabulary" as const, title: s.title, dueAt: s.due_at!, href: `/student/vocabulary/${s.id}` })),
-    ...assignments.filter((a) => !assignmentDoneIds.has(a.id)).map((a) => ({ id: a.id, type: "assignment" as const, title: a.title, dueAt: a.due_at!, href: `/student/assignments/${a.id}` })),
+    ...assignments.filter((a) => !assignmentDoneIds.has(a.id)).map((a) => ({ id: a.id, type: a.assignment_kind === "game" ? "game" as const : "assignment" as const, title: a.title, dueAt: a.due_at!, href: `/student/assignments/${a.id}` })),
     ...tasks.filter((t) => !taskDoneIds.has(t.id)).map((t) => ({ id: t.id, type: "pronunciation" as const, title: t.title, dueAt: t.due_at!, href: `/student/pronunciation/${t.id}` })),
   ];
 

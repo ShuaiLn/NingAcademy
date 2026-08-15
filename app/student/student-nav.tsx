@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { logout } from "@/app/actions/auth";
 
@@ -18,7 +19,10 @@ export function StudentNav({ fullName }: { fullName: string | null }) {
     <header className="border-b border-slate-200">
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-6">
-          <span className="font-semibold">NingAcademy · 学生端</span>
+          <Link href="/student" className="flex items-center gap-2 font-semibold">
+            <Image src="/logo.png" alt="NingAcademy" width={24} height={24} />
+            NingAcademy · 学生端
+          </Link>
           <nav className="hidden items-center gap-6 sm:flex">
             {LINKS.map((link) => (
               <Link key={link.href} href={link.href} className="text-sm text-slate-600 hover:text-slate-900">

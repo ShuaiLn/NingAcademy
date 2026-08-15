@@ -5,6 +5,7 @@ import type { DueItem, ItemType } from "@/app/teacher/_lib/due-items";
 const TYPE_LABELS: Record<ItemType, string> = {
   vocabulary: "词汇作业",
   assignment: "普通作业",
+  game: "游戏作业",
   pronunciation: "朗读作业",
 };
 
