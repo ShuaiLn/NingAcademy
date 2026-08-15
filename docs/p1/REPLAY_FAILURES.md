@@ -1,11 +1,13 @@
 # P-1 Replay Failures
 
-Status: **PASS for the original 20 migrations (runs 4 and 7, `baseline=0 replay=0 snapshot=0 history=0` both times); 2 new forward-fix migrations (#21-22) added after run 7 and not yet replayed by CI**
+Status: **Migration replay PASS through 22 migrations (run 8 confirmed this); Production read-only gate script was found silently non-enforcing and has been fixed locally, pending CI re-verification; schema-drift re-comparison against findings 4-6 still outstanding**
 Audit date: 2026-08-15
 
 Migration replay of the original 20 migrations is fully resolved; nothing further to fix there. Run 7 additionally completed the Production read-only export and four-way comparison, which surfaced 3 real drift items unrelated to replay mechanics (uncommitted "Phase 1" policy/grant/function changes that reached Production but were never captured as migrations) — see `MIGRATION_DRIFT_REPORT.md`'s "Production drift investigation (run 7)" section for the full classification.
 
-Two new migrations closing those 3 findings — `20260815120000_core_auth_phase1_catchup_rls_and_grants.sql` and `20260815130000_finalize_student_creation_return_status.sql` — were written after run 7 and verified locally (byte-for-byte diff against Production's own dumps, `audit:p1:git-migrations`, `typecheck`, `build` all pass), but this environment has no Docker, so they have never actually been replayed. **The next CI run must replay all 22 migrations from zero** and could in principle surface a Failure 4 in either new file, the same way Failures 1-3 surfaced in the original 20 — do not assume these two are clean until that run comes back. See `MIGRATION_DRIFT_REPORT.md`'s "Forward-fix migrations for findings 4-6" and "Gate decision" sections for what happens after a clean replay (re-comparison against run 7's Production artifacts, not a new Production connection).
+Two new migrations closing those 3 findings — `20260815120000_core_auth_phase1_catchup_rls_and_grants.sql` and `20260815130000_finalize_student_creation_return_status.sql` — were written after run 7 and verified locally (byte-for-byte diff against Production's own dumps, `audit:p1:git-migrations`, `typecheck`, `build` all pass). Run 8 confirmed all 22 migrations replay clean from zero. Run 8 also revealed a **separate, more urgent bug**: the Production read-only proof script did not actually stop the job when it detected an elevated connection role — see "Run 8: Production read-only gate did not actually stop the job" below. That script has been fixed locally; it has not yet been re-run against Production, and the underlying elevated-role issue on the Production connection itself has not been investigated or fixed (out of scope for this fix, and outside this agent's access regardless).
+
+Run 7's findings are not called into question by this: its read-only-proof step passed with no refusal message logged at all, meaning all five checks were genuinely satisfied on their own merits that time — the `\quit` bug only ever mattered on a check that *fails*, and none did in run 7. What changed for run 8, and whether the same secret now resolves to a different, elevated role, was not investigated here (Production role/secret provisioning is explicitly out of scope for this fix). Until a future Production audit run shows the "Prove the Production connection is read-only" step passing *with no refusal message in its log*, do not treat that step's bare `success` status alone as proof of anything — check the log text too.
 
 ## Run 1 examined
 
@@ -149,6 +151,44 @@ No other `pg_catalog.`-qualified special-form keyword (`coalesce`, `nullif`, `su
 - Schema sanity check: the full dump contains the `game` schema, `public.game_assignment_configs`, and `game_private.build_launch_context(...)` from migration 20.
 
 Failures 1-3 remain above as the permanent replay repair history. Run 4 proves that all three are resolved for from-zero replay.
+
+## Run 8: Production read-only gate did not actually stop the job
+
+- Workflow run: `31911857826`, `workflow_dispatch`, commit `b1c3628` (the forward-fix migrations from findings 4-6)
+- Job `Replay every migration from zero`: **success** — all 22 migrations (including the two new forward-fix migrations) replayed clean from zero. Not investigated further here per instruction; schema-drift re-comparison is separate follow-up work.
+- Job `Production read-only audit`: **failure**, but only at the final `Enforce zero unresolved drift` step. Every step before it — including `Prove the Production connection is read-only`, `Export Production migration history and schema`, `Compare all four P-1 evidence sets`, `Upload Production read-only evidence` — reported **success**.
+
+The read-only-proof step's own log contained:
+
+```
+Refusing Production audit: the connection role is elevated.
+\quit: extra argument "11" ignored
+```
+
+### Root cause
+
+`scripts/p1/assert-production-read-only.sql` used `\quit 10` / `\quit 11` / `\quit 12` / `\quit 13` / `\quit 14` to try to signal which specific check failed via a distinct process exit code. **`psql`'s `\q`/`\quit` meta-command does not accept an exit-code argument at all** — any argument is printed as an ignored-argument warning, and psql quits with whatever status it would have had anyway (0, since from psql's own perspective no error occurred; `\echo` and `\quit` are just meta-commands, not SQL). So every one of the five refusal branches printed the correct human-readable message and then **exited 0**. `docker run`'s own exit code was therefore 0, the step was marked `success`, and the job proceeded straight through the export and comparison steps using a connection that the script had just correctly identified as elevated.
+
+No destructive operation actually occurred despite this: every statement the workflow itself issues against Production is `SELECT`, `COPY ... TO STDOUT`, or `pg_dump --schema-only`, regardless of which role is connected — the workflow contains no DDL/DML statement anywhere, elevated connection or not. But the safety *gate* itself was not enforcing the boundary it exists to enforce, and this could have masked a real problem on a future change to this workflow. This is a latent bug in the read-only-proof script, not a new schema/migration issue, and not something a Postgres role-privilege change on Production's side could ever have fixed by itself.
+
+Root cause of the elevated connection itself was **not** investigated per instruction (`暂时不要处理 schema drift，先修好只读权限 gate` — fix the gate first) — that is Production role provisioning, outside this repository and outside this agent's access; whatever role `PRODUCTION_DATABASE_READ_ONLY_URL` resolves to today has `rolsuper`, `rolcreatedb`, `rolcreaterole`, `rolreplication`, or `rolbypassrls` set, and fixing that is a separate, Production-side follow-up.
+
+### Local correction
+
+Replaced every `\quit N` with a genuine SQL-level error inside a `DO` block:
+
+```sql
+do $$ begin raise exception 'Refusing Production audit: ...' using errcode = 'P0001'; end; $$;
+```
+
+`\set ON_ERROR_STOP on` is already set at the top of the script, and `psql` is invoked with `--file` in the workflow. Per psql's own documented exit-code semantics ("3 if an error occurred in a script and the variable `ON_ERROR_STOP` was set"), a genuine `RAISE EXCEPTION` reliably makes `psql` — and therefore `docker run`, and therefore the GitHub Actions step — exit non-zero and stop immediately, regardless of which of the five checks fails first. The exception is raised inside the still-open `read only` transaction and is never committed; the transaction is simply abandoned on connection close, so this remains a strictly read-only script with no Production DDL/DML. All five refusal branches were converted identically; nothing else in the script (the five underlying privilege checks themselves, the final `select ...; commit;`) was changed.
+
+### Verification state
+
+- Structural check (`\if`/`\else`/`\endif` balance, `$$ ... $$;` pairing, no remaining `\quit`): pass, read directly from the edited file.
+- psql exit-code semantics for `ON_ERROR_STOP` + script-file errors: documented behavior (exit 3), not guessed.
+- Cannot be replayed locally (no Docker, no direct Production connection available to this agent) — **the next Production audit run is the only way to confirm this actually stops the job**. Until Production's connection role is separately fixed to be genuinely restricted, the expected result of the next run is that this same "the connection role is elevated" check now correctly fails the `Prove the Production connection is read-only` step itself (not just the later drift-gate step), and the job stops before ever exporting or comparing Production schema data.
+- This fix does not touch `docs/p1/git_migrations.csv` (this script lives under `scripts/p1/`, not `supabase/migrations/`) and does not touch any migration file.
 
 ## CI replay contract
 

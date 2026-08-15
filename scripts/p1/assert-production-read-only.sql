@@ -7,7 +7,7 @@ select (current_setting('transaction_read_only') = 'on') as transaction_is_read_
 \if :transaction_is_read_only
 \else
   \echo 'Refusing Production audit: transaction_read_only is not on.'
-  \quit 10
+  do $$ begin raise exception 'Refusing Production audit: transaction_read_only is not on.' using errcode = 'P0001'; end; $$;
 \endif
 
 select not (
@@ -23,7 +23,7 @@ where rolname = current_user
 \if :role_is_restricted
 \else
   \echo 'Refusing Production audit: the connection role is elevated.'
-  \quit 11
+  do $$ begin raise exception 'Refusing Production audit: the connection role is elevated.' using errcode = 'P0001'; end; $$;
 \endif
 
 select not (
@@ -40,7 +40,7 @@ select not (
 \if :role_cannot_create_objects
 \else
   \echo 'Refusing Production audit: the connection role can create database objects.'
-  \quit 12
+  do $$ begin raise exception 'Refusing Production audit: the connection role can create database objects.' using errcode = 'P0001'; end; $$;
 \endif
 
 select not exists (
@@ -60,7 +60,7 @@ select not exists (
 \if :role_has_no_table_write_privileges
 \else
   \echo 'Refusing Production audit: the connection role has table write privileges.'
-  \quit 13
+  do $$ begin raise exception 'Refusing Production audit: the connection role has table write privileges.' using errcode = 'P0001'; end; $$;
 \endif
 
 select not exists (
@@ -76,7 +76,7 @@ select not exists (
 \if :role_has_no_sequence_write_privileges
 \else
   \echo 'Refusing Production audit: the connection role has sequence write privileges.'
-  \quit 14
+  do $$ begin raise exception 'Refusing Production audit: the connection role has sequence write privileges.' using errcode = 'P0001'; end; $$;
 \endif
 
 select current_database() as audited_database, current_user as audit_role,
