@@ -1,0 +1,394 @@
+name: P-1 database audit
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/p1-database-audit.yml"
+      - "docs/p1/**"
+      - "scripts/p1/**"
+      - "supabase/config.toml"
+      - "supabase/migrations/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/p1-database-audit.yml"
+      - "docs/p1/**"
+      - "scripts/p1/**"
+      - "supabase/config.toml"
+      - "supabase/migrations/**"
+  workflow_dispatch:
+    inputs:
+      run_production_audit:
+        description: "Run the read-only Production export and comparisons"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p1-database-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  SUPABASE_CLI_VERSION: 2.114.0
+
+jobs:
+  replay:
+    name: Replay every migration from zero
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pinned Supabase CLI
+        # supabase/setup-cli v3.0.0; pin the action and CLI for reproducible service images.
+        uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      - name: Verify the committed Git migration inventory
+        run: node scripts/p1/generate-git-migrations.mjs --check docs/p1/git_migrations.csv
+
+      - name: Start an empty local Supabase and replay from zero
+        id: replay
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p p1-artifacts/replay
+
+          saved_migrations="$RUNNER_TEMP/p1-project-migrations"
+          saved_seed="$RUNNER_TEMP/p1-project-seed.sql"
+          seed_existed=0
+
+          mv supabase/migrations "$saved_migrations"
+          mkdir supabase/migrations
+          if [[ -e supabase/seed.sql ]]; then
+            mv supabase/seed.sql "$saved_seed"
+            seed_existed=1
+          fi
+          : > supabase/seed.sql
+
+          supabase start 2>&1 | tee p1-artifacts/replay/baseline-start.log
+          baseline_status=${PIPESTATUS[0]}
+
+          mv supabase/seed.sql "$RUNNER_TEMP/p1-empty-seed-after-start.sql"
+          mv supabase/migrations "$RUNNER_TEMP/p1-empty-migrations-after-start"
+          mv "$saved_migrations" supabase/migrations
+          if [[ "$seed_existed" == "1" ]]; then
+            mv "$saved_seed" supabase/seed.sql
+          fi
+
+          if [[ "$baseline_status" != "0" ]]; then
+            printf 'Baseline Supabase startup failed with exit code %s; migration replay did not start.\n' \
+              "$baseline_status" | tee p1-artifacts/replay/replay.log
+            replay_status=125
+          else
+            supabase db reset --local --no-seed --debug 2>&1 | tee p1-artifacts/replay/replay.log
+            replay_status=${PIPESTATUS[0]}
+          fi
+
+          printf '%s\n' "$baseline_status" > p1-artifacts/replay/baseline_status.txt
+          printf '%s\n' "$replay_status" > p1-artifacts/replay/replay_status.txt
+          echo "baseline_status=$baseline_status" >> "$GITHUB_OUTPUT"
+          echo "replay_status=$replay_status" >> "$GITHUB_OUTPUT"
+
+      - name: Export replay schema and migration history
+        id: replay_snapshot
+        if: always()
+        shell: bash
+        run: |
+          set -uo pipefail
+          snapshot_status=0
+          mkdir -p p1-artifacts/replay
+
+          db_container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -n 1 || true)"
+          if [[ -z "$db_container" ]]; then
+            printf 'No running Supabase database container was found.\n' \
+              | tee p1-artifacts/replay/snapshot-error.log
+            : > p1-artifacts/replay/replay_schema.sql
+            : > p1-artifacts/replay/replay_project_schema.sql
+            : > p1-artifacts/replay/replay_db_migrations.csv
+            snapshot_status=1
+          else
+            docker exec "$db_container" pg_dump \
+              --username postgres --dbname postgres \
+              --schema-only --no-owner --no-privileges \
+              > p1-artifacts/replay/replay_schema.sql || snapshot_status=$?
+
+            mapfile -t project_schemas < <(
+              docker exec "$db_container" psql --username postgres --dbname postgres \
+                --no-psqlrc --tuples-only --no-align \
+                --command "select nspname from pg_namespace where nspname in ('public','private','game','game_private') order by nspname"
+            )
+            schema_args=()
+            for schema in "${project_schemas[@]}"; do
+              [[ -n "$schema" ]] && schema_args+=("--schema=$schema")
+            done
+            if [[ "${#schema_args[@]}" == "0" ]]; then
+              printf 'No project schema exists in the replay database.\n' \
+                | tee -a p1-artifacts/replay/snapshot-error.log
+              : > p1-artifacts/replay/replay_project_schema.sql
+              snapshot_status=1
+            else
+              docker exec "$db_container" pg_dump \
+                --username postgres --dbname postgres \
+                --schema-only --no-owner --no-privileges \
+                "${schema_args[@]}" \
+                > p1-artifacts/replay/replay_project_schema.sql || snapshot_status=$?
+              docker exec "$db_container" pg_dump \
+                --username postgres --dbname postgres \
+                --schema-only --no-owner \
+                "${schema_args[@]}" \
+                > p1-artifacts/replay/replay_project_schema_with_acl.sql || snapshot_status=$?
+            fi
+
+            history_has_name="$(
+              docker exec "$db_container" psql --username postgres --dbname postgres \
+                --no-psqlrc --tuples-only --no-align \
+                --command "select exists (select 1 from information_schema.columns where table_schema = 'supabase_migrations' and table_name = 'schema_migrations' and column_name = 'name')"
+            )"
+            if [[ "$history_has_name" == "t" ]]; then
+              history_name_expression="coalesce(name, '')::text"
+            else
+              history_name_expression="''::text"
+            fi
+            docker exec "$db_container" psql --username postgres --dbname postgres \
+              --no-psqlrc --set ON_ERROR_STOP=1 \
+              --command "copy (select row_number() over (order by version)::integer as execution_order, version::text as version, $history_name_expression as name from supabase_migrations.schema_migrations order by version) to stdout with (format csv, header true)" \
+              > p1-artifacts/replay/replay_db_migrations.csv || snapshot_status=$?
+          fi
+
+          printf '%s\n' "$snapshot_status" > p1-artifacts/replay/snapshot_status.txt
+          echo "status=$snapshot_status" >> "$GITHUB_OUTPUT"
+
+      - name: Compare Git and replay migration histories
+        id: replay_history
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          node scripts/p1/compare-migration-history.mjs \
+            docs/p1/git_migrations.csv \
+            p1-artifacts/replay/replay_db_migrations.csv \
+            replay \
+            > p1-artifacts/replay/git-vs-replay-migrations.md 2>&1
+          comparison_status=$?
+          printf '%s\n' "$comparison_status" > p1-artifacts/replay/history_comparison_status.txt
+          echo "status=$comparison_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p1-migration-replay-${{ github.run_id }}
+          path: p1-artifacts/replay/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Enforce zero replay failures
+        if: always()
+        shell: bash
+        run: |
+          baseline_status="${{ steps.replay.outputs.baseline_status }}"
+          replay_status="${{ steps.replay.outputs.replay_status }}"
+          snapshot_status="${{ steps.replay_snapshot.outputs.status }}"
+          history_status="${{ steps.replay_history.outputs.status }}"
+          if [[ "$baseline_status" != "0" || "$replay_status" != "0" || "$snapshot_status" != "0" || "$history_status" != "0" ]]; then
+            echo "P-1 replay gate failed: baseline=$baseline_status replay=$replay_status snapshot=$snapshot_status history=$history_status"
+            exit 1
+          fi
+
+  production_read_only_audit:
+    name: Production read-only audit
+    needs: replay
+    if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.run_production_audit }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production-read-only-audit
+    env:
+      PRODUCTION_DATABASE_READ_ONLY_URL: ${{ secrets.PRODUCTION_DATABASE_READ_ONLY_URL }}
+      PGCONNECT_TIMEOUT: "10"
+      PGOPTIONS: >-
+        -c default_transaction_read_only=on
+        -c statement_timeout=120000
+        -c lock_timeout=5000
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download replay evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: p1-migration-replay-${{ github.run_id }}
+          path: p1-artifacts/replay
+
+      - name: Require the dedicated Production read-only secret
+        shell: bash
+        run: |
+          if [[ -z "$PRODUCTION_DATABASE_READ_ONLY_URL" ]]; then
+            echo "PRODUCTION_DATABASE_READ_ONLY_URL is not configured in the production-read-only-audit environment."
+            exit 1
+          fi
+
+      - name: Prove the Production connection is read-only
+        shell: bash
+        run: |
+          docker run --rm \
+            --env PGCONNECT_TIMEOUT \
+            --env PGOPTIONS \
+            --volume "$PWD/scripts/p1:/audit-scripts:ro" \
+            postgres:17 \
+            psql "$PRODUCTION_DATABASE_READ_ONLY_URL" \
+              --no-psqlrc --file /audit-scripts/assert-production-read-only.sql
+
+      - name: Export Production migration history and schema
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p p1-artifacts/production
+
+          docker run --rm \
+            --env PGCONNECT_TIMEOUT \
+            --env PGOPTIONS \
+            --volume "$PWD/scripts/p1:/audit-scripts:ro" \
+            --volume "$PWD/p1-artifacts/production:/audit" \
+            postgres:17 \
+            psql "$PRODUCTION_DATABASE_READ_ONLY_URL" \
+              --no-psqlrc --file /audit-scripts/export-migration-history.sql
+
+          docker run --rm --env PGCONNECT_TIMEOUT --env PGOPTIONS postgres:17 \
+            pg_dump "$PRODUCTION_DATABASE_READ_ONLY_URL" \
+              --schema-only --no-owner --no-privileges \
+              > p1-artifacts/production/prod_schema.sql
+
+          mapfile -t project_schemas < <(
+            docker run --rm --env PGCONNECT_TIMEOUT --env PGOPTIONS postgres:17 \
+              psql "$PRODUCTION_DATABASE_READ_ONLY_URL" \
+                --no-psqlrc --tuples-only --no-align \
+                --command "select nspname from pg_namespace where nspname in ('public','private','game','game_private') order by nspname"
+          )
+          schema_args=()
+          for schema in "${project_schemas[@]}"; do
+            [[ -n "$schema" ]] && schema_args+=("--schema=$schema")
+          done
+          if [[ "${#schema_args[@]}" == "0" ]]; then
+            echo "No project schema exists in Production."
+            exit 1
+          fi
+          docker run --rm --env PGCONNECT_TIMEOUT --env PGOPTIONS postgres:17 \
+            pg_dump "$PRODUCTION_DATABASE_READ_ONLY_URL" \
+              --schema-only --no-owner --no-privileges \
+              "${schema_args[@]}" \
+              > p1-artifacts/production/prod_project_schema.sql
+          docker run --rm --env PGCONNECT_TIMEOUT --env PGOPTIONS postgres:17 \
+            pg_dump "$PRODUCTION_DATABASE_READ_ONLY_URL" \
+              --schema-only --no-owner \
+              "${schema_args[@]}" \
+              > p1-artifacts/production/prod_project_schema_with_acl.sql
+
+      - name: Compare all four P-1 evidence sets
+        id: production_compare
+        shell: bash
+        run: |
+          set +e
+
+          node scripts/p1/compare-migration-history.mjs \
+            docs/p1/git_migrations.csv \
+            p1-artifacts/production/db_migrations.csv \
+            Production \
+            > p1-artifacts/production/git-vs-production-migrations.md 2>&1
+          git_prod_status=$?
+
+          node scripts/p1/compare-migration-history.mjs \
+            docs/p1/git_migrations.csv \
+            p1-artifacts/replay/replay_db_migrations.csv \
+            replay \
+            > p1-artifacts/production/git-vs-replay-migrations.md 2>&1
+          git_replay_status=$?
+
+          node scripts/p1/normalize-schema-dump.mjs \
+            p1-artifacts/production/prod_schema.sql \
+            > p1-artifacts/production/prod_schema.normalized.sql
+          node scripts/p1/normalize-schema-dump.mjs \
+            p1-artifacts/replay/replay_schema.sql \
+            > p1-artifacts/production/replay_schema.normalized.sql
+          diff -u \
+            --label Production/full \
+            --label Replay/full \
+            p1-artifacts/production/prod_schema.normalized.sql \
+            p1-artifacts/production/replay_schema.normalized.sql \
+            > p1-artifacts/production/full-schema.diff
+          full_schema_status=$?
+
+          node scripts/p1/normalize-schema-dump.mjs \
+            p1-artifacts/production/prod_project_schema.sql \
+            > p1-artifacts/production/prod_project_schema.normalized.sql
+          node scripts/p1/normalize-schema-dump.mjs \
+            p1-artifacts/replay/replay_project_schema.sql \
+            > p1-artifacts/production/replay_project_schema.normalized.sql
+          diff -u \
+            --label Production/project \
+            --label Replay/project \
+            p1-artifacts/production/prod_project_schema.normalized.sql \
+            p1-artifacts/production/replay_project_schema.normalized.sql \
+            > p1-artifacts/production/project-schema.diff
+          project_schema_status=$?
+
+          node scripts/p1/normalize-schema-dump.mjs \
+            p1-artifacts/production/prod_project_schema_with_acl.sql \
+            > p1-artifacts/production/prod_project_schema_with_acl.normalized.sql
+          node scripts/p1/normalize-schema-dump.mjs \
+            p1-artifacts/replay/replay_project_schema_with_acl.sql \
+            > p1-artifacts/production/replay_project_schema_with_acl.normalized.sql
+          diff -u \
+            --label Production/project-with-ACL \
+            --label Replay/project-with-ACL \
+            p1-artifacts/production/prod_project_schema_with_acl.normalized.sql \
+            p1-artifacts/production/replay_project_schema_with_acl.normalized.sql \
+            > p1-artifacts/production/project-schema-with-acl.diff
+          project_acl_status=$?
+
+          {
+            echo "git_vs_production_migrations=$git_prod_status"
+            echo "git_vs_replay_migrations=$git_replay_status"
+            echo "full_schema_diff=$full_schema_status"
+            echo "project_schema_diff=$project_schema_status"
+            echo "project_schema_with_acl_diff=$project_acl_status"
+          } | tee p1-artifacts/production/comparison-status.txt
+
+          echo "git_prod_status=$git_prod_status" >> "$GITHUB_OUTPUT"
+          echo "git_replay_status=$git_replay_status" >> "$GITHUB_OUTPUT"
+          echo "full_schema_status=$full_schema_status" >> "$GITHUB_OUTPUT"
+          echo "project_schema_status=$project_schema_status" >> "$GITHUB_OUTPUT"
+          echo "project_acl_status=$project_acl_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload Production read-only evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p1-production-read-only-audit-${{ github.run_id }}
+          path: p1-artifacts/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Enforce zero unresolved drift
+        if: always()
+        shell: bash
+        run: |
+          git_prod_status="${{ steps.production_compare.outputs.git_prod_status }}"
+          git_replay_status="${{ steps.production_compare.outputs.git_replay_status }}"
+          full_schema_status="${{ steps.production_compare.outputs.full_schema_status }}"
+          project_schema_status="${{ steps.production_compare.outputs.project_schema_status }}"
+          project_acl_status="${{ steps.production_compare.outputs.project_acl_status }}"
+          if [[ "$git_prod_status" != "0" || "$git_replay_status" != "0" || "$full_schema_status" != "0" || "$project_schema_status" != "0" || "$project_acl_status" != "0" ]]; then
+            echo "P-1 drift gate failed: git/prod=$git_prod_status git/replay=$git_replay_status full-schema=$full_schema_status project-schema=$project_schema_status project-ACL=$project_acl_status"
+            exit 1
+          fi

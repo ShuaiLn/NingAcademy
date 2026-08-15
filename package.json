@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "audit:p1:git-migrations": "node scripts/p1/generate-git-migrations.mjs --check docs/p1/git_migrations.csv",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
