@@ -1,13 +1,13 @@
 # P-1 Replay Failures
 
-Status: **Migration replay PASS through 22 migrations (run 8 confirmed this); Production read-only gate script was found silently non-enforcing and has been fixed locally, pending CI re-verification; schema-drift re-comparison against findings 4-6 still outstanding**
+Status: **Migration replay PASS through 22 migrations; Production read-only gate fix (run 9) confirmed working across 3 live runs (11-13) — it now fails closed for real; those 3 runs then revealed a second bug, a false-positive write-privilege schema scope, fixed locally and pending CI re-verification; schema-drift re-comparison against findings 4-6 still outstanding**
 Audit date: 2026-08-15
 
 Migration replay of the original 20 migrations is fully resolved; nothing further to fix there. Run 7 additionally completed the Production read-only export and four-way comparison, which surfaced 3 real drift items unrelated to replay mechanics (uncommitted "Phase 1" policy/grant/function changes that reached Production but were never captured as migrations) — see `MIGRATION_DRIFT_REPORT.md`'s "Production drift investigation (run 7)" section for the full classification.
 
-Two new migrations closing those 3 findings — `20260815120000_core_auth_phase1_catchup_rls_and_grants.sql` and `20260815130000_finalize_student_creation_return_status.sql` — were written after run 7 and verified locally (byte-for-byte diff against Production's own dumps, `audit:p1:git-migrations`, `typecheck`, `build` all pass). Run 8 confirmed all 22 migrations replay clean from zero. Run 8 also revealed a **separate, more urgent bug**: the Production read-only proof script did not actually stop the job when it detected an elevated connection role — see "Run 8: Production read-only gate did not actually stop the job" below. That script has been fixed locally; it has not yet been re-run against Production, and the underlying elevated-role issue on the Production connection itself has not been investigated or fixed (out of scope for this fix, and outside this agent's access regardless).
+Two new migrations closing those 3 findings — `20260815120000_core_auth_phase1_catchup_rls_and_grants.sql` and `20260815130000_finalize_student_creation_return_status.sql` — were written after run 7 and verified locally (byte-for-byte diff against Production's own dumps, `audit:p1:git-migrations`, `typecheck`, `build` all pass). Run 8 confirmed all 22 migrations replay clean from zero. Run 9 then revealed a **separate, more urgent bug**: the Production read-only proof script did not actually stop the job when it detected an elevated connection role — see "Run 9: Production read-only gate did not actually stop the job" below. The user committed that fix directly (commit `d14ea9b`) and separately fixed the Production connection role itself (now `p1_readonly_audit_v2`, holding only `pg_read_all_data` membership) — both outside this agent's access. Runs 11-13 on that commit then confirmed the gate fix works (it now genuinely fails closed), but surfaced a **third bug**: the table/sequence write-privilege checks were scoped too broadly and false-tripped on Supabase's own `cron`/`net` extension schemas — see "Runs 11-13: write-privilege checks false-positive on Supabase extension schemas" below. That has also been fixed locally and is pending CI re-verification.
 
-Run 7's findings are not called into question by this: its read-only-proof step passed with no refusal message logged at all, meaning all five checks were genuinely satisfied on their own merits that time — the `\quit` bug only ever mattered on a check that *fails*, and none did in run 7. What changed for run 8, and whether the same secret now resolves to a different, elevated role, was not investigated here (Production role/secret provisioning is explicitly out of scope for this fix). Until a future Production audit run shows the "Prove the Production connection is read-only" step passing *with no refusal message in its log*, do not treat that step's bare `success` status alone as proof of anything — check the log text too.
+Run 7's findings are not called into question by this: its read-only-proof step passed with no refusal message logged at all, meaning all five checks were genuinely satisfied on their own merits that time — the `\quit` bug only ever mattered on a check that *fails*, and none did in run 7. What changed for run 9, and whether the same secret resolved to a different, elevated role at that point, was not investigated here (Production role/secret provisioning is explicitly out of scope for this fix) — the user has since separately reprovisioned the Production connection role as `p1_readonly_audit_v2`. Until a future Production audit run shows the "Prove the Production connection is read-only" step passing *with no refusal message in its log*, do not treat that step's bare `success` status alone as proof of anything — check the log text too.
 
 ## Run 1 examined
 
@@ -152,9 +152,9 @@ No other `pg_catalog.`-qualified special-form keyword (`coalesce`, `nullif`, `su
 
 Failures 1-3 remain above as the permanent replay repair history. Run 4 proves that all three are resolved for from-zero replay.
 
-## Run 8: Production read-only gate did not actually stop the job
+## Run 9: Production read-only gate did not actually stop the job
 
-- Workflow run: `31911857826`, `workflow_dispatch`, commit `b1c3628` (the forward-fix migrations from findings 4-6)
+- Workflow run: `31911857826`, run number `9`, `workflow_dispatch`, commit `b1c3628` (the forward-fix migrations from findings 4-6)
 - Job `Replay every migration from zero`: **success** — all 22 migrations (including the two new forward-fix migrations) replayed clean from zero. Not investigated further here per instruction; schema-drift re-comparison is separate follow-up work.
 - Job `Production read-only audit`: **failure**, but only at the final `Enforce zero unresolved drift` step. Every step before it — including `Prove the Production connection is read-only`, `Export Production migration history and schema`, `Compare all four P-1 evidence sets`, `Upload Production read-only evidence` — reported **success**.
 
@@ -189,6 +189,47 @@ do $$ begin raise exception 'Refusing Production audit: ...' using errcode = 'P0
 - psql exit-code semantics for `ON_ERROR_STOP` + script-file errors: documented behavior (exit 3), not guessed.
 - Cannot be replayed locally (no Docker, no direct Production connection available to this agent) — **the next Production audit run is the only way to confirm this actually stops the job**. Until Production's connection role is separately fixed to be genuinely restricted, the expected result of the next run is that this same "the connection role is elevated" check now correctly fails the `Prove the Production connection is read-only` step itself (not just the later drift-gate step), and the job stops before ever exporting or comparing Production schema data.
 - This fix does not touch `docs/p1/git_migrations.csv` (this script lives under `scripts/p1/`, not `supabase/migrations/`) and does not touch any migration file.
+
+## Runs 11-13: write-privilege checks false-positive on Supabase extension schemas
+
+- Workflow runs: `31912695067` (run 11), `31913066721` (run 12), `31914647434` (run 13), all `workflow_dispatch` on commit `d14ea9b` (the user's own commit of the run-9 `\quit` fix above)
+- All three: job `Replay every migration from zero` — **success**. Job `Production read-only audit` — **failure**, specifically at the `Prove the Production connection is read-only` step, consistently across all three runs.
+
+This is confirmation that the run-9 fix works exactly as intended: `Prove the Production connection is read-only` is now genuinely stopping the job (fail-closed) instead of silently succeeding. But the reason it stops is itself a false positive, reported directly by the user after inspecting the Production role: `p1_readonly_audit_v2` (Production's connection role as of these runs) has **only** `pg_read_all_data` membership and no other role membership — not elevated, not a false negative on the `role_is_restricted` check. The trip is the table/sequence write-privilege checks, on:
+
+- `cron.job_run_details`
+- `net._http_response`
+- `net.http_request_queue`
+
+### Root cause
+
+The write-privilege checks scanned every schema except `information_schema` and anything matching `^pg_` — far broader than the four schemas this audit actually reads or dumps (`public`, `private`, `game`, `game_private`). Supabase's own `pg_cron`/`pg_net` extensions commonly grant some privileges on their own internal bookkeeping tables **to `PUBLIC`** as part of their installation scripts — a privilege every role inherits regardless of how restricted it otherwise is, confirmed by the user to originate from `PUBLIC`, not from any direct grant to `p1_readonly_audit_v2`. This has nothing to do with whether the connection role can write anything belonging to NingAcademy's own schema; it is Supabase platform/extension configuration, the same category as the `full-schema.diff` platform noise already documented in `MIGRATION_DRIFT_REPORT.md` findings 2-3.
+
+### Local correction
+
+Scoped both the table-write and sequence-write checks in `scripts/p1/assert-production-read-only.sql` to exactly the four project schemas:
+
+```sql
+where namespace.nspname in (
+  'public',
+  'private',
+  'game',
+  'game_private'
+)
+```
+
+replacing the previous `namespace.nspname <> 'information_schema' and namespace.nspname !~ '^pg_'`. Nothing else in the script changed:
+
+- The `role_is_restricted` check (rolsuper/rolcreatedb/rolcreaterole/rolreplication/rolbypassrls) is untouched — not implicated in this false positive, and the user's own inspection already confirms it correctly passes for `p1_readonly_audit_v2`.
+- The `role_cannot_create_objects` check (`CREATE` privilege) is untouched — not reported as a false positive, and `pg_read_all_data` grants no `CREATE` privilege anywhere, so it is not expected to have the same problem. If a future run shows it does, that would need its own investigation rather than assuming the same fix applies.
+- No `GRANT`/`REVOKE` was run anywhere, no Production connection was made, and `cron`/`net` privileges were not touched — the fix is a read-side scope narrowing only, in a file this agent runs entirely offline against.
+- This still fails closed: if `p1_readonly_audit_v2` (or any future connection role) actually has INSERT/UPDATE/DELETE/TRUNCATE/TRIGGER/REFERENCES on any table, or USAGE/UPDATE on any sequence, in `public`/`private`/`game`/`game_private` specifically, the check still trips and the run-9 fix still makes that a real, non-zero-exit failure.
+
+### Verification state
+
+- Confirmed via the GitHub API that all three runs (11-13) failed at exactly `Prove the Production connection is read-only`, not later — consistent, not flaky, and consistent with the user's own direct inspection of the role's actual grants.
+- Structural check of the edited file (balanced `\if`/`\else`/`\endif`, `$$...$$;` pairing, no `\quit`): pass, read directly from the file.
+- Cannot be replayed locally (no Docker, no Production connection available to this agent) — **the next Production audit run is the only way to confirm the false positive is gone and the step now passes for real** (not just "returns success" — check that no refusal message appears in its log, per the run-9 lesson above).
 
 ## CI replay contract
 
