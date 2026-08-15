@@ -688,6 +688,11 @@ create table game_private.correction_requests (
 -- Ownership and RLS: enabled everywhere, direct access nowhere
 -- ============================================================================
 
+-- ALTER ... OWNER also requires the prospective owner to have CREATE on the
+-- object's containing schema. Keep CREATE only for this migration's ownership
+-- transfers; the final privilege block revokes it again.
+grant usage, create on schema public to game_api_owner;
+
 alter table public.game_assignment_configs owner to game_api_owner;
 alter table public.game_assignment_accommodations owner to game_api_owner;
 alter table public.game_assignment_vocabulary_sources owner to game_api_owner;
@@ -4115,8 +4120,7 @@ $$;
 -- Final ownership and least-privilege execution matrix
 -- ============================================================================
 
-grant usage on schema public, auth, private to game_api_owner;
-grant create on schema public to game_api_owner;
+grant usage on schema auth, private to game_api_owner;
 grant execute on function private.current_teacher_id() to game_api_owner;
 grant execute on function private.current_student_id() to game_api_owner;
 grant execute on function private.is_ready_profile() to game_api_owner;

@@ -1,9 +1,9 @@
 # P-1 Replay Failures
 
-Status: **FIRST FAILURE FIXED LOCALLY; CI RERUN REQUIRED**
+Status: **SECOND FAILURE FIXED LOCALLY; CI RERUN REQUIRED**
 Audit date: 2026-08-15
 
-## Run examined
+## Run 1 examined
 
 - Workflow run: `31905487471`, run number `1`, attempt `3`
 - Commit: `c05ae305843500cff9ead9c449731b11bb670397`
@@ -45,9 +45,45 @@ This correction changes only the existing migration replay contract. It adds no 
 - SQL definition/caller contract inspection: pass.
 - Git migration inventory/hash check: pass locally.
 - TypeScript typecheck and application build: pass locally.
-- Full migration replay: pending the next GitHub Actions run.
+- Replay validation: pass; workflow run 2 applied this migration and reached migration 20.
 
-This failure remains recorded even after a successful rerun. If the next replay reaches a later failure, append it as Failure 2 instead of replacing this entry.
+This failure remains recorded after its successful rerun.
+
+## Run 2 examined
+
+- Workflow run: `31907092631`, run number `2`, attempt `2`
+- Commit: `40612ffab53e6fdf8125ffb9b9abd994759815e8`
+- Replay artifact: `p1-migration-replay-31907092631`
+- Result before this fix: migrations 1-19 succeeded; replay stopped in migration 20; Git/replay history comparison reported only `20260813230000_game_phase0_contract.sql` missing.
+
+## Failure 2: target owner lacked schema CREATE
+
+| Field | Evidence |
+| --- | --- |
+| First failing migration | `20260813230000_game_phase0_contract.sql` |
+| PostgreSQL error | `ERROR: permission denied for schema public (SQLSTATE 42501)` |
+| Failing statement | `alter table public.game_assignment_configs owner to game_api_owner` |
+| Replay history at failure | All first 19 versions recorded; only the failing game draft was not recorded |
+
+### Root cause
+
+The migration granted its executor temporary membership in `game_api_owner`, satisfying the requirement that the executor can `SET ROLE` to the new owner. PostgreSQL also requires the prospective owner to have `CREATE` on the object's containing schema. `game_api_owner` did not yet have `CREATE` on `public` when the first `ALTER TABLE ... OWNER` ran.
+
+The same migration granted `CREATE` near its final function-ownership block, but that statement occurred thousands of lines after the table ownership transfer. The privilege was correct in intent and wrong in execution order.
+
+### Local correction
+
+The existing draft migration now grants `USAGE, CREATE` on schema `public` to the NOLOGIN owner role immediately before the ownership transfers. The later duplicate grant was removed. The existing final `REVOKE CREATE ON SCHEMA public FROM game_api_owner` remains in place, so the role does not retain general object-creation permission after migration completion.
+
+This is an execution-order repair only. It creates no new table, RPC, or game requirement and performs no Production operation. `docs/p1/git_migrations.csv` records the corrected SHA-256; `MIGRATION_DRIFT_REPORT.md` retains both the baseline and corrected draft hashes.
+
+### Verification state
+
+- First-failure/artifact inspection: pass.
+- Privilege ordering and final privilege revocation inspection: pass.
+- Git migration inventory/hash check: pass locally.
+- TypeScript typecheck and application build: pass locally.
+- Full migration replay: pending the next GitHub Actions run.
 
 ## CI replay contract
 

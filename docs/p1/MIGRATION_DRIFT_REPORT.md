@@ -31,7 +31,7 @@ The workflow compares full schema dumps and separately compares `public`, `priva
 
 ## Existing pre-P-1 game draft
 
-`supabase/migrations/20260813230000_game_phase0_contract.sql` already existed in Git at the audit baseline. Its SHA-256 is `6ae2f26913f750178179986193e53c505bc61d711ffefc1c5b09083529fbc798`.
+`supabase/migrations/20260813230000_game_phase0_contract.sql` already existed in Git at the audit baseline. Its baseline SHA-256 was `6ae2f26913f750178179986193e53c505bc61d711ffefc1c5b09083529fbc798`. The P-1 replay ordering correction made after workflow run `31907092631` has SHA-256 `25b9b759388b96529094a01c0aabd6cf983ce0c351b97c9bbc6c8268fe721adb`; the correction moves a temporary schema privilege before ownership transfer and retains the final privilege revocation.
 
 This migration is a **pre-audit draft**, not an approved P-1 result. It adds `assignments.assignment_kind`, multiple game schemas/tables, functions, triggers, roles, policies, and grants. It does not create `game_unlock_requirements`, `game_assignment_versions`, or `get_game_access_status`, but it still represents unapproved game DDL.
 
