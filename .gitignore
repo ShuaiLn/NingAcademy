@@ -38,6 +38,10 @@ supabase/.branches/
 supabase/.env
 supabase/.env.local
 
+# P-1 downloaded audit artifacts (contain Production schema dumps; never commit)
+p1-run7-artifacts/
+p1-*-artifacts/
+
 # Logs
 *.log
 npm-debug.log*

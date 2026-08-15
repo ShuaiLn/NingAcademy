@@ -1,7 +1,11 @@
 # P-1 Replay Failures
 
-Status: **THIRD FAILURE FIXED LOCALLY; CI RERUN REQUIRED**
+Status: **PASS for the original 20 migrations (runs 4 and 7, `baseline=0 replay=0 snapshot=0 history=0` both times); 2 new forward-fix migrations (#21-22) added after run 7 and not yet replayed by CI**
 Audit date: 2026-08-15
+
+Migration replay of the original 20 migrations is fully resolved; nothing further to fix there. Run 7 additionally completed the Production read-only export and four-way comparison, which surfaced 3 real drift items unrelated to replay mechanics (uncommitted "Phase 1" policy/grant/function changes that reached Production but were never captured as migrations) — see `MIGRATION_DRIFT_REPORT.md`'s "Production drift investigation (run 7)" section for the full classification.
+
+Two new migrations closing those 3 findings — `20260815120000_core_auth_phase1_catchup_rls_and_grants.sql` and `20260815130000_finalize_student_creation_return_status.sql` — were written after run 7 and verified locally (byte-for-byte diff against Production's own dumps, `audit:p1:git-migrations`, `typecheck`, `build` all pass), but this environment has no Docker, so they have never actually been replayed. **The next CI run must replay all 22 migrations from zero** and could in principle surface a Failure 4 in either new file, the same way Failures 1-3 surfaced in the original 20 — do not assume these two are clean until that run comes back. See `MIGRATION_DRIFT_REPORT.md`'s "Forward-fix migrations for findings 4-6" and "Gate decision" sections for what happens after a clean replay (re-comparison against run 7's Production artifacts, not a new Production connection).
 
 ## Run 1 examined
 
@@ -83,7 +87,7 @@ This is an execution-order repair only. It creates no new table, RPC, or game re
 - Privilege ordering and final privilege revocation inspection: pass.
 - Git migration inventory/hash check: pass locally.
 - TypeScript typecheck and application build: pass locally.
-- Full migration replay: pending the next GitHub Actions run.
+- Replay validation: pass; workflow runs 3 and 4 passed this ownership block and reached later statements/completion.
 
 ## Run 3 examined
 
@@ -129,7 +133,22 @@ No other `pg_catalog.`-qualified special-form keyword (`coalesce`, `nullif`, `su
 - Full-file search for the same anti-pattern across all special-form keywords: pass, none remain.
 - Git migration inventory/hash check: pass locally.
 - TypeScript typecheck and application build: pass locally.
-- Full migration replay: pending the next GitHub Actions run.
+- Replay validation: pass; workflow run 4 completed migration 20 and the full reset.
+
+## Run 4 successful replay
+
+- Workflow run: `31908649338`, run number `4`, attempt `1`
+- Commit: `54b5c70bce5543b0d8a5d13ef401d59e2c602319`
+- Workflow conclusion: `success`
+- Replay artifact: `p1-migration-replay-31908649338`
+- Supabase CLI: `2.114.0`
+- Replay log: applied all 20 migrations in order and ended with `Finished supabase db reset on branch main.`
+- Migration history: 20 Git versions, 20 replay versions, result `MATCH`; no Git-only, replay-only, or same-version/name mismatch.
+- Gate status: baseline `0`, replay `0`, snapshot `0`, history comparison `0`.
+- Schema outputs: `replay_schema.sql` (629,246 bytes), `replay_project_schema.sql` (460,814 bytes), and ACL-aware `replay_project_schema_with_acl.sql` (537,829 bytes).
+- Schema sanity check: the full dump contains the `game` schema, `public.game_assignment_configs`, and `game_private.build_launch_context(...)` from migration 20.
+
+Failures 1-3 remain above as the permanent replay repair history. Run 4 proves that all three are resolved for from-zero replay.
 
 ## CI replay contract
 
@@ -145,4 +164,4 @@ The workflow may pass only when startup, replay, snapshot export, and Git/replay
 
 ## Gate decision
 
-P-1 remains blocked. A new CI run must prove that the corrected migration succeeds and expose the next first failure, if any. Three consecutive first-failure fixes (function return-type change, schema-ownership grant ordering, schema-qualified SQL special forms) have now been applied and locally verified without ever touching Production or authorizing any new game migration; each still requires a passing CI replay before it counts as resolved.
+The **migration replay gate is PASS** as of run 4. P-1 as a whole remains blocked until the separate Production read-only audit exports Production migration history/schema and completes the Production-vs-Git/replay comparisons with zero unresolved drift. Replay success does not authorize a staging/Production migration application or any new game migration.
