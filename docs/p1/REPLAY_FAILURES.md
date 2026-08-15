@@ -1,69 +1,66 @@
 # P-1 Replay Failures
 
-Status: **NOT YET EXECUTED — zero replay failures is not claimed**  
+Status: **FIRST FAILURE FIXED LOCALLY; CI RERUN REQUIRED**
 Audit date: 2026-08-15
 
-## Current result
+## Run examined
 
-No local replay was attempted. Docker is intentionally not required on the developer machine, and neither Docker nor a global PostgreSQL client is available in the current environment. The isolated GitHub Actions workflow has been prepared but cannot produce a run artifact until these audit-only changes are committed and the workflow runs.
+- Workflow run: `31905487471`, run number `1`, attempt `3`
+- Commit: `c05ae305843500cff9ead9c449731b11bb670397`
+- Replay artifact: `p1-migration-replay-31905487471`
+- Supabase CLI: `2.114.0`
+- Result before this fix: baseline startup succeeded; replay stopped after 10 migrations; Git/replay history comparison reported 10 missing Git versions.
 
-| Check | Result |
+No local Docker replay was attempted. Docker remains isolated to GitHub Actions as required.
+
+## Failure 1: function return-type replacement
+
+| Field | Evidence |
 | --- | --- |
-| Tracked migration inventory regeneration | Pass: 20 files match `git_migrations.csv` |
-| Empty Supabase baseline startup | Not run |
-| `supabase db reset --local --no-seed --debug` | Not run |
-| Replay migration-history comparison | Not run |
-| Replay schema export | Not run |
-| Replay failures | Unknown; **not zero** until proved by CI |
+| First failing migration | `20260811080227_allow_three_teacher_bootstrap.sql` |
+| PostgreSQL error | `ERROR: cannot change return type of existing function (SQLSTATE 42P13)` |
+| Failing statement | `create or replace function public.finalize_teacher_bootstrap(uuid, text, text, uuid) returns boolean` |
+| Previous definition | `20260810164324_core_auth.sql` creates the same argument signature with `returns void` |
+| Replay history at failure | Versions `20260810164324` through `20260811051504` recorded; the failing version and nine later versions were not recorded |
+
+### Root cause
+
+PostgreSQL identifies an overloaded function by name and input argument types, not by return type. `CREATE OR REPLACE FUNCTION` may replace the body and compatible attributes, but it cannot change the return type of an existing `(uuid, text, text, uuid)` function from `void` to `boolean`.
+
+The boolean return is required by `app/actions/setup.ts`: `true` confirms creation and `false` represents the expected three-teacher limit race. Keeping the old `void` contract would make a successful RPC return null and be treated as failure by the Server Action.
+
+### Local correction
+
+The failing migration now:
+
+1. drops the exact old overload before recreating it;
+2. creates the intended `returns boolean` function;
+3. revokes default `PUBLIC` execute access after recreation;
+4. grants execute only to `service_role`, matching the trusted server-only caller.
+
+This correction changes only the existing migration replay contract. It adds no game table or RPC and performs no Production operation. `docs/p1/git_migrations.csv` was updated with the corrected file's SHA-256.
+
+### Verification state
+
+- SQL definition/caller contract inspection: pass.
+- Git migration inventory/hash check: pass locally.
+- TypeScript typecheck and application build: pass locally.
+- Full migration replay: pending the next GitHub Actions run.
+
+This failure remains recorded even after a successful rerun. If the next replay reaches a later failure, append it as Failure 2 instead of replacing this entry.
 
 ## CI replay contract
 
-`.github/workflows/p1-database-audit.yml` performs these operations in an ephemeral Ubuntu runner:
+`.github/workflows/p1-database-audit.yml` starts an empty Supabase stack and then runs `supabase db reset --local --no-seed --debug`. It always uploads:
 
-1. Pins Supabase CLI `2.114.0` and verifies `git_migrations.csv`.
-2. Temporarily removes project migrations, starts a blank local Supabase stack, and restores the files.
-3. Runs every tracked migration from zero using `supabase db reset --local --no-seed --debug`.
-4. Preserves the complete command stream in `replay/replay.log`, including the failing migration and CLI diagnostics.
-5. Exports the resulting full and project-only schemas even when replay stops partway through.
-6. Exports `supabase_migrations.schema_migrations` and compares it with the Git inventory.
-7. Uploads the evidence before failing the job.
+- `replay.log` and `baseline-start.log`;
+- full and project-only replay schema dumps;
+- the ACL-aware project schema dump;
+- `replay_db_migrations.csv`;
+- the Git/replay history comparison and numeric status files.
 
-Artifact name: `p1-migration-replay-<run_id>`  
-Retention: 14 days
-
-Required files include:
-
-- `replay.log`
-- `baseline-start.log`
-- `replay_schema.sql`
-- `replay_project_schema.sql`
-- `replay_project_schema_with_acl.sql`
-- `replay_db_migrations.csv`
-- `git-vs-replay-migrations.md`
-- numeric status files for startup, replay, snapshot, and history comparison
-
-`supabase/config.toml` enables a seed path, but the repository currently has no tracked `supabase/seed.sql`. The workflow creates an empty seed only for blank-stack startup and uses `--no-seed` for the migration replay, so seed state cannot mask a migration failure.
-
-## Failure classification to apply after the first run
-
-Every nonzero replay event must be copied here with the migration version, failing statement/function, exact PostgreSQL error, root cause, and forward-only resolution. At minimum, review the rev2.1 risk classes:
-
-- malformed `RAISE` statements or format-argument mismatches;
-- parameter/column ambiguity, requiring `p_` parameters and qualified column references;
-- functions missing a deliberate `SET search_path`;
-- undeclared object-order dependencies;
-- partial replay history where the log and `schema_migrations` stop at different versions;
-- the pre-P-1 game draft and any dependency it assumes.
-
-No failure may be silently waived. A fixed replay must be rerun from zero, and this document must retain the original failure plus its resolution.
+The workflow may pass only when startup, replay, snapshot export, and Git/replay history comparison all return zero.
 
 ## Gate decision
 
-P-1 replay acceptance is blocked until a CI artifact proves all of the following in the same run:
-
-- baseline startup exit code `0`;
-- replay exit code `0`;
-- schema/history export exit code `0`;
-- Git vs replay migration history result `MATCH`;
-- this report is updated with either “no failures observed” or a complete list of resolved failures.
-
+P-1 remains blocked. A new CI run must prove that the corrected migration succeeds and expose the next first failure, if any. No staging/Production migration application and no new game migration are authorized by this repair.

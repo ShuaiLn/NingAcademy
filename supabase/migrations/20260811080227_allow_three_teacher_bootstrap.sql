@@ -6,7 +6,13 @@
 -- just a higher threshold and a renamed error_code for the exhausted case.
 -- ============================================================================
 
-create or replace function public.finalize_teacher_bootstrap(
+-- The Phase 1 function with this argument signature returned void.
+-- PostgreSQL cannot change a function return type with CREATE OR REPLACE,
+-- so remove that exact overload before creating the boolean contract used by
+-- the setup Server Action.
+drop function public.finalize_teacher_bootstrap(uuid, text, text, uuid);
+
+create function public.finalize_teacher_bootstrap(
   p_user_id uuid,
   p_username text,
   p_full_name text,
@@ -47,4 +53,6 @@ begin
   return true;
 end;
 $$;
-;
+
+revoke execute on function public.finalize_teacher_bootstrap(uuid, text, text, uuid) from public;
+grant execute on function public.finalize_teacher_bootstrap(uuid, text, text, uuid) to service_role;
