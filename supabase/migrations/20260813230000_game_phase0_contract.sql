@@ -2029,7 +2029,7 @@ as $$
       'allowedModes', c.allowed_modes,
       'map', c.map_key,
       'learningDifficulty', c.learning_difficulty,
-      'screenShakeMax', pg_catalog.least(c.screen_shake_max, coalesce(ac.screen_shake_max, c.screen_shake_max)),
+      'screenShakeMax', least(c.screen_shake_max, coalesce(ac.screen_shake_max, c.screen_shake_max)),
       'hitStopAllowed', c.hit_stop_allowed,
       'flashIntensity', coalesce(ac.flash_intensity, c.flash_intensity),
       'shardIntensity', c.shard_intensity,
@@ -2867,7 +2867,7 @@ begin
     exposure_count = game_private.question_exposures.exposure_count + 1,
     last_exposed_at = excluded.last_exposed_at,
     next_eligible_at = excluded.next_eligible_at,
-    retention_until = pg_catalog.greatest(
+    retention_until = greatest(
       game_private.question_exposures.retention_until, excluded.retention_until
     );
 
@@ -3011,10 +3011,10 @@ begin
     where game_private.normalize_answer(v_question.grading_mode, accepted.answer)
       = game_private.normalize_answer(v_question.grading_mode, p_submitted_answer)
   );
-  v_response_ms := pg_catalog.greatest(
+  v_response_ms := greatest(
     0,
     pg_catalog.floor(
-      pg_catalog.extract(epoch from (pg_catalog.now() - v_question.issued_at)) * 1000
+      extract(epoch from (pg_catalog.now() - v_question.issued_at)) * 1000
     )::integer
   );
 
@@ -3065,7 +3065,7 @@ begin
   set
     last_correct_at = case when v_is_correct then pg_catalog.now() else qe.last_correct_at end,
     next_eligible_at = case when v_is_correct
-      then pg_catalog.greatest(qe.next_eligible_at, pg_catalog.now() + interval '30 minutes')
+      then greatest(qe.next_eligible_at, pg_catalog.now() + interval '30 minutes')
       else pg_catalog.now() + interval '5 minutes'
     end
   where qe.user_id = v_identity.authenticated_user_id
@@ -3175,18 +3175,18 @@ begin
 
   update game.game_attempts ga
   set
-    official_question_count = pg_catalog.greatest(
+    official_question_count = greatest(
       0, ga.official_question_count - case when v_learning_attempt.counts_for_rank then 1 else 0 end
     ),
-    official_correct_count = pg_catalog.greatest(
+    official_correct_count = greatest(
       0, ga.official_correct_count
         - case when v_learning_attempt.counts_for_rank and v_learning_attempt.is_correct then 1 else 0 end
     ),
-    assignment_question_count = pg_catalog.greatest(
+    assignment_question_count = greatest(
       0, ga.assignment_question_count
         - case when v_learning_attempt.counts_for_assignment then 1 else 0 end
     ),
-    assignment_correct_count = pg_catalog.greatest(
+    assignment_correct_count = greatest(
       0, ga.assignment_correct_count
         - case when v_learning_attempt.counts_for_assignment and v_learning_attempt.is_correct then 1 else 0 end
     )

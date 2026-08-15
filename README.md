@@ -51,6 +51,16 @@ project directly). After a schema change, regenerate `supabase/database.
 types.ts` from the Supabase CLI (`supabase gen types typescript`) so the
 client stays type-safe.
 
+Every change under `supabase/migrations/`, `supabase/config.toml`,
+`docs/p1/`, or `scripts/p1/` is replayed into an empty database from
+scratch in CI (`.github/workflows/p1-database-audit.yml`) and checked
+against a committed hash inventory (`npm run audit:p1:git-migrations`) —
+see `docs/p1/README.md` and `AGENTS.md` before writing a new migration.
+
+`npm run lint` currently fails at startup: the installed `typescript-eslint`
+doesn't yet support TypeScript 7 (tracked upstream). This is a toolchain
+mismatch, not a code issue, and predates it. There is no `test` script.
+
 ## Features
 
 - **Auth**: username/password (no email signup); a teacher bootstraps via
@@ -74,3 +84,11 @@ client stays type-safe.
   one or more students.
 - **Teacher dashboard**: due/overdue items across all homework types,
   recent activity, per-student stats.
+- **Game homework (in progress — Phase 0 database contract only)**: a
+  fourth homework kind (`assignments.assignment_kind = 'game'`) backed by
+  an external, authoritative game server, reached through a one-time
+  launch ticket rather than a page in this app. Only the student
+  launch path is wired into the UI so far — there is no teacher-facing
+  creation form or report view yet, and the underlying migration is
+  frozen behind a database-audit gate (see `AGENTS.md` and `docs/p1/`)
+  until it passes.

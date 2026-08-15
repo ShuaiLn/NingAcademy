@@ -1,6 +1,6 @@
 # P-1 Replay Failures
 
-Status: **SECOND FAILURE FIXED LOCALLY; CI RERUN REQUIRED**
+Status: **THIRD FAILURE FIXED LOCALLY; CI RERUN REQUIRED**
 Audit date: 2026-08-15
 
 ## Run 1 examined
@@ -85,6 +85,52 @@ This is an execution-order repair only. It creates no new table, RPC, or game re
 - TypeScript typecheck and application build: pass locally.
 - Full migration replay: pending the next GitHub Actions run.
 
+## Run 3 examined
+
+- Workflow run: `31907956628`, run number `3`, attempt `1`
+- Commit: `0ed4434573bcf6ea790ba80157d55e6518502f9f`
+- Result before this fix: migrations 1-19 succeeded; the schema-ownership statements from Failure 2 succeeded, confirming that fix; replay stopped inside migration 20 at a later statement.
+
+## Failure 3: `LEAST`/`GREATEST`/`EXTRACT` schema-qualified as `pg_catalog` function calls
+
+| Field | Evidence |
+| --- | --- |
+| First failing migration | `20260813230000_game_phase0_contract.sql` |
+| PostgreSQL error | `ERROR: function pg_catalog.least(smallint, smallint) does not exist (SQLSTATE 42883)` |
+| Failing statement | statement 186, inside `create function game_private.build_launch_context(...)`, the `'screenShakeMax', pg_catalog.least(...)` expression |
+
+### Root cause
+
+`LEAST`, `GREATEST`, and the `EXTRACT(field FROM source)` form are SQL special-form syntax handled directly by the PostgreSQL grammar (the same class as `COALESCE`/`NULLIF`), not ordinary entries in `pg_catalog.pg_proc`. They cannot be schema-qualified. The migration's `set search_path = ''` convention (used throughout this file to make every other function call schema-qualified for SECURITY DEFINER/INVOKER safety) was over-applied to these three keywords.
+
+Reproduced directly against a live database before editing anything, to avoid guessing:
+
+- `select pg_catalog.least(1::smallint, 2::smallint);` → `42883: function pg_catalog.least(smallint, smallint) does not exist`
+- `select pg_catalog.extract('epoch' from now());` → `42601: syntax error at or near "from"` (a hard parse error, not just an unresolved name)
+- `select extract(epoch from now()), least(1::smallint, 2::smallint), greatest(1::smallint, 2::smallint);` → succeeds unqualified
+
+Only one `pg_catalog.least(...)` call exists inside `build_launch_context` itself (the function statement 186 belongs to), but the identical mistake recurs seven more times later in the same migration file, all `pg_catalog.greatest(...)`, plus one `pg_catalog.extract(... from ...)`. Since CI stops at the first failing statement, leaving those in place would only have reproduced the same root cause as Failure 4 on the next run, so all eight sites were corrected together as one fix.
+
+### Local correction
+
+Removed the invalid `pg_catalog.` prefix from all `least`/`greatest`/`extract` call sites in `20260813230000_game_phase0_contract.sql`:
+
+- line ~2032 (`build_launch_context`): `screenShakeMax` clamp
+- line ~2870 (`game_private.` question-exposure upsert): `retention_until` widen
+- line ~3014-3017 (answer settlement): `v_response_ms` computation, including the `extract(epoch from ...)` call
+- line ~3068 (answer settlement): `next_eligible_at` spacing
+- lines ~3178-3189 (attempt void path): four `official_question_count`/`official_correct_count`/`assignment_question_count`/`assignment_correct_count` clamps
+
+No other `pg_catalog.`-qualified special-form keyword (`coalesce`, `nullif`, `substring`, `overlay`, `position`, `trim`, `cast`) remains in the file — checked with a full-file search after the fix. This is a call-site correction only; no table, RPC, or grant behavior changes. `docs/p1/git_migrations.csv` was regenerated and records only this file's new SHA-256.
+
+### Verification state
+
+- Reproduced the exact CI error and the fix, statement-for-statement, against a live database before and after editing: pass.
+- Full-file search for the same anti-pattern across all special-form keywords: pass, none remain.
+- Git migration inventory/hash check: pass locally.
+- TypeScript typecheck and application build: pass locally.
+- Full migration replay: pending the next GitHub Actions run.
+
 ## CI replay contract
 
 `.github/workflows/p1-database-audit.yml` starts an empty Supabase stack and then runs `supabase db reset --local --no-seed --debug`. It always uploads:
@@ -99,4 +145,4 @@ The workflow may pass only when startup, replay, snapshot export, and Git/replay
 
 ## Gate decision
 
-P-1 remains blocked. A new CI run must prove that the corrected migration succeeds and expose the next first failure, if any. No staging/Production migration application and no new game migration are authorized by this repair.
+P-1 remains blocked. A new CI run must prove that the corrected migration succeeds and expose the next first failure, if any. Three consecutive first-failure fixes (function return-type change, schema-ownership grant ordering, schema-qualified SQL special forms) have now been applied and locally verified without ever touching Production or authorizing any new game migration; each still requires a passing CI replay before it counts as resolved.

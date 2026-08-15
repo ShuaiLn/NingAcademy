@@ -31,7 +31,7 @@ The workflow compares full schema dumps and separately compares `public`, `priva
 
 ## Existing pre-P-1 game draft
 
-`supabase/migrations/20260813230000_game_phase0_contract.sql` already existed in Git at the audit baseline. Its baseline SHA-256 was `6ae2f26913f750178179986193e53c505bc61d711ffefc1c5b09083529fbc798`. The P-1 replay ordering correction made after workflow run `31907092631` has SHA-256 `25b9b759388b96529094a01c0aabd6cf983ce0c351b97c9bbc6c8268fe721adb`; the correction moves a temporary schema privilege before ownership transfer and retains the final privilege revocation.
+`supabase/migrations/20260813230000_game_phase0_contract.sql` already existed in Git at the audit baseline. Its baseline SHA-256 was `6ae2f26913f750178179986193e53c505bc61d711ffefc1c5b09083529fbc798`. The P-1 replay ordering correction made after workflow run `31907092631` produced SHA-256 `25b9b759388b96529094a01c0aabd6cf983ce0c351b97c9bbc6c8268fe721adb` (moves a temporary schema privilege before ownership transfer, retains the final privilege revocation). The further correction made after workflow run `31907956628` has SHA-256 `d7870560aaa74a5a024fc77da4659da36b21eb7f798f587bc97e1f197120379b`; it unqualifies eight `pg_catalog.least`/`pg_catalog.greatest`/`pg_catalog.extract` call sites that are invalid PostgreSQL syntax for these SQL special forms (see `REPLAY_FAILURES.md` Failure 3).
 
 This migration is a **pre-audit draft**, not an approved P-1 result. It adds `assignments.assignment_kind`, multiple game schemas/tables, functions, triggers, roles, policies, and grants. It does not create `game_unlock_requirements`, `game_assignment_versions`, or `get_game_access_status`, but it still represents unapproved game DDL.
 
