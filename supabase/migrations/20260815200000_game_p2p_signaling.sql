@@ -15,7 +15,11 @@ begin
     alter role games_api nologin noinherit nobypassrls;
   end if;
 
-  execute pg_catalog.format('grant game_api_owner to %I', current_user);
+  execute pg_catalog.format(
+    'grant game_api_owner to %I granted by %I',
+    current_user,
+    current_user
+  );
 end
 $roles$;
 
@@ -1091,6 +1095,10 @@ revoke references (id) on public.profiles from game_api_owner;
 
 do $drop_temporary_membership$
 begin
-  execute pg_catalog.format('revoke game_api_owner from %I', current_user);
+  execute pg_catalog.format(
+    'revoke game_api_owner from %I granted by %I',
+    current_user,
+    current_user
+  );
 end
 $drop_temporary_membership$;
