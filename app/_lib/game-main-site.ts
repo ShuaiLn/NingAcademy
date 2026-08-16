@@ -234,6 +234,17 @@ export async function revokeGameSessionsForUser(
     }
   );
 
+  // PGRST202 means PostgREST can't find revoke_game_sessions_v1 at all --
+  // the game migrations haven't landed in this environment yet (see
+  // docs/p1/README.md), so there is no game schema and nothing to revoke.
+  // Treat that specific case as success rather than failing closed, or
+  // logout/password-change break entirely wherever the game subsystem
+  // isn't deployed. Any other error (permission denied, timeout, RPC
+  // business-logic failure) still fails closed as before.
+  if (error?.code === "PGRST202") {
+    return true;
+  }
+
   if (error || typeof data !== "number" || !Number.isInteger(data) || data < 0) {
     console.error("game session revocation RPC failed", { code: error?.code });
     return false;
