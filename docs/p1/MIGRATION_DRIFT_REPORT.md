@@ -18,6 +18,13 @@ The active Git inventory is now **28 migrations**. A fresh linked CLI
 exactly **19 migrations**, ending at
 `20260813074607_vocabulary_multiple_choice`; versions 20–28 are absent.
 
+The latest isolated Git replay is commit
+`6b53658dde40e48b8bf9213a5a5a9d49c39cb18f`, run `31930669031`: **PASS**.
+It replayed all 28 migrations from zero, matched the 28-entry Git history, and
+passed the four-schema (`public`, `private`, `game`, `game_private`)
+final/partial/missing-state convergence gate. This proves replayability only;
+it is not a Production audit or deployment authorization.
+
 A new Production schema/ACL/FK export could not be run from this workspace
 because no `PRODUCTION_DATABASE_READ_ONLY_URL` is available. Owner,
 service-role and existing broad application secrets are deliberately not
@@ -70,18 +77,20 @@ the first Production write. Database rollback remains forward-fix only; take a
 fresh schema/ACL export and verify backups before authorization, deploy in the
 listed order, then repeat history/schema/ACL/FK/fixture checks.
 
-Last audited commit/run: `c241f08e20dac54b012b9761b67bde71769e43a9` / `31918316064`
+Last complete Production read-only audited commit/run:
+`c241f08e20dac54b012b9761b67bde71769e43a9` / `31918316064`
 
 No Production DDL/DML, `db push`, migration repair, project relink, or game
-schema deployment was executed. All new game DDL was limited to the explicit
-staging target.
+schema deployment was executed. Migrations 24–27 exist in the historical
+staging target; migration 28 exists only in Git and isolated CI replay.
 
 Post-audit staging evidence is recorded in
 [`STAGING_GAME_UNLOCK_REPORT.md`](./STAGING_GAME_UNLOCK_REPORT.md). The
 Production evidence below is retained as the historical authorization gate: it
 describes the 23-file queue at run `31918316064`, before the four staging-only
-game migrations were authored. Current Git/staging inventory is 27; Production
-remains at its read-only audited state.
+game migrations were authored and before migration 28 was added. Current Git
+inventory is 28 and Production remains at its read-only audited 19-version
+state; staging is historical evidence, not a rollout target.
 
 ## Current Production/replay evidence
 

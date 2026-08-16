@@ -19,6 +19,11 @@ explicit approval is still required first.
 
 Pull requests and pushes that touch migrations or P-1 audit files run the isolated migration replay. The developer machine does not need Docker. The workflow uploads the complete replay log, migration history, and schema dumps before enforcing the zero-failure gate.
 
+Latest automatic evidence: commit `6b53658dde40e48b8bf9213a5a5a9d49c39cb18f`,
+run `31930669031`, **PASS** for the 28/28 clean replay, migration-history
+comparison, and four-schema convergence checks. This does not replace the
+manual protected Production read-only audit below.
+
 ## Production read-only setup
 
 Production export is manual only. In GitHub:
