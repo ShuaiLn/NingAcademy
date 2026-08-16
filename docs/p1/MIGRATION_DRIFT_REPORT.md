@@ -1,14 +1,87 @@
 # P-1 Migration Drift Report
 
-Status: **P-1 PRE-DEPLOYMENT READY — clean replay and all convergence tests pass; REAL-UNRESOLVED, ACL, and UNKNOWN drift are zero; the only Git/Production differences are four reviewed non-game PENDING-DEPLOYMENT migrations**
+Status: **PRODUCTION HISTORY PREFLIGHT PASS / SCHEMA-ACL-FK READ-ONLY REVALIDATION BLOCKED — Git 28; Production 19; no Production write performed**
 
 Audit date: 2026-08-15
 
 Repository: `NingAcademy`, branch `main`
 
+## 2026-08-15 WebRTC Production rollout update
+
+The formal multiplayer runtime is now Games Vercel + Host-authoritative WebRTC
+P2P + the existing NingAcademy Production Supabase for short-lived signaling.
+No future rollout depends on the former staging project. The staging evidence
+below is intentionally retained as historical replay/security evidence only.
+
+The active Git inventory is now **28 migrations**. A fresh linked CLI
+`supabase migration list` read-only query confirms Production still contains
+exactly **19 migrations**, ending at
+`20260813074607_vocabulary_multiple_choice`; versions 20–28 are absent.
+
+A new Production schema/ACL/FK export could not be run from this workspace
+because no `PRODUCTION_DATABASE_READ_ONLY_URL` is available. Owner,
+service-role and existing broad application secrets are deliberately not
+accepted as substitutes. Therefore migration-history drift is known exactly,
+while current schema/ACL/FK/role and UNKNOWN drift must remain **UNKNOWN until
+the protected read-only export is rerun**.
+
+No Production DDL, DML, `db push`, migration repair, role creation or project
+relink was attempted.
+
+### Exact pending queue
+
+The fresh remote history query establishes this exact nine-migration pending
+queue, in order:
+
+1. `20260815120000_core_auth_phase1_catchup_rls_and_grants.sql`
+2. `20260815130000_finalize_student_creation_return_status.sql`
+3. `20260815140000_core_auth_identity_fk_delete_restrict.sql`
+4. `20260815150000_complete_password_change_convergence.sql`
+5. `20260815160000_game_phase0_contract.sql`
+6. `20260815170000_game_unlock_scheme_b.sql`
+7. `20260815180000_game_session_identity_v2.sql`
+8. `20260815190000_game_completion_acl_fix.sql`
+9. `20260815200000_game_p2p_signaling.sql`
+
+Migration 28 creates only the P2P signaling/membership/checkpoint contract and
+the NOLOGIN `games_api` allowlist role. It gives the role zero table access,
+revokes the obsolete runtime role's game-schema usage/execute privileges, and
+grants the Games Vercel runtime only the identity, gameplay persistence and P2P
+RPC whitelist. It does not create a password-bearing LOGIN; that restricted
+Production credential is a separate approval/secret operation.
+
+### Required fresh read-only gate
+
+Before migration 20, the protected audit must re-export:
+
+- `supabase_migrations.schema_migrations` and confirm the current Production
+  count/tip and the exact nine-item set above;
+- application schema plus ACLs, roles, RLS policies and function signatures;
+- all application-owned FKs, especially `profiles_id_fkey` and
+  `teachers_id_fkey`;
+- current `game`/`game_private` schemas, tables and functions, proving no
+  unexpected partial game deployment;
+- an UNKNOWN-drift result of zero after the exact approved IA-2 filter.
+
+Any different remote version, partial game object, ACL/FK difference outside
+the reviewed queue, or UNKNOWN diff stops deployment. After the read-only gate
+passes, the nine migrations still require explicit owner authorization before
+the first Production write. Database rollback remains forward-fix only; take a
+fresh schema/ACL export and verify backups before authorization, deploy in the
+listed order, then repeat history/schema/ACL/FK/fixture checks.
+
 Last audited commit/run: `c241f08e20dac54b012b9761b67bde71769e43a9` / `31918316064`
 
-No Production DDL/DML, `db push`, `migration repair`, project relink, or game-schema deployment was executed during this work.
+No Production DDL/DML, `db push`, migration repair, project relink, or game
+schema deployment was executed. All new game DDL was limited to the explicit
+staging target.
+
+Post-audit staging evidence is recorded in
+[`STAGING_GAME_UNLOCK_REPORT.md`](./STAGING_GAME_UNLOCK_REPORT.md). The
+Production evidence below is retained as the historical authorization gate: it
+describes the 23-file queue at run `31918316064`, before the four staging-only
+game migrations were authored. Current Git/staging inventory is 27; Production
+remains at its read-only audited state.
 
 ## Current Production/replay evidence
 
@@ -57,9 +130,9 @@ Because no accessible shared environment ever recorded `20260813230000`, the dra
 
 The complete audit record is retained in `supabase/drafts/README.md`. The file is no longer part of `git_migrations.csv`, cannot be picked up by the normal active migration replay/deploy queue, and must not be moved back. A future game design requires a new post-P-1 migration version and separate approval.
 
-## Current active migration inventory
+## Historical 23-file active migration inventory at run `31918316064`
 
-The working tree now has 23 active migrations. `docs/p1/git_migrations.csv` SHA-256 is `e1d6761974cec043cd491a60a555b53945e2d4b7ad526937fdaf5109b9f5e0b2`.
+At that historical run the working tree had 23 active migrations.
 
 | Active order | Migration                                                    | Current SHA-256                                                    | Production history          |
 | ------------ | ------------------------------------------------------------ | ------------------------------------------------------------------ | --------------------------- |
@@ -207,14 +280,14 @@ The raw full-schema/platform and full ACL-aware application diffs are evidence-o
 
 | Check                                         | Result                                                                                                                                       |
 | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Active migration inventory                    | PASS — 23 files and SHA-256 values are recorded in `git_migrations.csv`                                                                      |
+| Active migration inventory                    | PASS — 28 files and SHA-256 values are recorded in `git_migrations.csv`                                                                      |
 | P-1 Node script syntax                        | PASS                                                                                                                                         |
 | Workflow/Node Prettier parse and format check | PASS                                                                                                                                         |
 | Approved-drift exact block test               | PASS — the approved hash is removed; a one-line body change is preserved and logged `UNAPPROVED_PRESERVED`                                   |
 | `git diff --check`                            | PASS                                                                                                                                         |
 | `npm run typecheck`                           | PASS                                                                                                                                         |
 | `npm run build`                               | PASS                                                                                                                                         |
-| `npm run lint`                                | Blocked before linting by the pre-existing TypeScript 7 / `typescript-eslint` incompatibility; no P-1 file-specific lint result is available |
+| `npm run lint`                                | PASS with three unrelated existing warnings after migrating to the Next 16 flat ESLint config and TypeScript 6.0.3                          |
 | SQL runtime/convergence test                  | PASS — run `31918316064`; 23/23 replay, convergence schema, and function metadata checks all pass                                            |
 | Production ACL-only comparison                | PASS — run `31918316064`; status zero and empty ACL diff                                                                                     |
 
@@ -234,15 +307,18 @@ All required pre-deployment conditions are satisfied:
 
 The status is therefore **P-1 PRE-DEPLOYMENT READY**.
 
-## Staging-first next sequence
+## Staging-first sequence — completed 2026-08-15
 
-A fresh read-only CLI check confirms `NingAcademy-staging` is ACTIVE_HEALTHY but records zero remote migration versions. Therefore it must not receive only migrations 20–23 as if migrations 1–19 were already recorded.
+A read-only check confirmed `NingAcademy-staging` was ACTIVE_HEALTHY, empty of
+important data, and recorded zero remote migration versions. The sequence below
+was then completed without reset, drop, migration repair, or Production writes.
 
-1. Perform a read-only staging schema/data disposition check and confirm whether staging may be initialized from zero.
-2. With separate explicit staging-write authorization, establish the complete 23-migration active baseline on staging. Never include the archived Phase-0 game draft and never use migration repair to manufacture history.
-3. Re-audit staging history, application schema, ACL, and convergence behavior and require zero drift.
-4. Only after that staging baseline passes may formal Scheme B game unlock migrations be authored and deployed to staging first.
+1. **PASS** — schema/data/ACL/history disposition found no important data or unknown high-risk object.
+2. **PASS** — established the complete 23-migration baseline normally; the archived draft was never applied.
+3. **PASS** — history/schema/ACL/convergence were zero-drift.
+4. **PASS** — authored and deployed formal migrations 24–27 to staging only and repeated the same gates.
 
 Formal `P-1 PASS` still requires a separately authorized deployment of the reviewed non-game migrations followed by history/schema/ACL equality. The archived game draft must never be deployed and migration repair remains prohibited.
 
-Until the staging baseline audit passes, do not create `game_unlock_requirements`, `game_assignment_versions`, `game_assignment_completion_status`, `get_game_access_status`, or any other formal game unlock migration/RPC.
+The former hold on formal game objects is closed for staging. Production rollout
+remains separately gated and has not begun.

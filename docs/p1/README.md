@@ -2,6 +2,19 @@
 
 This directory contains the audit evidence and reports required before any new game database migration.
 
+The post-audit staging baseline and Scheme B implementation are complete as
+historical verification evidence. See
+[`STAGING_GAME_UNLOCK_REPORT.md`](./STAGING_GAME_UNLOCK_REPORT.md) for the
+27/27 history, zero-drift, completion, UI, ticket, and staging-backed Games E2E
+results. The formal runtime architecture is now Games Vercel + Host-authoritative
+WebRTC P2P + signaling in the existing Production Supabase; no future staging
+Supabase is required. Git now contains 28 active migrations; a fresh linked
+read-only history query confirms Production contains 19. The exact
+nine-migration queue and still-required schema/ACL/FK UNKNOWN-drift gate are
+listed in `MIGRATION_DRIFT_REPORT.md`. Production has
+not received the pending game migrations, and a fresh read-only preflight plus
+explicit approval is still required first.
+
 ## What runs automatically
 
 Pull requests and pushes that touch migrations or P-1 audit files run the isolated migration replay. The developer machine does not need Docker. The workflow uploads the complete replay log, migration history, and schema dumps before enforcing the zero-failure gate.
@@ -28,4 +41,4 @@ The canonical Production export deliberately uses PostgreSQL 17 `pg_dump --schem
 
 ## Closing P-1
 
-After a successful manual run, review every artifact and update the three reports with the exact run ID and result. Raw full/platform diffs are always retained as evidence. The gate ignores only exact hash-pinned objects with an approved disposition; changed approved objects are preserved and fail closed. P-1 may pass only when replay/convergence has zero failures, active Git and Production migration histories match, and unresolved project schema/ACL diffs are empty. Do not add or execute game migrations while any item remains pending.
+After a successful manual run, review every artifact and update the three reports with the exact run ID and result. Raw full/platform diffs are always retained as evidence. The gate ignores only exact hash-pinned objects with an approved disposition; changed approved objects are preserved and fail closed. P-1 may pass only when replay/convergence has zero failures, active Git and Production migration histories match, and unresolved project schema/ACL diffs are empty. Drafting reviewed forward migrations is allowed; executing any pending Production migration remains forbidden until the protected read-only rerun passes and the owner explicitly authorizes the write.

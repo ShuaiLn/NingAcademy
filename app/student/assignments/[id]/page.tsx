@@ -5,6 +5,7 @@ import { AttachedFilesList } from "./attached-files-list";
 import { StartSubmissionForm } from "./start-submission-form";
 import { LaunchGameButton } from "./launch-game-button";
 import { DueDateBadge } from "@/app/_components/due-date-badge";
+import { getGameAccessStatus } from "@/app/_lib/game-main-site";
 
 export default async function StudentAssignmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -25,6 +26,8 @@ export default async function StudentAssignmentDetailPage({ params }: { params: 
   // Game assignments never enter the plain-submission flow. In particular,
   // do not create/read submissions or render file-upload controls here.
   if (assignment.assignment_kind === "game") {
+    const accessResult = await getGameAccessStatus(supabase, assignment.id);
+    const accessStatus = accessResult.ok ? accessResult.status : null;
     return (
       <div className="flex max-w-2xl flex-col gap-6">
         <div>
@@ -41,11 +44,59 @@ export default async function StudentAssignmentDetailPage({ params }: { params: 
         </div>
 
         <div className="flex flex-col gap-3 rounded-md border border-violet-200 bg-violet-50 p-4">
+          <div>
+            <p className="font-medium text-violet-900">
+              {accessStatus?.allowed ? "✅ 已解锁" : "🔒 尚未解锁"}
+            </p>
+            <p className="text-xs text-slate-600">
+              完成状态由主站数据库实时判定；此页面只展示结果。
+            </p>
+          </div>
+          {accessStatus ? (
+            accessStatus.requirements.length > 0 ? (
+              <ul className="flex flex-col gap-2">
+                {accessStatus.requirements.map((requirement) => (
+                  <li
+                    key={requirement.requirementId}
+                    className="flex items-start gap-2 rounded bg-white/70 px-3 py-2 text-sm"
+                  >
+                    <span aria-hidden="true">{requirement.completed ? "✅" : "⬜"}</span>
+                    <span>
+                      <span className="font-medium">{requirement.title}</span>
+                      <span className="ml-2 text-xs text-slate-500">
+                        {requirement.kind === "plain"
+                          ? "普通作业"
+                          : requirement.kind === "vocabulary"
+                            ? "词汇作业"
+                            : "朗读作业"}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-slate-600">老师未设置前置作业。</p>
+            )
+          ) : (
+            <p className="text-sm text-red-700" role="alert">
+              无法验证解锁状态，已安全锁定。请稍后刷新重试。
+            </p>
+          )}
           <p className="text-sm text-slate-700">
             点击后会创建一个 60 秒内有效的一次性票据，并通过安全 POST
             进入游戏；票据不会出现在网址或浏览器历史中。
           </p>
-          <LaunchGameButton assignmentId={assignment.id} />
+          {accessStatus?.allowed ? (
+            <LaunchGameButton assignmentId={assignment.id} />
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="w-fit rounded-md bg-slate-300 px-4 py-2 text-sm font-medium text-slate-600"
+            >
+              🔒 完成全部要求后进入
+            </button>
+          )}
         </div>
       </div>
     );

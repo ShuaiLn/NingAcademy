@@ -82,3 +82,17 @@ No `game_unlock_requirements`, `game_assignment_versions`, or `get_game_access_s
 Run `31915313767`'s manual read-only Production export verified the real parent, target, due-date, permission, RLS, RPC-signature, and completion structures used for this decision.方案 B is therefore confirmed rather than provisional.
 
 P-1 remains closed for separate migration-history/FK/ACL reconciliation documented in `MIGRATION_DRIFT_REPORT.md`; those items do not reopen the assignment-model decision. Any future Production-only change that affects this model must still be recorded before formal game schema design.
+
+## Post-P-1 staging implementation update
+
+After the staging baseline passed,方案 B was implemented by
+`20260815170000_game_unlock_scheme_b.sql`. The three parents remain independent;
+`public.assignables` is only a narrow registry/identity layer. Immutable
+`game_assignment_versions` and `game_unlock_requirements` snapshot teacher
+configuration, `game_assignment_completion_status` records server evaluations,
+and `get_game_access_status(uuid)` derives the student from the authenticated
+session. Game-kind assignments are structurally excluded from the registry.
+
+This update supersedes the earlier historical statements that no registry/RPC
+had yet been authorized. Deployment is staging-only; Production remains
+unchanged.

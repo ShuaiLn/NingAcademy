@@ -7,6 +7,7 @@ import {
   GAME_LAUNCH_TICKET_PATTERN,
   GAME_LAUNCH_TRANSITION_PATH,
   getGameLaunchExchangeUrl,
+  getGameLaunchWebOrigin,
 } from "@/app/_lib/game-main-site";
 
 const AUTO_SUBMIT_SCRIPT =
@@ -29,8 +30,13 @@ function escapeHtml(value: string): string {
   );
 }
 
-function responseHeaders(exchangeUrl: URL | null): HeadersInit {
-  const formAction = exchangeUrl ? exchangeUrl.origin : "'none'";
+function responseHeaders(
+  exchangeUrl: URL | null,
+  gameWebOrigin: string | null
+): HeadersInit {
+  const formAction = exchangeUrl && gameWebOrigin
+    ? [...new Set([exchangeUrl.origin, gameWebOrigin])].join(" ")
+    : "'none'";
   return {
     "Cache-Control": "no-store, max-age=0, must-revalidate",
     Pragma: "no-cache",
@@ -44,7 +50,10 @@ function responseHeaders(exchangeUrl: URL | null): HeadersInit {
       "frame-ancestors 'none'",
     ].join("; "),
     "Cross-Origin-Opener-Policy": "same-origin",
-    "Referrer-Policy": "no-referrer",
+    // Cross-origin POSTs need a non-null Origin so Games can enforce its exact
+    // main-site allowlist. strict-origin sends only the origin, never this
+    // transition path or the launch ticket carried in the form body.
+    "Referrer-Policy": "strict-origin",
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
   };
@@ -53,11 +62,12 @@ function responseHeaders(exchangeUrl: URL | null): HeadersInit {
 function makeResponse(
   body: string,
   status: number,
-  exchangeUrl: URL | null
+  exchangeUrl: URL | null,
+  gameWebOrigin: string | null
 ): NextResponse {
   const response = new NextResponse(body, {
     status,
-    headers: responseHeaders(exchangeUrl),
+    headers: responseHeaders(exchangeUrl, gameWebOrigin),
   });
   response.cookies.set(GAME_LAUNCH_COOKIE, "", {
     httpOnly: true,
@@ -71,19 +81,26 @@ function makeResponse(
 
 export function GET(request: NextRequest) {
   const exchangeUrl = getGameLaunchExchangeUrl();
+  const gameWebOrigin = exchangeUrl ? getGameLaunchWebOrigin(exchangeUrl) : null;
   const ticket = request.cookies.get(GAME_LAUNCH_COOKIE)?.value;
 
-  if (!exchangeUrl || !ticket || !GAME_LAUNCH_TICKET_PATTERN.test(ticket)) {
+  if (
+    !exchangeUrl ||
+    !gameWebOrigin ||
+    !ticket ||
+    !GAME_LAUNCH_TICKET_PATTERN.test(ticket)
+  ) {
     return makeResponse(
-      "<!doctype html><html lang=\"zh-CN\"><meta charset=\"utf-8\"><meta name=\"referrer\" content=\"no-referrer\"><title>游戏连接已失效</title><body><main><h1>游戏连接已失效</h1><p>请返回作业页面重新进入。</p></main></body></html>",
+      "<!doctype html><html lang=\"zh-CN\"><meta charset=\"utf-8\"><meta name=\"referrer\" content=\"strict-origin\"><title>游戏连接已失效</title><body><main><h1>游戏连接已失效</h1><p>请返回作业页面重新进入。</p></main></body></html>",
       exchangeUrl ? 410 : 503,
-      exchangeUrl
+      exchangeUrl,
+      gameWebOrigin
     );
   }
 
   const action = escapeHtml(exchangeUrl.toString());
   const launchTicket = escapeHtml(ticket);
-  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="robots" content="noindex,nofollow"><title>正在进入 NingAcademy 游戏</title></head><body><main><h1>正在安全连接游戏…</h1><form id="game-launch-form" action="${action}" method="post"><input type="hidden" name="${GAME_LAUNCH_TICKET_FIELD}" value="${launchTicket}"><noscript><button type="submit">继续进入游戏</button></noscript></form></main><script>${AUTO_SUBMIT_SCRIPT}</script></body></html>`;
+  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="referrer" content="strict-origin"><meta name="robots" content="noindex,nofollow"><title>正在进入 NingAcademy 游戏</title></head><body><main><h1>正在安全连接游戏…</h1><form id="game-launch-form" action="${action}" method="post"><input type="hidden" name="${GAME_LAUNCH_TICKET_FIELD}" value="${launchTicket}"><noscript><button type="submit">继续进入游戏</button></noscript></form></main><script>${AUTO_SUBMIT_SCRIPT}</script></body></html>`;
 
-  return makeResponse(html, 200, exchangeUrl);
+  return makeResponse(html, 200, exchangeUrl, gameWebOrigin);
 }

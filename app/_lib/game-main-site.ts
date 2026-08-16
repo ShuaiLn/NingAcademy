@@ -16,6 +16,25 @@ export type GameLaunchTicket = {
   assignmentId: string;
 };
 
+export type GameUnlockRequirementStatus = {
+  requirementId: string;
+  assignableId: string;
+  kind: "plain" | "vocabulary" | "pronunciation";
+  sourceId: string;
+  title: string;
+  dueAt: string | null;
+  completed: boolean;
+  completedAt: string | null;
+};
+
+export type GameAccessStatus = {
+  allowed: boolean;
+  assignmentId: string;
+  assignmentVersionId: string | null;
+  versionNo: number | null;
+  requirements: GameUnlockRequirementStatus[];
+};
+
 function createBase64UrlNonce(): string {
   // The nonce is never sent to the browser independently. The database mixes
   // it with the authenticated user, assignment and request id, then stores
@@ -73,12 +92,104 @@ function parseLaunchTicket(data: unknown): GameLaunchTicket | null {
   return { launchTicket, expiresAt, assignmentId };
 }
 
+function parseRequirement(value: unknown): GameUnlockRequirementStatus | null {
+  if (!isRecord(value)) return null;
+
+  const kind = value.kind;
+  const dueAt = value.due_at;
+  const completedAt = value.completed_at;
+  if (
+    typeof value.requirement_id !== "string" ||
+    typeof value.assignable_id !== "string" ||
+    (kind !== "plain" && kind !== "vocabulary" && kind !== "pronunciation") ||
+    typeof value.source_id !== "string" ||
+    typeof value.title !== "string" ||
+    (dueAt !== null && typeof dueAt !== "string") ||
+    typeof value.completed !== "boolean" ||
+    (completedAt !== null && typeof completedAt !== "string")
+  ) {
+    return null;
+  }
+
+  return {
+    requirementId: value.requirement_id,
+    assignableId: value.assignable_id,
+    kind,
+    sourceId: value.source_id,
+    title: value.title,
+    dueAt,
+    completed: value.completed,
+    completedAt,
+  };
+}
+
+function parseGameAccessStatus(data: unknown): GameAccessStatus | null {
+  const row = Array.isArray(data) ? data[0] : null;
+  if (!isRecord(row) || !Array.isArray(row.requirements)) return null;
+
+  const requirements: GameUnlockRequirementStatus[] = [];
+  for (const value of row.requirements) {
+    const parsed = parseRequirement(value);
+    if (!parsed) return null;
+    requirements.push(parsed);
+  }
+
+  if (
+    typeof row.allowed !== "boolean" ||
+    typeof row.assignment_id !== "string" ||
+    (row.assignment_version_id !== null && typeof row.assignment_version_id !== "string") ||
+    (row.version_no !== null &&
+      (typeof row.version_no !== "number" || !Number.isInteger(row.version_no)))
+  ) {
+    return null;
+  }
+
+  return {
+    allowed: row.allowed,
+    assignmentId: row.assignment_id,
+    assignmentVersionId: row.assignment_version_id,
+    versionNo: row.version_no,
+    requirements,
+  };
+}
+
+// The RPC derives the student from auth.uid(). React receives a display-only
+// result and never computes or supplies completion/access state.
+export async function getGameAccessStatus(
+  supabase: SupabaseClient<Database>,
+  assignmentId: string
+): Promise<{ ok: true; status: GameAccessStatus } | { ok: false }> {
+  const { data, error } = await gameRpcClient(supabase).rpc(
+    "get_game_access_status",
+    { p_assignment_id: assignmentId }
+  );
+  if (error) {
+    console.error("game access status RPC failed", { code: error.code });
+    return { ok: false };
+  }
+
+  const status = parseGameAccessStatus(data);
+  if (!status || status.assignmentId !== assignmentId) {
+    console.error("game access status RPC returned an invalid contract");
+    return { ok: false };
+  }
+  return { ok: true, status };
+}
+
 // Browser-authenticated RPC. Identity is derived from the Supabase session;
 // neither the action nor the browser may choose a user id.
 export async function issueGameLaunchTicket(
   supabase: SupabaseClient<Database>,
   assignmentId: string
-): Promise<{ ok: true; ticket: GameLaunchTicket } | { ok: false }> {
+): Promise<
+  | { ok: true; ticket: GameLaunchTicket }
+  | { ok: false; reason: "locked" | "rpc_failed" }
+> {
+  const access = await getGameAccessStatus(supabase, assignmentId);
+  if (!access.ok || !access.status.allowed) {
+    return { ok: false, reason: "locked" };
+  }
+
   const { data, error } = await gameRpcClient(supabase).rpc(
     "issue_game_launch_ticket_v1",
     {
@@ -90,13 +201,13 @@ export async function issueGameLaunchTicket(
 
   if (error) {
     console.error("game launch ticket RPC failed", { code: error.code });
-    return { ok: false };
+    return { ok: false, reason: "rpc_failed" };
   }
 
   const ticket = parseLaunchTicket(data);
   if (!ticket || ticket.assignmentId !== assignmentId) {
     console.error("game launch ticket RPC returned an invalid contract");
-    return { ok: false };
+    return { ok: false, reason: "rpc_failed" };
   }
 
   return { ok: true, ticket };
@@ -225,4 +336,10 @@ export function getGameLaunchExchangeUrl(): URL | null {
   } catch {
     return null;
   }
+}
+
+export function getGameLaunchWebOrigin(exchangeUrl: URL): string | null {
+  // Ticket exchange and Games Web are intentionally co-hosted by the one
+  // game.ningacademy.org Vercel project. There is no second play/server host.
+  return exchangeUrl.origin;
 }

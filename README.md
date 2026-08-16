@@ -28,8 +28,8 @@ SUPABASE_SECRET_KEY=
 # One-time /setup teacher-bootstrap token, generated locally -- not derived
 # from any Supabase secret.
 SETUP_TOKEN=
-# Server-only HTTPS endpoint on the game deployment. Receives a one-time
-# `ticket` field by POST; never prefix this variable with NEXT_PUBLIC_.
+# Server-only exact Games Vercel exchange endpoint. Production value:
+# https://game.ningacademy.org/redeem
 GAME_LAUNCH_EXCHANGE_URL=
 ```
 
@@ -84,11 +84,15 @@ mismatch, not a code issue, and predates it. There is no `test` script.
   one or more students.
 - **Teacher dashboard**: due/overdue items across all homework types,
   recent activity, per-student stats.
-- **Game homework (in progress — Phase 0 database contract only)**: a
-  fourth homework kind (`assignments.assignment_kind = 'game'`) backed by
-  an external, authoritative game server, reached through a one-time
-  launch ticket rather than a page in this app. Only the student
-  launch path is wired into the UI so far — there is no teacher-facing
-  creation form or report view yet, and the underlying migration is
-  frozen behind a database-audit gate (see `AGENTS.md` and `docs/p1/`)
-  until it passes.
+- **Game homework (Scheme B + WebRTC Host-P2P)**: a fourth homework kind
+  (`assignments.assignment_kind = 'game'`) launched into the independent
+  Games Vercel app through a one-time ticket. The Host browser runs the
+  authoritative simulation and 2–8 players exchange game traffic over a
+  star of RTCDataChannels; the shared NingAcademy Production Supabase stores
+  the Games session and short-lived signaling only. Teachers can create a game
+  assignment and version its unlock requirements across plain, vocabulary,
+  and pronunciation work; students see database-authoritative lock details.
+  The earlier staging audit remains historical evidence in
+  `docs/p1/STAGING_GAME_UNLOCK_REPORT.md`; future rollout targets the existing
+  Production Supabase and still requires a read-only preflight plus explicit
+  approval before any Production DDL/DML.

@@ -175,7 +175,7 @@ export function WordRow({
 
           {isV2 && showOverrides ? (
             <div className="flex w-full flex-col gap-2 rounded-md bg-slate-50 p-2">
-              <p className="text-xs text-slate-500">未设置（继承）时使用作业的默认设置。这些控件属于上面同一个表单，点击"保存"一并生效。</p>
+              <p className="text-xs text-slate-500">未设置（继承）时使用作业的默认设置。这些控件属于上面同一个表单，点击“保存”一并生效。</p>
               <div className="flex flex-wrap gap-3">
                 <TriStateSelect name="overrideShowEnglish" defaultValue={word.override_show_english} label="显示英文" />
                 <TriStateSelect name="overrideShowChinese" defaultValue={word.override_show_chinese} label="显示中文" />

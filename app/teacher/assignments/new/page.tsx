@@ -19,6 +19,15 @@ export default function NewAssignmentTypePage() {
           <p className="font-medium">普通作业</p>
           <p className="text-sm text-slate-500">附件说明，学生上传文件提交</p>
         </Link>
+        <Link
+          href="/teacher/assignments/new/game"
+          className="rounded-md border border-violet-200 bg-violet-50 p-4 hover:border-violet-400"
+        >
+          <p className="font-medium text-violet-800">NingAcademy 游戏作业</p>
+          <p className="text-sm text-slate-600">
+            设置普通作业、词汇或朗读前置要求，完成后无二次登录进入 Games
+          </p>
+        </Link>
       </div>
     </div>
   );

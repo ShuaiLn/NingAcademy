@@ -14,6 +14,65 @@ export type Database = {
   }
   public: {
     Tables: {
+      assignables: {
+        Row: {
+          assignable_kind: string
+          assignment_id: string | null
+          created_at: string
+          id: string
+          pronunciation_task_id: string | null
+          teacher_id: string
+          vocabulary_set_id: string | null
+        }
+        Insert: {
+          assignable_kind: string
+          assignment_id?: string | null
+          created_at?: string
+          id?: string
+          pronunciation_task_id?: string | null
+          teacher_id: string
+          vocabulary_set_id?: string | null
+        }
+        Update: {
+          assignable_kind?: string
+          assignment_id?: string | null
+          created_at?: string
+          id?: string
+          pronunciation_task_id?: string | null
+          teacher_id?: string
+          vocabulary_set_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignables_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: true
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignables_pronunciation_task_id_fkey"
+            columns: ["pronunciation_task_id"]
+            isOneToOne: true
+            referencedRelation: "pronunciation_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignables_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignables_vocabulary_set_id_fkey"
+            columns: ["vocabulary_set_id"]
+            isOneToOne: true
+            referencedRelation: "vocabulary_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assignment_files: {
         Row: {
           assignment_id: string
@@ -107,7 +166,7 @@ export type Database = {
       assignments: {
         Row: {
           archived_at: string | null
-          assignment_kind: "plain" | "game"
+          assignment_kind: string
           created_at: string
           description: string | null
           due_at: string | null
@@ -119,7 +178,7 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
-          assignment_kind?: "plain" | "game"
+          assignment_kind?: string
           created_at?: string
           description?: string | null
           due_at?: string | null
@@ -131,7 +190,7 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
-          assignment_kind?: "plain" | "game"
+          assignment_kind?: string
           created_at?: string
           description?: string | null
           due_at?: string | null
@@ -531,6 +590,328 @@ export type Database = {
             columns: ["teacher_id"]
             isOneToOne: false
             referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_assignment_accommodations: {
+        Row: {
+          assignment_id: string
+          created_at: string
+          flash_intensity: string
+          screamer_distortion_allowed: boolean
+          screen_shake_max: number
+          student_id: string
+          timing_mode: string
+          timing_multiplier: number
+          updated_at: string
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string
+          flash_intensity?: string
+          screamer_distortion_allowed?: boolean
+          screen_shake_max?: number
+          student_id: string
+          timing_mode?: string
+          timing_multiplier?: number
+          updated_at?: string
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string
+          flash_intensity?: string
+          screamer_distortion_allowed?: boolean
+          screen_shake_max?: number
+          student_id?: string
+          timing_mode?: string
+          timing_multiplier?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_assignment_accommodations_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "game_assignment_configs"
+            referencedColumns: ["assignment_id"]
+          },
+          {
+            foreignKeyName: "game_assignment_accommodations_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_assignment_completion_status: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          evaluated_at: string
+          game_assignment_id: string
+          game_assignment_version_id: string
+          requirement_id: string
+          student_id: string
+        }
+        Insert: {
+          completed: boolean
+          completed_at?: string | null
+          evaluated_at?: string
+          game_assignment_id: string
+          game_assignment_version_id: string
+          requirement_id: string
+          student_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          evaluated_at?: string
+          game_assignment_id?: string
+          game_assignment_version_id?: string
+          requirement_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_assignment_completion_requirement_fk"
+            columns: ["requirement_id", "game_assignment_version_id"]
+            isOneToOne: false
+            referencedRelation: "game_unlock_requirements"
+            referencedColumns: ["id", "game_assignment_version_id"]
+          },
+          {
+            foreignKeyName: "game_assignment_completion_status_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_assignment_completion_version_fk"
+            columns: ["game_assignment_version_id", "game_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "game_assignment_versions"
+            referencedColumns: ["id", "game_assignment_id"]
+          },
+        ]
+      }
+      game_assignment_configs: {
+        Row: {
+          allowed_modes: string[]
+          assignment_id: string
+          camera_bob_allowed: boolean
+          content_release_id: string
+          created_at: string
+          current_unlock_version_id: string | null
+          flash_intensity: string
+          hit_stop_allowed: boolean
+          learning_difficulty: string
+          map_key: string
+          minimum_accuracy: number
+          minimum_day: number
+          minimum_learning_questions: number
+          motion_blur_allowed: boolean
+          retention_until: string
+          ruleset_version: string
+          screamer_distortion_allowed: boolean
+          screen_shake_max: number
+          shard_intensity: string
+          slow_motion_allowed: boolean
+          timing_multiplier: number
+          updated_at: string
+        }
+        Insert: {
+          allowed_modes?: string[]
+          assignment_id: string
+          camera_bob_allowed?: boolean
+          content_release_id: string
+          created_at?: string
+          current_unlock_version_id?: string | null
+          flash_intensity?: string
+          hit_stop_allowed?: boolean
+          learning_difficulty?: string
+          map_key?: string
+          minimum_accuracy?: number
+          minimum_day?: number
+          minimum_learning_questions?: number
+          motion_blur_allowed?: boolean
+          retention_until: string
+          ruleset_version: string
+          screamer_distortion_allowed?: boolean
+          screen_shake_max?: number
+          shard_intensity?: string
+          slow_motion_allowed?: boolean
+          timing_multiplier?: number
+          updated_at?: string
+        }
+        Update: {
+          allowed_modes?: string[]
+          assignment_id?: string
+          camera_bob_allowed?: boolean
+          content_release_id?: string
+          created_at?: string
+          current_unlock_version_id?: string | null
+          flash_intensity?: string
+          hit_stop_allowed?: boolean
+          learning_difficulty?: string
+          map_key?: string
+          minimum_accuracy?: number
+          minimum_day?: number
+          minimum_learning_questions?: number
+          motion_blur_allowed?: boolean
+          retention_until?: string
+          ruleset_version?: string
+          screamer_distortion_allowed?: boolean
+          screen_shake_max?: number
+          shard_intensity?: string
+          slow_motion_allowed?: boolean
+          timing_multiplier?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_assignment_configs_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: true
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_assignment_configs_current_unlock_version_fk"
+            columns: ["current_unlock_version_id", "assignment_id"]
+            isOneToOne: false
+            referencedRelation: "game_assignment_versions"
+            referencedColumns: ["id", "game_assignment_id"]
+          },
+        ]
+      }
+      game_assignment_versions: {
+        Row: {
+          config_snapshot: Json
+          created_at: string
+          created_by_teacher_id: string
+          game_assignment_id: string
+          id: string
+          request_id: string
+          requirements_hash: string
+          version_no: number
+        }
+        Insert: {
+          config_snapshot: Json
+          created_at?: string
+          created_by_teacher_id: string
+          game_assignment_id: string
+          id?: string
+          request_id: string
+          requirements_hash: string
+          version_no: number
+        }
+        Update: {
+          config_snapshot?: Json
+          created_at?: string
+          created_by_teacher_id?: string
+          game_assignment_id?: string
+          id?: string
+          request_id?: string
+          requirements_hash?: string
+          version_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_assignment_versions_created_by_teacher_id_fkey"
+            columns: ["created_by_teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_assignment_versions_game_assignment_id_fkey"
+            columns: ["game_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "game_assignment_configs"
+            referencedColumns: ["assignment_id"]
+          },
+        ]
+      }
+      game_assignment_vocabulary_sources: {
+        Row: {
+          assignment_id: string
+          created_at: string
+          vocabulary_set_id: string
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string
+          vocabulary_set_id: string
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string
+          vocabulary_set_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_assignment_vocabulary_sources_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "game_assignment_configs"
+            referencedColumns: ["assignment_id"]
+          },
+          {
+            foreignKeyName: "game_assignment_vocabulary_sources_vocabulary_set_id_fkey"
+            columns: ["vocabulary_set_id"]
+            isOneToOne: false
+            referencedRelation: "vocabulary_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_unlock_requirements: {
+        Row: {
+          assignable_id: string
+          assignable_kind_snapshot: string
+          created_at: string
+          due_at_snapshot: string | null
+          game_assignment_version_id: string
+          id: string
+          sort_order: number
+          title_snapshot: string
+        }
+        Insert: {
+          assignable_id: string
+          assignable_kind_snapshot: string
+          created_at?: string
+          due_at_snapshot?: string | null
+          game_assignment_version_id: string
+          id?: string
+          sort_order: number
+          title_snapshot: string
+        }
+        Update: {
+          assignable_id?: string
+          assignable_kind_snapshot?: string
+          created_at?: string
+          due_at_snapshot?: string | null
+          game_assignment_version_id?: string
+          id?: string
+          sort_order?: number
+          title_snapshot?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_unlock_requirements_assignable_id_fkey"
+            columns: ["assignable_id"]
+            isOneToOne: false
+            referencedRelation: "assignables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_unlock_requirements_game_assignment_version_id_fkey"
+            columns: ["game_assignment_version_id"]
+            isOneToOne: false
+            referencedRelation: "game_assignment_versions"
             referencedColumns: ["id"]
           },
         ]
@@ -1803,6 +2184,67 @@ export type Database = {
         }
         Returns: string
       }
+      create_and_publish_game_assignment_v1: {
+        Args: {
+          p_allowed_modes: string[]
+          p_camera_bob_allowed: boolean
+          p_class_ids: string[]
+          p_content_release_id: string
+          p_description: string
+          p_due_at: string
+          p_flash_intensity: string
+          p_hit_stop_allowed: boolean
+          p_learning_difficulty: string
+          p_map_key: string
+          p_minimum_accuracy: number
+          p_minimum_day: number
+          p_minimum_learning_questions: number
+          p_motion_blur_allowed: boolean
+          p_request_id: string
+          p_retention_until: string
+          p_ruleset_version: string
+          p_screamer_distortion_allowed: boolean
+          p_screen_shake_max: number
+          p_shard_intensity: string
+          p_slow_motion_allowed: boolean
+          p_student_ids: string[]
+          p_timing_multiplier: number
+          p_title: string
+          p_vocabulary_set_ids: string[]
+        }
+        Returns: string
+      }
+      create_and_publish_game_assignment_v2: {
+        Args: {
+          p_allowed_modes: string[]
+          p_camera_bob_allowed: boolean
+          p_class_ids: string[]
+          p_content_release_id: string
+          p_description: string
+          p_due_at: string
+          p_flash_intensity: string
+          p_hit_stop_allowed: boolean
+          p_learning_difficulty: string
+          p_map_key: string
+          p_minimum_accuracy: number
+          p_minimum_day: number
+          p_minimum_learning_questions: number
+          p_motion_blur_allowed: boolean
+          p_request_id: string
+          p_requirement_assignable_ids: string[]
+          p_retention_until: string
+          p_ruleset_version: string
+          p_screamer_distortion_allowed: boolean
+          p_screen_shake_max: number
+          p_shard_intensity: string
+          p_slow_motion_allowed: boolean
+          p_student_ids: string[]
+          p_timing_multiplier: number
+          p_title: string
+          p_vocabulary_set_ids: string[]
+        }
+        Returns: string
+      }
       create_and_publish_pronunciation_task: {
         Args: {
           p_class_ids: string[]
@@ -1920,6 +2362,25 @@ export type Database = {
         Args: { p_submission_id: string }
         Returns: undefined
       }
+      get_game_access_status: {
+        Args: { p_assignment_id: string }
+        Returns: {
+          allowed: boolean
+          assignment_id: string
+          assignment_version_id: string
+          requirements: Json
+          version_no: number
+        }[]
+      }
+      get_game_assignment_completion_v1: {
+        Args: { p_assignment_ids: string[]; p_student_id?: string }
+        Returns: {
+          assignment_id: string
+          completed: boolean
+          student_id: string
+        }[]
+      }
+      get_my_game_profile_v1: { Args: never; Returns: Json }
       get_practice_session_state_v2: {
         Args: { p_session_id: string }
         Returns: {
@@ -1960,6 +2421,14 @@ export type Database = {
           word_id: string
         }[]
       }
+      get_teacher_game_report_v1: {
+        Args: { p_student_id?: string }
+        Returns: {
+          report: Json
+          student_id: string
+          student_name: string
+        }[]
+      }
       get_vocabulary_session_words_review: {
         Args: { p_session_id: string }
         Returns: {
@@ -1969,6 +2438,39 @@ export type Database = {
           prompt_term: string
           source_sort_order: number
           word_id: string
+        }[]
+      }
+      issue_game_launch_ticket_v1: {
+        Args: {
+          p_assignment_id: string
+          p_client_nonce: string
+          p_request_id: string
+        }
+        Returns: {
+          assignment_id: string
+          expires_at: string
+          launch_ticket: string
+        }[]
+      }
+      list_game_unlock_candidates_v1: {
+        Args: { p_game_assignment_id: string }
+        Returns: {
+          assignable_id: string
+          assignable_kind: string
+          due_at: string
+          selected: boolean
+          source_id: string
+          title: string
+        }[]
+      }
+      list_my_assignables_v1: {
+        Args: never
+        Returns: {
+          assignable_id: string
+          assignable_kind: string
+          due_at: string
+          source_id: string
+          title: string
         }[]
       }
       log_practice_session_tab_event: {
@@ -1984,6 +2486,10 @@ export type Database = {
         Returns: undefined
       }
       publish_vocabulary_set: { Args: { p_set_id: string }; Returns: undefined }
+      purge_expired_game_private_data_v1: {
+        Args: { p_before: string; p_limit: number; p_request_id: string }
+        Returns: Json
+      }
       purge_expired_upload_intents: {
         Args: { p_intent_ids: string[] }
         Returns: undefined
@@ -2024,6 +2530,31 @@ export type Database = {
       replace_vocabulary_word_choices: {
         Args: { p_choices: Json; p_word_id: string }
         Returns: undefined
+      }
+      revoke_game_sessions_v1: {
+        Args: { p_reason: string; p_request_id: string; p_user_id: string }
+        Returns: number
+      }
+      set_game_assignment_accommodation_v1: {
+        Args: {
+          p_assignment_id: string
+          p_flash_intensity: string
+          p_request_id: string
+          p_screamer_distortion_allowed: boolean
+          p_screen_shake_max: number
+          p_student_id: string
+          p_timing_mode: string
+          p_timing_multiplier: number
+        }
+        Returns: undefined
+      }
+      set_game_unlock_requirements_v1: {
+        Args: {
+          p_assignable_ids: string[]
+          p_game_assignment_id: string
+          p_request_id: string
+        }
+        Returns: string
       }
       set_practice_session_word_order: {
         Args: { p_session_id: string; p_word_order: string }

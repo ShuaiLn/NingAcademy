@@ -7,6 +7,8 @@ import { AttachedFilesList } from "./attached-files-list";
 import { AttachFilesForm } from "./attach-files-form";
 import { SubmissionsPanel } from "./submissions-panel";
 import { DueDateBadge } from "@/app/_components/due-date-badge";
+import { listGameUnlockCandidates } from "@/app/_lib/game-unlock";
+import { GameUnlockRequirementsForm } from "./game-unlock-requirements-form";
 
 export default async function AssignmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -27,6 +29,7 @@ export default async function AssignmentDetailPage({ params }: { params: Promise
   // Game assignments have their own attempt/report model and must not show
   // plain attachment, submission, or grading controls.
   if (assignment.assignment_kind === "game") {
+    const unlockCandidates = await listGameUnlockCandidates(supabase, assignment.id);
     return (
       <div className="flex max-w-3xl flex-col gap-6">
         <div>
@@ -45,6 +48,16 @@ export default async function AssignmentDetailPage({ params }: { params: Promise
         <div className="rounded-md border border-violet-200 bg-violet-50 p-4 text-sm text-slate-700">
           游戏作业使用独立的学习尝试与教师报告，不使用普通文件提交和评分流程。
         </div>
+        {unlockCandidates === null ? (
+          <p className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            暂时无法加载游戏解锁要求，请稍后重试。
+          </p>
+        ) : (
+          <GameUnlockRequirementsForm
+            assignmentId={assignment.id}
+            candidates={unlockCandidates}
+          />
+        )}
       </div>
     );
   }
