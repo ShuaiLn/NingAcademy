@@ -1,31 +1,32 @@
 # P-1 Migration Drift Report
 
-Status: **CI VERIFICATION PENDING — the confirmed `complete_password_change(uuid)` resolution is encoded in a fourth non-game convergence migration; P-1 PRE-DEPLOYMENT READY is not claimed until a fresh full replay/audit proves zero REAL-UNRESOLVED, ACL, and UNKNOWN drift**
+Status: **P-1 PRE-DEPLOYMENT READY — clean replay and all convergence tests pass; REAL-UNRESOLVED, ACL, and UNKNOWN drift are zero; the only Git/Production differences are four reviewed non-game PENDING-DEPLOYMENT migrations**
 
 Audit date: 2026-08-15
 
 Repository: `NingAcademy`, branch `main`
 
-Last audited commit/run: `a4b995c5f165489a49a8abe9431d15c4fe046dfa` / `31917569682`
+Last audited commit/run: `c241f08e20dac54b012b9761b67bde71769e43a9` / `31918316064`
 
 No Production DDL/DML, `db push`, `migration repair`, project relink, or game-schema deployment was executed during this work.
 
 ## Current Production/replay evidence
 
-Run `31917569682` is the latest complete Production read-only audit:
+Run `31918316064` is the latest complete Production read-only audit:
 
-| Evidence                            | Result                                                                                  |
-| ----------------------------------- | --------------------------------------------------------------------------------------- |
-| Production read-only proof          | **PASS** — database `postgres`, role `p1_readonly_audit_v2`, `transaction_read_only=on` |
-| Production migration history        | 19 migrations, ending at `20260813074607_vocabulary_multiple_choice`                    |
-| Active Git/replay inventory         | **PASS** — 22/22 `MATCH`                                                                |
-| Clean replay                        | **PASS** — baseline/replay/snapshot/history status all zero                             |
-| Convergence-state test              | **PASS** — status zero and final ACL-aware schema diff is empty                         |
-| `replay_schema.sql`                 | **PASS** — generated successfully (443,103 bytes)                                       |
-| Approved intentional-drift filter   | **PASS** — exact IA-2 object removed; raw evidence retained                             |
-| ACL-only unresolved drift           | **PASS** — status zero; `unresolved-project-acl.diff` is empty                          |
-| Active Git vs Production history    | **BLOCKED** — 22 vs 19; exactly three Git-only versions                                 |
-| Application-schema unresolved drift | **BLOCKED** — one function body and two FK definitions                                  |
+| Evidence                          | Result                                                                                  |
+| --------------------------------- | --------------------------------------------------------------------------------------- |
+| Production read-only proof        | **PASS** — database `postgres`, role `p1_readonly_audit_v2`, `transaction_read_only=on` |
+| Production migration history      | 19 migrations, ending at `20260813074607_vocabulary_multiple_choice`                    |
+| Active Git/replay inventory       | **PASS** — 23/23 `MATCH`                                                                |
+| Clean replay                      | **PASS** — baseline/replay/snapshot/history status all zero                             |
+| Convergence-state test            | **PASS** — status zero; final schema and function metadata diffs are empty              |
+| `replay_schema.sql`               | **PASS** — generated successfully (442,751 bytes)                                       |
+| Approved intentional-drift filter | **PASS** — exact IA-2 object removed; raw evidence retained                             |
+| ACL-only unresolved drift         | **PASS** — status zero; `unresolved-project-acl.diff` is empty                          |
+| Active Git vs Production history  | **PENDING-DEPLOYMENT** — 23 vs 19; exactly four reviewed Git-only versions              |
+| Application REAL-UNRESOLVED drift | **PASS** — zero; the only gated application diff is the two reviewed pending FKs        |
+| UNKNOWN drift                     | **PASS** — zero                                                                         |
 
 The old findings 4–6 remain closed: the combined policies, four `service_role` table grants, boolean `finalize_student_creation` definition/ACL, and sequence defaults no longer differ between Production and replay.
 
@@ -38,7 +39,7 @@ The authenticated Supabase CLI account exposes exactly two shared projects:
 | `NingAcademy` (linked/main) | 19 remote versions, ending at `20260813074607` | Absent           | Absent           | Absent           |
 | `NingAcademy-staging`       | Zero remote versions                           | Absent           | Absent           | Absent           |
 
-The main result independently matches run `31917569682`'s Production `db_migrations.csv`. Both checks used `supabase migration list` only. No link/relink, push, repair, DDL, or DML occurred.
+The main result independently matches run `31918316064`'s Production `db_migrations.csv`. Both checks used `supabase migration list` only. No link/relink, push, repair, DDL, or DML occurred.
 
 Because no accessible shared environment ever recorded `20260813230000`, the draft was safe to remove from the active migration queue.
 
@@ -75,11 +76,11 @@ Production has no Production-only migration version.
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | INTENTIONAL-ACCEPTED | IA-1 Supabase-managed full-schema/version noise; IA-2 the exact hash-pinned Dashboard `public.rls_auto_enable()` object. Raw evidence is retained and neither blocks the gated comparison.                                                                                        |
 | PENDING-DEPLOYMENT   | Git-only versions `20260815120000`, `20260815130000`, `20260815140000`, and `20260815150000`; the first two and the fourth describe final schema Production already has, while `20260815140000` carries the confirmed `profiles_id_fkey` and `teachers_id_fkey` RESTRICT changes. |
-| REAL-UNRESOLVED      | None identified after the owner confirmed the Production-shaped `complete_password_change(uuid)` body; fresh CI proof is still pending.                                                                                                                                           |
-| ACL unresolved       | None. Run `31917569682` produced an empty ACL-only diff after exact IA-2 filtering.                                                                                                                                                                                               |
-| UNKNOWN              | None identified in run `31917569682`; the revised queue requires a fresh full audit before this can be reconfirmed.                                                                                                                                                               |
+| REAL-UNRESOLVED      | None. Run `31918316064` proves the password function body now matches Production; the only application diff contains the two reviewed pending FKs.                                                                                                                                |
+| ACL unresolved       | None. Run `31918316064` produced an empty ACL-only diff after exact IA-2 filtering.                                                                                                                                                                                               |
+| UNKNOWN              | None. Every line in the gated application diff is one of the two reviewed FK changes; history contains only the four reviewed Git-only versions.                                                                                                                                  |
 
-The gate is expected to remain blocked only by reviewed PENDING-DEPLOYMENT versions; that expectation must be verified by the next full audit.
+The workflow's final gate remains red because reviewed PENDING-DEPLOYMENT history/schema differences intentionally still fail before deployment. No REAL-UNRESOLVED, ACL, or UNKNOWN item contributes to that failure.
 
 ## Convergence migrations
 
@@ -123,7 +124,7 @@ The CI replay job now tests the original clean state, reapplies all four migrati
 - the final ACL-aware project dump to equal the canonical replay snapshot;
 - `complete_password_change` OID, owner, ACL, language, return type, security flags, volatility/parallel settings, cost, rows, and function config to remain byte-identical before and after convergence.
 
-Run `31917569682` verified the first three convergence migrations. The fourth and expanded metadata test require a fresh CI run. None of the migrations was applied to a shared environment.
+Run `31918316064` verified all four convergence migrations. `convergence_status=0`, `convergence-schema.diff` is empty, and `complete-password-change-metadata.diff` is empty. None of the migrations was applied to a shared environment.
 
 ## Sequence default ACL decision — RESOLVED
 
@@ -142,7 +143,7 @@ alter default privileges for role postgres in schema public
   revoke update on sequences from anon, authenticated, service_role;
 ```
 
-Production is already in the intended state, so this is a no-op there. Run `31917569682` proves the three ACL lines disappear from clean replay: the ACL-only extractor found 209 pg_dump ACL/default-ACL blocks and produced byte-identical Production/replay outputs; `unresolved-project-acl.diff` is empty.
+Production is already in the intended state, so this is a no-op there. Run `31918316064` proves the three ACL lines disappear from clean replay: the ACL-only extractor produced byte-identical Production/replay outputs; `unresolved-project-acl.diff` is empty.
 
 ## FK authority — RESOLVED IN CODE / PENDING DEPLOYMENT
 
@@ -165,7 +166,7 @@ Evidence for the recommendation:
 
 The owner confirmed RESTRICT / RESTRICT on 2026-08-15. Migration `20260815140000_core_auth_identity_fk_delete_restrict.sql` now encodes the decision without touching game schema. Production remains CASCADE / CASCADE until a separate deployment is explicitly authorized, so the FK difference remains **PENDING-DEPLOYMENT**, not intentional drift and not resolved Production state.
 
-## `complete_password_change(uuid)` — RESOLVED IN CODE / PENDING CI AND DEPLOYMENT
+## `complete_password_change(uuid)` — RESOLVED / PENDING DEPLOYMENT HISTORY
 
 After the approved IA-2 object is removed, run `31917569682` contains one application difference unrelated to the confirmed FKs:
 
@@ -177,7 +178,7 @@ The handler's failure audit is not durable: re-raising aborts the same transacti
 
 The owner confirmed the simpler current Production body. Migration `20260815150000_complete_password_change_convergence.sql` now converges clean replay and already-final states without changing the function's contract, security attributes, ownership, ACL, OID, or dependencies. It is a non-game PENDING-DEPLOYMENT migration and is not allowlisted from schema comparison.
 
-Fresh CI must prove that this removes the prior REAL-UNRESOLVED body difference without creating UNKNOWN or ACL drift.
+Run `31918316064` proves that this removes the prior REAL-UNRESOLVED body difference without creating UNKNOWN or ACL drift.
 
 ## Intentional accepted drift
 
@@ -200,7 +201,7 @@ The final gate now fails on:
 - unresolved project ACL drift;
 - replay or convergence-test failure.
 
-The raw full-schema/platform and full ACL-aware application diffs are evidence-only. The approved-object filter is fail-closed and hash-pinned; it does not use broad schema patterns and cannot hide FK, policy, function, table, grant, or ACL changes. Run `31917569682` proves approved IA-1/IA-2 differences do not block while the real function/FK differences still fail closed.
+The raw full-schema/platform and full ACL-aware application diffs are evidence-only. The approved-object filter is fail-closed and hash-pinned; it does not use broad schema patterns and cannot hide FK, policy, function, table, grant, or ACL changes. Run `31918316064` proves approved IA-1/IA-2 differences do not block while the two reviewed PENDING-DEPLOYMENT FK changes still fail closed.
 
 ## Local verification
 
@@ -214,17 +215,34 @@ The raw full-schema/platform and full ACL-aware application diffs are evidence-o
 | `npm run typecheck`                           | PASS                                                                                                                                         |
 | `npm run build`                               | PASS                                                                                                                                         |
 | `npm run lint`                                | Blocked before linting by the pre-existing TypeScript 7 / `typescript-eslint` incompatibility; no P-1 file-specific lint result is available |
-| SQL runtime/convergence test                  | Previous 22-file queue PASS; revised 23-file queue and function-metadata preservation test pending fresh CI                                  |
-| Production ACL-only comparison                | PASS — run `31917569682`; status zero and empty ACL diff                                                                                     |
+| SQL runtime/convergence test                  | PASS — run `31918316064`; 23/23 replay, convergence schema, and function metadata checks all pass                                            |
+| Production ACL-only comparison                | PASS — run `31918316064`; status zero and empty ACL diff                                                                                     |
 
 `package.json` has no test script.
 
-## Remaining actions for P-1 PRE-DEPLOYMENT READY
+## P-1 PRE-DEPLOYMENT READY decision
 
-1. Commit/push the fourth convergence migration and expanded metadata-preservation test.
-2. Run the complete Production read-only audit and require clean replay/convergence PASS, REAL-UNRESOLVED `0`, ACL unresolved `0`, UNKNOWN `0`, and only reviewed PENDING-DEPLOYMENT history/schema differences.
-3. Inspect the final artifacts and, only if those conditions hold, mark this report `P-1 PRE-DEPLOYMENT READY`.
+All required pre-deployment conditions are satisfied:
+
+- clean replay: PASS;
+- convergence and metadata preservation: PASS;
+- REAL-UNRESOLVED: `0`;
+- ACL unresolved: `0`;
+- UNKNOWN: `0`;
+- remaining Git/Production history: exactly four reviewed PENDING-DEPLOYMENT migrations;
+- remaining gated application diff: exactly the two reviewed PENDING-DEPLOYMENT FK definitions.
+
+The status is therefore **P-1 PRE-DEPLOYMENT READY**.
+
+## Staging-first next sequence
+
+A fresh read-only CLI check confirms `NingAcademy-staging` is ACTIVE_HEALTHY but records zero remote migration versions. Therefore it must not receive only migrations 20–23 as if migrations 1–19 were already recorded.
+
+1. Perform a read-only staging schema/data disposition check and confirm whether staging may be initialized from zero.
+2. With separate explicit staging-write authorization, establish the complete 23-migration active baseline on staging. Never include the archived Phase-0 game draft and never use migration repair to manufacture history.
+3. Re-audit staging history, application schema, ACL, and convergence behavior and require zero drift.
+4. Only after that staging baseline passes may formal Scheme B game unlock migrations be authored and deployed to staging first.
 
 Formal `P-1 PASS` still requires a separately authorized deployment of the reviewed non-game migrations followed by history/schema/ACL equality. The archived game draft must never be deployed and migration repair remains prohibited.
 
-Until all actions are complete, do not create `game_unlock_requirements`, `game_assignment_versions`, `game_assignment_completion_status`, `get_game_access_status`, or any other formal game unlock migration/RPC.
+Until the staging baseline audit passes, do not create `game_unlock_requirements`, `game_assignment_versions`, `game_assignment_completion_status`, `get_game_access_status`, or any other formal game unlock migration/RPC.
