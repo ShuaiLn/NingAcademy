@@ -1075,9 +1075,7 @@ begin
 end
 $runtime_grants$;
 
-alter default privileges for role game_api_owner in schema game
-  revoke execute on functions from public;
-alter default privileges for role game_api_owner in schema game_private
+alter default privileges for role game_api_owner
   revoke execute on functions from public;
 alter default privileges for role game_api_owner in schema game
   revoke all on tables from public, anon, authenticated, service_role,
