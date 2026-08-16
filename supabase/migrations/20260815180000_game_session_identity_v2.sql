@@ -47,7 +47,7 @@ revoke execute on function game.validate_game_session_v2(text)
   from public, anon, authenticated, service_role, game_server;
 grant execute on function game.validate_game_session_v2(text) to game_server;
 
-reset role;
+set role postgres;
 
 do $membership$
 begin

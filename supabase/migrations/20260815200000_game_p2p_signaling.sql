@@ -1084,7 +1084,7 @@ alter default privileges for role game_api_owner in schema game_private
   revoke all on tables from public, anon, authenticated, service_role,
   game_server, games_api;
 
-reset role;
+set role postgres;
 
 revoke references (id) on public.assignments from game_api_owner;
 revoke references (id) on public.profiles from game_api_owner;
