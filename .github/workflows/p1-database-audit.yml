@@ -525,6 +525,33 @@ jobs:
             unresolved_project_acl_status=1
           fi
 
+          # The ACL-aware dump contains the entire application schema plus ACL
+          # sections. Keep its complete diff above as evidence, but gate the ACL
+          # metric only on pg_dump ACL/DEFAULT ACL object blocks so an ordinary
+          # function or FK difference is not counted a second time as ACL drift.
+          node scripts/p1/extract-schema-acl.mjs \
+            p1-artifacts/production/prod_project_schema_with_acl.gated.sql \
+            > p1-artifacts/production/prod_project_acl.gated.sql
+          prod_acl_extract_status=$?
+          node scripts/p1/extract-schema-acl.mjs \
+            p1-artifacts/production/replay_project_schema_with_acl.gated.sql \
+            > p1-artifacts/production/replay_project_acl.gated.sql
+          replay_acl_extract_status=$?
+
+          if [[ "$prod_acl_extract_status" == "0" && "$replay_acl_extract_status" == "0" ]]; then
+            diff -u \
+              --label Production/project-ACL-unresolved \
+              --label Replay/project-ACL-unresolved \
+              p1-artifacts/production/prod_project_acl.gated.sql \
+              p1-artifacts/production/replay_project_acl.gated.sql \
+              > p1-artifacts/production/unresolved-project-acl.diff
+            unresolved_acl_status=$?
+          else
+            echo "ACL extraction failed closed." \
+              > p1-artifacts/production/unresolved-project-acl.diff
+            unresolved_acl_status=1
+          fi
+
           {
             echo "git_vs_production_migrations=$git_prod_status"
             echo "git_vs_replay_migrations=$git_replay_status"
@@ -533,6 +560,7 @@ jobs:
             echo "project_schema_with_acl_raw_diff=$project_acl_status"
             echo "unresolved_project_schema_diff=$unresolved_project_schema_status"
             echo "unresolved_project_schema_with_acl_diff=$unresolved_project_acl_status"
+            echo "unresolved_acl_diff=$unresolved_acl_status"
           } | tee p1-artifacts/production/comparison-status.txt
 
           echo "git_prod_status=$git_prod_status" >> "$GITHUB_OUTPUT"
@@ -542,6 +570,7 @@ jobs:
           echo "project_acl_status=$project_acl_status" >> "$GITHUB_OUTPUT"
           echo "unresolved_project_schema_status=$unresolved_project_schema_status" >> "$GITHUB_OUTPUT"
           echo "unresolved_project_acl_status=$unresolved_project_acl_status" >> "$GITHUB_OUTPUT"
+          echo "unresolved_acl_status=$unresolved_acl_status" >> "$GITHUB_OUTPUT"
           exit 0
 
       - name: Upload Production read-only evidence
@@ -564,8 +593,10 @@ jobs:
           project_acl_status="${{ steps.production_compare.outputs.project_acl_status }}"
           unresolved_project_schema_status="${{ steps.production_compare.outputs.unresolved_project_schema_status }}"
           unresolved_project_acl_status="${{ steps.production_compare.outputs.unresolved_project_acl_status }}"
+          unresolved_acl_status="${{ steps.production_compare.outputs.unresolved_acl_status }}"
           echo "Raw diff status (evidence only): full-schema=$full_schema_status project-schema=$project_schema_status project-ACL=$project_acl_status"
-          if [[ "$git_prod_status" != "0" || "$git_replay_status" != "0" || "$unresolved_project_schema_status" != "0" || "$unresolved_project_acl_status" != "0" ]]; then
-            echo "P-1 unresolved drift gate failed: git/prod=$git_prod_status git/replay=$git_replay_status project-schema=$unresolved_project_schema_status project-ACL=$unresolved_project_acl_status"
+          echo "ACL-aware full application diff (evidence only): project-with-ACL=$unresolved_project_acl_status"
+          if [[ "$git_prod_status" != "0" || "$git_replay_status" != "0" || "$unresolved_project_schema_status" != "0" || "$unresolved_acl_status" != "0" ]]; then
+            echo "P-1 unresolved drift gate failed: git/prod=$git_prod_status git/replay=$git_replay_status project-schema=$unresolved_project_schema_status ACL=$unresolved_acl_status"
             exit 1
           fi
