@@ -1,9 +1,9 @@
 # P-1 Replay Failures
 
-Status: **PASS — run `31917569682` replayed the current 22-file non-game queue from zero and passed the expanded convergence-state gate**
+Status: **Last verified PASS — run `31917569682` covers the prior 22-file queue; the current 23-file queue and `complete_password_change` metadata-preservation test require a fresh replay**
 Audit date: 2026-08-15
 
-Migration replay through run `31917569682` is fully resolved. Failure 1, Failure 2, and Failure 3 below are retained as historical root-cause records. They are not open replay failures. The Phase-0 draft has left the active queue without changing bytes, and all three active non-game convergence migrations pass clean/final/partial/repeated execution tests.
+Migration replay through run `31917569682` is fully resolved. Failure 1, Failure 2, and Failure 3 below are retained as historical root-cause records. They are not open replay failures. The Phase-0 draft has left the active queue without changing bytes. A fourth non-game convergence migration now requires fresh clean/final/partial/repeated execution verification before the current queue can inherit PASS.
 
 Run `31915313767` also confirms the separate Production gate corrections: `p1_readonly_audit_v2` passed the restricted-role/project-schema privilege checks with `transaction_read_only=on`, and Production export/comparison proceeded normally. The workflow still concluded failure only because the independent drift gate found documented Git/Production/schema differences. See `MIGRATION_DRIFT_REPORT.md`; those differences do not reopen migration replay.
 
@@ -269,22 +269,24 @@ The proof step completed, the read-only export generated `db_migrations.csv` and
 
 Read-only `supabase migration list` checks found exactly two accessible shared projects. `NingAcademy` has the same 19-version history captured in run 15, and `NingAcademy-staging` has zero remote versions. Neither project records `20260813230000`, `20260815120000`, or `20260815130000`.
 
-That evidence permitted the unchanged frozen draft to move to `supabase/drafts/`; its SHA-256 remains `d7870560aaa74a5a024fc77da4659da36b21eb7f798f587bc97e1f197120379b`. The active queue is now 22 files: the 19 Production-recorded versions plus three pending core-auth convergence migrations.
+That evidence permitted the unchanged frozen draft to move to `supabase/drafts/`; its SHA-256 remains `d7870560aaa74a5a024fc77da4659da36b21eb7f798f587bc97e1f197120379b`. The active queue is now 23 files: the 19 Production-recorded versions plus four pending core-auth convergence migrations.
 
 The convergence changes address failure modes that a clean replay alone cannot cover:
 
 - `20260815120000_*` removes legacy policies only when present, converges existing/missing/incompatible target policies without name collisions, repeats grants safely, and revokes the three local-bootstrap sequence default ACLs.
 - `20260815130000_*` drops only the legacy non-boolean overload; an existing boolean function is updated in place with `CREATE OR REPLACE`, preserving its OID/dependencies.
 - `20260815140000_*` leaves exact RESTRICT FKs untouched and replaces missing or non-canonical/CASCADE variants with the confirmed RESTRICT definitions.
-- The replay workflow now reapplies all three migrations twice to the already-final local schema, creates a mixed partial state including CASCADE FKs, tests a missing-function state, reapplies convergence, and requires the final ACL-aware project schema to match the pre-test replay snapshot exactly.
+- `20260815150000_*` converges `complete_password_change(uuid)` to the confirmed Production-shaped body with same-signature `CREATE OR REPLACE FUNCTION`.
+- The replay workflow now reapplies all four migrations twice to the already-final local schema, creates a mixed partial state including the historical function body and CASCADE FKs, tests a missing-function state, reapplies convergence, requires the final ACL-aware project schema to match the pre-test replay snapshot exactly, and separately proves the password function's OID/owner/ACL/security/contract metadata is unchanged.
 
-Current CI-verified hashes:
+Current active hashes (first three verified by run 19; fourth pending):
 
 | Migration                                                    | SHA-256                                                            |
 | ------------------------------------------------------------ | ------------------------------------------------------------------ |
 | `20260815120000_core_auth_phase1_catchup_rls_and_grants.sql` | `e40d47873428c18b7a470b8830b030cd921de03a45910aa486689d2830974ac6` |
 | `20260815130000_finalize_student_creation_return_status.sql` | `0cb78db5502b57280ae2f58de22c49e774ea2affeaee9ed4535e71443f543525` |
 | `20260815140000_core_auth_identity_fk_delete_restrict.sql`   | `376a6b8db05759abccb9c23b73e7f095d6214d0c9a20ec6ab94197a7ca9c7414` |
+| `20260815150000_complete_password_change_convergence.sql`    | `3b7795f4476080e793538e1fa5706be04f09e2d76bb4c9abaeb11721c516963b` |
 
 Run `31917569682` produced artifact `p1-migration-replay-31917569682` with:
 
@@ -313,4 +315,4 @@ The workflow may pass only when startup, replay, snapshot export, Git/replay his
 
 ## Gate decision
 
-Migration replay is formally **PASS** for the current active queue as of run `31917569682`. P-1 as a whole remains blocked only by the separate Production history/application reconciliation documented in `MIGRATION_DRIFT_REPORT.md`; that does not reopen replay failures. No replay result authorizes staging/Production migration application or any new game migration.
+Migration replay is **pending** for the revised 23-file active queue. Run `31917569682` remains valid evidence for the prior queue but cannot verify the new migration or metadata test. No replay result authorizes staging/Production migration application or any new game migration.

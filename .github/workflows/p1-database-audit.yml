@@ -206,7 +206,8 @@ jobs:
                 for migration in \
                   supabase/migrations/20260815120000_core_auth_phase1_catchup_rls_and_grants.sql \
                   supabase/migrations/20260815130000_finalize_student_creation_return_status.sql \
-                  supabase/migrations/20260815140000_core_auth_identity_fk_delete_restrict.sql
+                  supabase/migrations/20260815140000_core_auth_identity_fk_delete_restrict.sql \
+                  supabase/migrations/20260815150000_complete_password_change_convergence.sql
                 do
                   echo "Applying convergence check: $migration"
                   docker exec -i "$db_container" psql \
@@ -216,6 +217,11 @@ jobs:
               }
 
               echo "Reapplying all convergence migrations twice to the already-final replay schema."
+              docker exec "$db_container" psql \
+                --username postgres --dbname postgres --no-psqlrc \
+                --set ON_ERROR_STOP=1 --csv \
+                --command "select routine.oid, pg_catalog.pg_get_userbyid(routine.proowner) as owner, language.lanname as language, routine.prorettype::pg_catalog.regtype::text as return_type, routine.prosecdef, routine.proleakproof, routine.proisstrict, routine.provolatile, routine.proparallel, routine.procost, routine.prorows, routine.proconfig, routine.proacl from pg_catalog.pg_proc as routine join pg_catalog.pg_language as language on language.oid = routine.prolang where routine.oid = pg_catalog.to_regprocedure('public.complete_password_change(uuid)')" \
+                > p1-artifacts/replay/complete-password-change-metadata.before.csv
               apply_convergence_migrations
               apply_convergence_migrations
 
@@ -242,6 +248,41 @@ jobs:
           alter table public.teachers
             add constraint teachers_id_fkey
             foreign key (id) references public.profiles (id) on delete cascade;
+
+          create or replace function public.complete_password_change(p_request_id uuid)
+          returns void
+          language plpgsql
+          security definer
+          set search_path = ''
+          as $partial$
+          declare
+            v_uid uuid := (select auth.uid());
+            v_role text;
+          begin
+            if v_uid is null then
+              raise exception 'not authenticated' using errcode = '28000';
+            end if;
+
+            select role into v_role from public.profiles where id = v_uid;
+
+            update public.profiles
+            set must_change_password = false
+            where id = v_uid;
+
+            insert into public.audit_log
+              (actor_user_id, actor_type, action, target_table, target_id, request_id, outcome, detail)
+            values
+              (v_uid, coalesce(v_role, 'system'), 'change_password', 'profiles', v_uid, p_request_id, 'succeeded', '{}'::jsonb);
+          exception
+            when others then
+              insert into public.audit_log
+                (actor_user_id, actor_type, action, target_table, target_id, request_id, outcome, error_code, detail)
+              values
+                (v_uid, coalesce(v_role, 'system'), 'change_password', 'profiles', v_uid, p_request_id, 'failed', sqlstate,
+                 jsonb_build_object('error', sqlerrm));
+              raise;
+          end;
+          $partial$;
 
           create or replace function public.finalize_student_creation(
             p_user_id uuid,
@@ -272,6 +313,18 @@ jobs:
                 --username postgres --dbname postgres --no-psqlrc \
                 --set ON_ERROR_STOP=1 --single-transaction \
                 < supabase/migrations/20260815130000_finalize_student_creation_return_status.sql
+
+              docker exec "$db_container" psql \
+                --username postgres --dbname postgres --no-psqlrc \
+                --set ON_ERROR_STOP=1 --csv \
+                --command "select routine.oid, pg_catalog.pg_get_userbyid(routine.proowner) as owner, language.lanname as language, routine.prorettype::pg_catalog.regtype::text as return_type, routine.prosecdef, routine.proleakproof, routine.proisstrict, routine.provolatile, routine.proparallel, routine.procost, routine.prorows, routine.proconfig, routine.proacl from pg_catalog.pg_proc as routine join pg_catalog.pg_language as language on language.oid = routine.prolang where routine.oid = pg_catalog.to_regprocedure('public.complete_password_change(uuid)')" \
+                > p1-artifacts/replay/complete-password-change-metadata.after.csv
+              diff -u \
+                --label Replay/complete-password-change-metadata-before \
+                --label Replay/complete-password-change-metadata-after \
+                p1-artifacts/replay/complete-password-change-metadata.before.csv \
+                p1-artifacts/replay/complete-password-change-metadata.after.csv \
+                > p1-artifacts/replay/complete-password-change-metadata.diff
 
               docker exec "$db_container" pg_dump \
                 --username postgres --dbname postgres \

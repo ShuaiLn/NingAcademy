@@ -21,7 +21,7 @@ Provisioning or changing that Production role is outside this audit and requires
 
 ## Artifacts
 
-- `p1-migration-replay-<run_id>`: full replay log, full/project schema, ACL-aware project schema, replay migration history, comparison result, and final/partial/missing-state convergence logs/diff.
+- `p1-migration-replay-<run_id>`: full replay log, full/project schema, ACL-aware project schema, replay migration history, comparison result, final/partial/missing-state convergence logs/diff, and before/after `complete_password_change` identity/owner/ACL/security metadata.
 - `p1-production-read-only-audit-<run_id>`: the replay evidence plus `db_migrations.csv`, `prod_schema.sql`, project schema dumps, normalized dumps, complete raw unified diffs, exact approved-drift logs, an unresolved application-schema diff, and an ACL-only unresolved diff extracted from pg_dump `ACL`/`DEFAULT ACL` blocks.
 
 The canonical Production export deliberately uses PostgreSQL 17 `pg_dump --schema-only --no-owner --no-privileges`. A second project-only dump retains ACL statements for grant comparison.
