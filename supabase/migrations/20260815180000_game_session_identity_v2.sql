@@ -3,7 +3,11 @@
 
 do $membership$
 begin
-  execute pg_catalog.format('grant game_api_owner to %I', current_user);
+  execute pg_catalog.format(
+    'grant game_api_owner to %I granted by %I',
+    current_user,
+    current_user
+  );
 end
 $membership$;
 
@@ -47,6 +51,10 @@ reset role;
 
 do $membership$
 begin
-  execute pg_catalog.format('revoke game_api_owner from %I', current_user);
+  execute pg_catalog.format(
+    'revoke game_api_owner from %I granted by %I',
+    current_user,
+    current_user
+  );
 end
 $membership$;
