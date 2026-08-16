@@ -19,6 +19,14 @@ begin
 end
 $roles$;
 
+-- The tables below are intentionally created while SET ROLE is active so the
+-- restricted owner owns them from birth. PostgreSQL checks REFERENCES on the
+-- referenced public columns at CREATE TABLE time, even though the migration
+-- executor itself owns those public tables. Keep the grant column-scoped and
+-- temporary; the runtime role never receives it.
+grant references (id) on public.assignments to game_api_owner;
+grant references (id) on public.profiles to game_api_owner;
+
 set role game_api_owner;
 
 create table game_private.p2p_rooms (
@@ -1079,6 +1087,9 @@ alter default privileges for role game_api_owner in schema game_private
   game_server, games_api;
 
 reset role;
+
+revoke references (id) on public.assignments from game_api_owner;
+revoke references (id) on public.profiles from game_api_owner;
 
 do $drop_temporary_membership$
 begin
