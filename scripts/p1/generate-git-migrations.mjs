@@ -2,7 +2,7 @@
 
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -25,18 +25,31 @@ const tracked = execFileSync(
 )
   .split(/\r?\n/u)
   .filter(Boolean)
+  // A deliberate migration removal/rename is visible in the working tree
+  // before it is staged. Exclude index entries whose files no longer exist so
+  // the inventory can be regenerated and reviewed without staging changes.
+  .filter((relativePath) => existsSync(resolve(repoRoot, relativePath)))
   .sort((left, right) => left.localeCompare(right, "en"));
 
-const trackedFilenames = new Set(tracked.map((relativePath) => relativePath.split("/").at(-1)));
+const trackedFilenames = new Set(
+  tracked.map((relativePath) => relativePath.split("/").at(-1)),
+);
 const untrackedSql = readdirSync(resolve(repoRoot, "supabase/migrations"), {
   withFileTypes: true,
 })
-  .filter((entry) => entry.isFile() && entry.name.endsWith(".sql") && !trackedFilenames.has(entry.name))
+  .filter(
+    (entry) =>
+      entry.isFile() &&
+      entry.name.endsWith(".sql") &&
+      !trackedFilenames.has(entry.name),
+  )
   .map((entry) => entry.name)
   .sort((left, right) => left.localeCompare(right, "en"));
 
 if (untrackedSql.length > 0) {
-  throw new Error(`Untracked migration SQL must not be omitted from the audit: ${untrackedSql.join(", ")}`);
+  throw new Error(
+    `Untracked migration SQL must not be omitted from the audit: ${untrackedSql.join(", ")}`,
+  );
 }
 
 if (tracked.length === 0) {
@@ -48,7 +61,9 @@ const rows = tracked.map((relativePath, index) => {
   const filename = relativePath.split("/").at(-1);
   const match = migrationPattern.exec(filename ?? "");
   if (!match) {
-    throw new Error(`Migration filename does not use <14-digit timestamp>_<name>.sql: ${relativePath}`);
+    throw new Error(
+      `Migration filename does not use <14-digit timestamp>_<name>.sql: ${relativePath}`,
+    );
   }
   if (seenVersions.has(match[1])) {
     throw new Error(`Duplicate migration version: ${match[1]}`);
@@ -60,12 +75,10 @@ const rows = tracked.map((relativePath, index) => {
   return [index + 1, filename, sha256];
 });
 
-const output = [
-  ["execution_order", "filename", "sha256"],
-  ...rows,
-]
-  .map((row) => row.map(csvCell).join(","))
-  .join("\n") + "\n";
+const output =
+  [["execution_order", "filename", "sha256"], ...rows]
+    .map((row) => row.map(csvCell).join(","))
+    .join("\n") + "\n";
 
 const checkIndex = process.argv.indexOf("--check");
 if (checkIndex !== -1) {
@@ -81,7 +94,9 @@ if (checkIndex !== -1) {
     );
     process.exitCode = 1;
   } else {
-    process.stdout.write(`Verified ${rows.length} tracked migrations against ${requestedPath}.\n`);
+    process.stdout.write(
+      `Verified ${rows.length} tracked migrations against ${requestedPath}.\n`,
+    );
   }
 } else {
   process.stdout.write(output);

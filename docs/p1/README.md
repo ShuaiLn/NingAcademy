@@ -21,12 +21,11 @@ Provisioning or changing that Production role is outside this audit and requires
 
 ## Artifacts
 
-- `p1-migration-replay-<run_id>`: full replay log, full/project schema, ACL-aware project schema, replay migration history, and comparison result.
-- `p1-production-read-only-audit-<run_id>`: the replay evidence plus `db_migrations.csv`, `prod_schema.sql`, project schema dumps, normalized dumps, and unified diffs.
+- `p1-migration-replay-<run_id>`: full replay log, full/project schema, ACL-aware project schema, replay migration history, comparison result, and final/partial/missing-state convergence logs/diff.
+- `p1-production-read-only-audit-<run_id>`: the replay evidence plus `db_migrations.csv`, `prod_schema.sql`, project schema dumps, normalized dumps, complete raw unified diffs, exact approved-drift logs, and unresolved-only project/ACL diffs.
 
 The canonical Production export deliberately uses PostgreSQL 17 `pg_dump --schema-only --no-owner --no-privileges`. A second project-only dump retains ACL statements for grant comparison.
 
 ## Closing P-1
 
-After a successful manual run, review every artifact and update the three reports with the exact run ID and result. P-1 may pass only when replay has zero failures and every history/schema/ACL difference is either eliminated or documented with an approved disposition. Do not add or execute game migrations while any item remains pending.
-
+After a successful manual run, review every artifact and update the three reports with the exact run ID and result. Raw full/platform diffs are always retained as evidence. The gate ignores only exact hash-pinned objects with an approved disposition; changed approved objects are preserved and fail closed. P-1 may pass only when replay/convergence has zero failures, active Git and Production migration histories match, and unresolved project schema/ACL diffs are empty. Do not add or execute game migrations while any item remains pending.

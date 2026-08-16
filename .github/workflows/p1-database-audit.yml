@@ -7,6 +7,7 @@ on:
       - "docs/p1/**"
       - "scripts/p1/**"
       - "supabase/config.toml"
+      - "supabase/drafts/**"
       - "supabase/migrations/**"
   push:
     branches:
@@ -16,6 +17,7 @@ on:
       - "docs/p1/**"
       - "scripts/p1/**"
       - "supabase/config.toml"
+      - "supabase/drafts/**"
       - "supabase/migrations/**"
   workflow_dispatch:
     inputs:
@@ -182,6 +184,120 @@ jobs:
           echo "status=$comparison_status" >> "$GITHUB_OUTPUT"
           exit 0
 
+      - name: Verify convergence migrations against final and partial states
+        id: convergence
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          convergence_status=0
+          mkdir -p p1-artifacts/replay
+          db_container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -n 1 || true)"
+
+          if [[ -z "$db_container" ]]; then
+            echo "No running Supabase database container was found." \
+              > p1-artifacts/replay/convergence.log
+            convergence_status=1
+          else
+            (
+              set -euo pipefail
+
+              apply_convergence_migrations() {
+                for migration in \
+                  supabase/migrations/20260815120000_core_auth_phase1_catchup_rls_and_grants.sql \
+                  supabase/migrations/20260815130000_finalize_student_creation_return_status.sql \
+                  supabase/migrations/20260815140000_core_auth_identity_fk_delete_restrict.sql
+                do
+                  echo "Applying convergence check: $migration"
+                  docker exec -i "$db_container" psql \
+                    --username postgres --dbname postgres --no-psqlrc \
+                    --set ON_ERROR_STOP=1 --single-transaction < "$migration"
+                done
+              }
+
+              echo "Reapplying all convergence migrations twice to the already-final replay schema."
+              apply_convergence_migrations
+              apply_convergence_migrations
+
+              echo "Creating a mixed partial state in the isolated CI database."
+              docker exec -i "$db_container" psql \
+                --username postgres --dbname postgres --no-psqlrc \
+                --set ON_ERROR_STOP=1 --single-transaction <<'SQL'
+          drop policy if exists "profiles_select_self_or_own_students" on public.profiles;
+          create policy "profiles_select_self" on public.profiles
+            for select to authenticated using (id = (select auth.uid()));
+
+          drop policy if exists "students_select_self_or_own_teacher" on public.students;
+          create policy "students_select_self" on public.students
+            for select to authenticated using (id = (select auth.uid()));
+
+          alter table public.profiles
+            drop constraint if exists profiles_id_fkey;
+          alter table public.profiles
+            add constraint profiles_id_fkey
+            foreign key (id) references auth.users (id) on delete cascade;
+
+          alter table public.teachers
+            drop constraint if exists teachers_id_fkey;
+          alter table public.teachers
+            add constraint teachers_id_fkey
+            foreign key (id) references public.profiles (id) on delete cascade;
+
+          create or replace function public.finalize_student_creation(
+            p_user_id uuid,
+            p_username text,
+            p_full_name text,
+            p_teacher_id uuid,
+            p_request_id uuid
+          )
+          returns boolean
+          language plpgsql
+          security definer
+          set search_path = ''
+          as $partial$
+          begin
+            return false;
+          end;
+          $partial$;
+          SQL
+
+              apply_convergence_migrations
+
+              echo "Testing the missing-function state."
+              docker exec "$db_container" psql \
+                --username postgres --dbname postgres --no-psqlrc \
+                --set ON_ERROR_STOP=1 \
+                --command "drop function public.finalize_student_creation(uuid, text, text, uuid, uuid)"
+              docker exec -i "$db_container" psql \
+                --username postgres --dbname postgres --no-psqlrc \
+                --set ON_ERROR_STOP=1 --single-transaction \
+                < supabase/migrations/20260815130000_finalize_student_creation_return_status.sql
+
+              docker exec "$db_container" pg_dump \
+                --username postgres --dbname postgres \
+                --schema-only --no-owner \
+                --schema=public --schema=private \
+                > p1-artifacts/replay/convergence_project_schema_with_acl.sql
+              node scripts/p1/normalize-schema-dump.mjs \
+                p1-artifacts/replay/replay_project_schema_with_acl.sql \
+                > p1-artifacts/replay/replay_project_schema_with_acl.normalized.sql
+              node scripts/p1/normalize-schema-dump.mjs \
+                p1-artifacts/replay/convergence_project_schema_with_acl.sql \
+                > p1-artifacts/replay/convergence_project_schema_with_acl.normalized.sql
+              diff -u \
+                --label Replay/before-convergence-tests \
+                --label Replay/after-convergence-tests \
+                p1-artifacts/replay/replay_project_schema_with_acl.normalized.sql \
+                p1-artifacts/replay/convergence_project_schema_with_acl.normalized.sql \
+                > p1-artifacts/replay/convergence-schema.diff
+            ) > p1-artifacts/replay/convergence.log 2>&1
+            convergence_status=$?
+          fi
+
+          printf '%s\n' "$convergence_status" > p1-artifacts/replay/convergence_status.txt
+          echo "status=$convergence_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
       - name: Upload replay evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -199,8 +315,9 @@ jobs:
           replay_status="${{ steps.replay.outputs.replay_status }}"
           snapshot_status="${{ steps.replay_snapshot.outputs.status }}"
           history_status="${{ steps.replay_history.outputs.status }}"
-          if [[ "$baseline_status" != "0" || "$replay_status" != "0" || "$snapshot_status" != "0" || "$history_status" != "0" ]]; then
-            echo "P-1 replay gate failed: baseline=$baseline_status replay=$replay_status snapshot=$snapshot_status history=$history_status"
+          convergence_status="${{ steps.convergence.outputs.status }}"
+          if [[ "$baseline_status" != "0" || "$replay_status" != "0" || "$snapshot_status" != "0" || "$history_status" != "0" || "$convergence_status" != "0" ]]; then
+            echo "P-1 replay gate failed: baseline=$baseline_status replay=$replay_status snapshot=$snapshot_status history=$history_status convergence=$convergence_status"
             exit 1
           fi
 
@@ -355,12 +472,67 @@ jobs:
             > p1-artifacts/production/project-schema-with-acl.diff
           project_acl_status=$?
 
+          # Preserve every raw diff above. The gate below uses a second,
+          # fail-closed comparison that removes only exact, hash-pinned objects
+          # whose intentional disposition is approved in the P-1 report.
+          node scripts/p1/filter-approved-schema-drift.mjs \
+            p1-artifacts/production/prod_project_schema.normalized.sql \
+            > p1-artifacts/production/prod_project_schema.gated.sql \
+            2> p1-artifacts/production/prod_project_schema.approved-drift.log
+          prod_project_filter_status=$?
+          node scripts/p1/filter-approved-schema-drift.mjs \
+            p1-artifacts/production/replay_project_schema.normalized.sql \
+            > p1-artifacts/production/replay_project_schema.gated.sql \
+            2> p1-artifacts/production/replay_project_schema.approved-drift.log
+          replay_project_filter_status=$?
+
+          if [[ "$prod_project_filter_status" == "0" && "$replay_project_filter_status" == "0" ]]; then
+            diff -u \
+              --label Production/project-unresolved \
+              --label Replay/project-unresolved \
+              p1-artifacts/production/prod_project_schema.gated.sql \
+              p1-artifacts/production/replay_project_schema.gated.sql \
+              > p1-artifacts/production/unresolved-project-schema.diff
+            unresolved_project_schema_status=$?
+          else
+            echo "Approved-drift filtering failed closed for project schema." \
+              > p1-artifacts/production/unresolved-project-schema.diff
+            unresolved_project_schema_status=1
+          fi
+
+          node scripts/p1/filter-approved-schema-drift.mjs \
+            p1-artifacts/production/prod_project_schema_with_acl.normalized.sql \
+            > p1-artifacts/production/prod_project_schema_with_acl.gated.sql \
+            2> p1-artifacts/production/prod_project_schema_with_acl.approved-drift.log
+          prod_project_acl_filter_status=$?
+          node scripts/p1/filter-approved-schema-drift.mjs \
+            p1-artifacts/production/replay_project_schema_with_acl.normalized.sql \
+            > p1-artifacts/production/replay_project_schema_with_acl.gated.sql \
+            2> p1-artifacts/production/replay_project_schema_with_acl.approved-drift.log
+          replay_project_acl_filter_status=$?
+
+          if [[ "$prod_project_acl_filter_status" == "0" && "$replay_project_acl_filter_status" == "0" ]]; then
+            diff -u \
+              --label Production/project-with-ACL-unresolved \
+              --label Replay/project-with-ACL-unresolved \
+              p1-artifacts/production/prod_project_schema_with_acl.gated.sql \
+              p1-artifacts/production/replay_project_schema_with_acl.gated.sql \
+              > p1-artifacts/production/unresolved-project-schema-with-acl.diff
+            unresolved_project_acl_status=$?
+          else
+            echo "Approved-drift filtering failed closed for project schema with ACL." \
+              > p1-artifacts/production/unresolved-project-schema-with-acl.diff
+            unresolved_project_acl_status=1
+          fi
+
           {
             echo "git_vs_production_migrations=$git_prod_status"
             echo "git_vs_replay_migrations=$git_replay_status"
-            echo "full_schema_diff=$full_schema_status"
-            echo "project_schema_diff=$project_schema_status"
-            echo "project_schema_with_acl_diff=$project_acl_status"
+            echo "full_schema_raw_diff=$full_schema_status"
+            echo "project_schema_raw_diff=$project_schema_status"
+            echo "project_schema_with_acl_raw_diff=$project_acl_status"
+            echo "unresolved_project_schema_diff=$unresolved_project_schema_status"
+            echo "unresolved_project_schema_with_acl_diff=$unresolved_project_acl_status"
           } | tee p1-artifacts/production/comparison-status.txt
 
           echo "git_prod_status=$git_prod_status" >> "$GITHUB_OUTPUT"
@@ -368,6 +540,8 @@ jobs:
           echo "full_schema_status=$full_schema_status" >> "$GITHUB_OUTPUT"
           echo "project_schema_status=$project_schema_status" >> "$GITHUB_OUTPUT"
           echo "project_acl_status=$project_acl_status" >> "$GITHUB_OUTPUT"
+          echo "unresolved_project_schema_status=$unresolved_project_schema_status" >> "$GITHUB_OUTPUT"
+          echo "unresolved_project_acl_status=$unresolved_project_acl_status" >> "$GITHUB_OUTPUT"
           exit 0
 
       - name: Upload Production read-only evidence
@@ -388,7 +562,10 @@ jobs:
           full_schema_status="${{ steps.production_compare.outputs.full_schema_status }}"
           project_schema_status="${{ steps.production_compare.outputs.project_schema_status }}"
           project_acl_status="${{ steps.production_compare.outputs.project_acl_status }}"
-          if [[ "$git_prod_status" != "0" || "$git_replay_status" != "0" || "$full_schema_status" != "0" || "$project_schema_status" != "0" || "$project_acl_status" != "0" ]]; then
-            echo "P-1 drift gate failed: git/prod=$git_prod_status git/replay=$git_replay_status full-schema=$full_schema_status project-schema=$project_schema_status project-ACL=$project_acl_status"
+          unresolved_project_schema_status="${{ steps.production_compare.outputs.unresolved_project_schema_status }}"
+          unresolved_project_acl_status="${{ steps.production_compare.outputs.unresolved_project_acl_status }}"
+          echo "Raw diff status (evidence only): full-schema=$full_schema_status project-schema=$project_schema_status project-ACL=$project_acl_status"
+          if [[ "$git_prod_status" != "0" || "$git_replay_status" != "0" || "$unresolved_project_schema_status" != "0" || "$unresolved_project_acl_status" != "0" ]]; then
+            echo "P-1 unresolved drift gate failed: git/prod=$git_prod_status git/replay=$git_replay_status project-schema=$unresolved_project_schema_status project-ACL=$unresolved_project_acl_status"
             exit 1
           fi

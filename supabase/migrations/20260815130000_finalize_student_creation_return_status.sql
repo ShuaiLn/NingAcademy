@@ -23,11 +23,29 @@
 -- genuinely unexpected error still raises and skips the audit row) is
 -- exactly what the caller already assumes.
 --
--- PostgreSQL cannot change a function's return type with CREATE OR
--- REPLACE, so the exact old void overload is dropped first.
-drop function public.finalize_student_creation(uuid, text, text, uuid, uuid);
+-- PostgreSQL cannot change a function's return type with CREATE OR REPLACE.
+-- Drop the exact overload only when it still has the legacy non-boolean return
+-- type. Production already has the boolean contract, so it keeps the same
+-- function object/OID and is updated safely through CREATE OR REPLACE below.
+-- A missing function also falls through to CREATE OR REPLACE.
+do $migration$
+declare
+  v_return_type pg_catalog.oid;
+begin
+  select routine.prorettype
+  into v_return_type
+  from pg_catalog.pg_proc as routine
+  where routine.oid = pg_catalog.to_regprocedure(
+    'public.finalize_student_creation(uuid,text,text,uuid,uuid)'
+  );
 
-create function public.finalize_student_creation(
+  if found and v_return_type <> 'boolean'::pg_catalog.regtype then
+    drop function public.finalize_student_creation(uuid, text, text, uuid, uuid);
+  end if;
+end
+$migration$;
+
+create or replace function public.finalize_student_creation(
   p_user_id uuid,
   p_username text,
   p_full_name text,

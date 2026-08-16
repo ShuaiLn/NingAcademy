@@ -1,13 +1,13 @@
 # P-1 Replay Failures
 
-Status: **Migration replay PASS through 22 migrations; Production read-only gate fix (run 9) confirmed working across 3 live runs (11-13) — it now fails closed for real; those 3 runs then revealed a second bug, a false-positive write-privilege schema scope, fixed locally and pending CI re-verification; schema-drift re-comparison against findings 4-6 still outstanding**
+Status: **Last verified replay PASS — run `31915313767` replayed the historical 22-file queue; the current 22-file non-game queue and expanded convergence-state gate are pending a fresh CI run**
 Audit date: 2026-08-15
 
-Migration replay of the original 20 migrations is fully resolved; nothing further to fix there. Run 7 additionally completed the Production read-only export and four-way comparison, which surfaced 3 real drift items unrelated to replay mechanics (uncommitted "Phase 1" policy/grant/function changes that reached Production but were never captured as migrations) — see `MIGRATION_DRIFT_REPORT.md`'s "Production drift investigation (run 7)" section for the full classification.
+Migration replay through run `31915313767` is fully resolved. Failure 1, Failure 2, and Failure 3 below are retained as historical root-cause records. They are not open replay failures. The Phase-0 draft has since left the active queue without changing bytes, and both core-auth forward fixes have changed SHA to become convergence-safe, so the current queue needs a new replay before it can inherit the PASS result.
 
-Two new migrations closing those 3 findings — `20260815120000_core_auth_phase1_catchup_rls_and_grants.sql` and `20260815130000_finalize_student_creation_return_status.sql` — were written after run 7 and verified locally (byte-for-byte diff against Production's own dumps, `audit:p1:git-migrations`, `typecheck`, `build` all pass). Run 8 confirmed all 22 migrations replay clean from zero. Run 9 then revealed a **separate, more urgent bug**: the Production read-only proof script did not actually stop the job when it detected an elevated connection role — see "Run 9: Production read-only gate did not actually stop the job" below. The user committed that fix directly (commit `d14ea9b`) and separately fixed the Production connection role itself (now `p1_readonly_audit_v2`, holding only `pg_read_all_data` membership) — both outside this agent's access. Runs 11-13 on that commit then confirmed the gate fix works (it now genuinely fails closed), but surfaced a **third bug**: the table/sequence write-privilege checks were scoped too broadly and false-tripped on Supabase's own `cron`/`net` extension schemas — see "Runs 11-13: write-privilege checks false-positive on Supabase extension schemas" below. That has also been fixed locally and is pending CI re-verification.
+Run `31915313767` also confirms the separate Production gate corrections: `p1_readonly_audit_v2` passed the restricted-role/project-schema privilege checks with `transaction_read_only=on`, and Production export/comparison proceeded normally. The workflow still concluded failure only because the independent drift gate found documented Git/Production/schema differences. See `MIGRATION_DRIFT_REPORT.md`; those differences do not reopen migration replay.
 
-Run 7's findings are not called into question by this: its read-only-proof step passed with no refusal message logged at all, meaning all five checks were genuinely satisfied on their own merits that time — the `\quit` bug only ever mattered on a check that *fails*, and none did in run 7. What changed for run 9, and whether the same secret resolved to a different, elevated role at that point, was not investigated here (Production role/secret provisioning is explicitly out of scope for this fix) — the user has since separately reprovisioned the Production connection role as `p1_readonly_audit_v2`. Until a future Production audit run shows the "Prove the Production connection is read-only" step passing *with no refusal message in its log*, do not treat that step's bare `success` status alone as proof of anything — check the log text too.
+Run 7's findings are not called into question by this: its read-only-proof step passed with no refusal message logged at all, meaning all five checks were genuinely satisfied on their own merits that time — the `\quit` bug only ever mattered on a check that _fails_, and none did in run 7. What changed for run 9, and whether the same secret resolved to a different, elevated role at that point, was not investigated here (Production role/secret provisioning is explicitly out of scope for this fix) — the user later reprovisioned the Production connection role as `p1_readonly_audit_v2`. Run `31915313767` now supplies the required positive proof: that role passes with no refusal message and `transaction_read_only=on`.
 
 ## Run 1 examined
 
@@ -21,12 +21,12 @@ No local Docker replay was attempted. Docker remains isolated to GitHub Actions 
 
 ## Failure 1: function return-type replacement
 
-| Field | Evidence |
-| --- | --- |
-| First failing migration | `20260811080227_allow_three_teacher_bootstrap.sql` |
-| PostgreSQL error | `ERROR: cannot change return type of existing function (SQLSTATE 42P13)` |
-| Failing statement | `create or replace function public.finalize_teacher_bootstrap(uuid, text, text, uuid) returns boolean` |
-| Previous definition | `20260810164324_core_auth.sql` creates the same argument signature with `returns void` |
+| Field                     | Evidence                                                                                                                   |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| First failing migration   | `20260811080227_allow_three_teacher_bootstrap.sql`                                                                         |
+| PostgreSQL error          | `ERROR: cannot change return type of existing function (SQLSTATE 42P13)`                                                   |
+| Failing statement         | `create or replace function public.finalize_teacher_bootstrap(uuid, text, text, uuid) returns boolean`                     |
+| Previous definition       | `20260810164324_core_auth.sql` creates the same argument signature with `returns void`                                     |
 | Replay history at failure | Versions `20260810164324` through `20260811051504` recorded; the failing version and nine later versions were not recorded |
 
 ### Root cause
@@ -64,11 +64,11 @@ This failure remains recorded after its successful rerun.
 
 ## Failure 2: target owner lacked schema CREATE
 
-| Field | Evidence |
-| --- | --- |
-| First failing migration | `20260813230000_game_phase0_contract.sql` |
-| PostgreSQL error | `ERROR: permission denied for schema public (SQLSTATE 42501)` |
-| Failing statement | `alter table public.game_assignment_configs owner to game_api_owner` |
+| Field                     | Evidence                                                                     |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| First failing migration   | `20260813230000_game_phase0_contract.sql`                                    |
+| PostgreSQL error          | `ERROR: permission denied for schema public (SQLSTATE 42501)`                |
+| Failing statement         | `alter table public.game_assignment_configs owner to game_api_owner`         |
 | Replay history at failure | All first 19 versions recorded; only the failing game draft was not recorded |
 
 ### Root cause
@@ -99,11 +99,11 @@ This is an execution-order repair only. It creates no new table, RPC, or game re
 
 ## Failure 3: `LEAST`/`GREATEST`/`EXTRACT` schema-qualified as `pg_catalog` function calls
 
-| Field | Evidence |
-| --- | --- |
-| First failing migration | `20260813230000_game_phase0_contract.sql` |
-| PostgreSQL error | `ERROR: function pg_catalog.least(smallint, smallint) does not exist (SQLSTATE 42883)` |
-| Failing statement | statement 186, inside `create function game_private.build_launch_context(...)`, the `'screenShakeMax', pg_catalog.least(...)` expression |
+| Field                   | Evidence                                                                                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| First failing migration | `20260813230000_game_phase0_contract.sql`                                                                                                |
+| PostgreSQL error        | `ERROR: function pg_catalog.least(smallint, smallint) does not exist (SQLSTATE 42883)`                                                   |
+| Failing statement       | statement 186, inside `create function game_private.build_launch_context(...)`, the `'screenShakeMax', pg_catalog.least(...)` expression |
 
 ### Root cause
 
@@ -169,7 +169,7 @@ Refusing Production audit: the connection role is elevated.
 
 `scripts/p1/assert-production-read-only.sql` used `\quit 10` / `\quit 11` / `\quit 12` / `\quit 13` / `\quit 14` to try to signal which specific check failed via a distinct process exit code. **`psql`'s `\q`/`\quit` meta-command does not accept an exit-code argument at all** — any argument is printed as an ignored-argument warning, and psql quits with whatever status it would have had anyway (0, since from psql's own perspective no error occurred; `\echo` and `\quit` are just meta-commands, not SQL). So every one of the five refusal branches printed the correct human-readable message and then **exited 0**. `docker run`'s own exit code was therefore 0, the step was marked `success`, and the job proceeded straight through the export and comparison steps using a connection that the script had just correctly identified as elevated.
 
-No destructive operation actually occurred despite this: every statement the workflow itself issues against Production is `SELECT`, `COPY ... TO STDOUT`, or `pg_dump --schema-only`, regardless of which role is connected — the workflow contains no DDL/DML statement anywhere, elevated connection or not. But the safety *gate* itself was not enforcing the boundary it exists to enforce, and this could have masked a real problem on a future change to this workflow. This is a latent bug in the read-only-proof script, not a new schema/migration issue, and not something a Postgres role-privilege change on Production's side could ever have fixed by itself.
+No destructive operation actually occurred despite this: every statement the workflow itself issues against Production is `SELECT`, `COPY ... TO STDOUT`, or `pg_dump --schema-only`, regardless of which role is connected — the workflow contains no DDL/DML statement anywhere, elevated connection or not. But the safety _gate_ itself was not enforcing the boundary it exists to enforce, and this could have masked a real problem on a future change to this workflow. This is a latent bug in the read-only-proof script, not a new schema/migration issue, and not something a Postgres role-privilege change on Production's side could ever have fixed by itself.
 
 Root cause of the elevated connection itself was **not** investigated per instruction (`暂时不要处理 schema drift，先修好只读权限 gate` — fix the gate first) — that is Production role provisioning, outside this repository and outside this agent's access; whatever role `PRODUCTION_DATABASE_READ_ONLY_URL` resolves to today has `rolsuper`, `rolcreatedb`, `rolcreaterole`, `rolreplication`, or `rolbypassrls` set, and fixing that is a separate, Production-side follow-up.
 
@@ -187,7 +187,7 @@ do $$ begin raise exception 'Refusing Production audit: ...' using errcode = 'P0
 
 - Structural check (`\if`/`\else`/`\endif` balance, `$$ ... $$;` pairing, no remaining `\quit`): pass, read directly from the edited file.
 - psql exit-code semantics for `ON_ERROR_STOP` + script-file errors: documented behavior (exit 3), not guessed.
-- Cannot be replayed locally (no Docker, no direct Production connection available to this agent) — **the next Production audit run is the only way to confirm this actually stops the job**. Until Production's connection role is separately fixed to be genuinely restricted, the expected result of the next run is that this same "the connection role is elevated" check now correctly fails the `Prove the Production connection is read-only` step itself (not just the later drift-gate step), and the job stops before ever exporting or comparing Production schema data.
+- Subsequent runs 11–13 confirmed the corrected script really stops the job on a failed assertion; run `31915313767` confirms the same script succeeds for the restricted `p1_readonly_audit_v2` role without a refusal message. This gate bug is closed.
 - This fix does not touch `docs/p1/git_migrations.csv` (this script lives under `scripts/p1/`, not `supabase/migrations/`) and does not touch any migration file.
 
 ## Runs 11-13: write-privilege checks false-positive on Supabase extension schemas
@@ -229,7 +229,64 @@ replacing the previous `namespace.nspname <> 'information_schema' and namespace.
 
 - Confirmed via the GitHub API that all three runs (11-13) failed at exactly `Prove the Production connection is read-only`, not later — consistent, not flaky, and consistent with the user's own direct inspection of the role's actual grants.
 - Structural check of the edited file (balanced `\if`/`\else`/`\endif`, `$$...$$;` pairing, no `\quit`): pass, read directly from the file.
-- Cannot be replayed locally (no Docker, no Production connection available to this agent) — **the next Production audit run is the only way to confirm the false positive is gone and the step now passes for real** (not just "returns success" — check that no refusal message appears in its log, per the run-9 lesson above).
+- Run `31915313767` supplies the missing live verification: the proof step reports `p1_readonly_audit_v2` with `transaction_read_only=on`, completes successfully, and reaches the export/comparison steps without a refusal message. The false positive is closed.
+
+## Run 15: replay and Production read-only gate confirmed
+
+- Workflow run: `31915313767`, attempt 1, commit `ccebaabc9eb27efe7e07ddf832a1e6799dc2a845`
+- Replay artifact: `p1-migration-replay-31915313767`
+- Production artifact: `p1-production-read-only-audit-31915313767`
+
+The downloaded `replay.log` applies, in order, all 19 pre-game migrations, the frozen `20260813230000_game_phase0_contract.sql`, and both forward fixes:
+
+- `20260815120000_core_auth_phase1_catchup_rls_and_grants.sql`
+- `20260815130000_finalize_student_creation_return_status.sql`
+
+It then reports `Finished supabase db reset on branch main.` The artifact contains a non-empty `replay_schema.sql` (629,208 bytes), project-only and ACL-aware schema dumps, `replay_db_migrations.csv`, and the complete startup/replay logs.
+
+All replay gate inputs are zero:
+
+```text
+baseline_status=0
+replay_status=0
+snapshot_status=0
+history_comparison_status=0
+```
+
+`git-vs-replay-migrations.md` reports 22 Git / 22 replay migrations and `MATCH`, with no Git-only, replay-only, or same-version/different-name rows. This is the authoritative current replay result: **PASS, zero replay failures**.
+
+The same run finally verifies the earlier read-only gate fixes against Production rather than only structurally:
+
+```text
+audited_database = postgres
+audit_role = p1_readonly_audit_v2
+transaction_read_only = on
+```
+
+The proof step completed, the read-only export generated `db_migrations.csv` and all Production schema dumps, and the job reached the final drift gate. Its final failure (`git/prod=1`, `full-schema=1`, `project-schema=1`, `project-ACL=1`) is classified in `MIGRATION_DRIFT_REPORT.md`; it is not a replay or read-only-gate failure.
+
+## Post-run-15 queue and convergence changes — CI pending
+
+Read-only `supabase migration list` checks found exactly two accessible shared projects. `NingAcademy` has the same 19-version history captured in run 15, and `NingAcademy-staging` has zero remote versions. Neither project records `20260813230000`, `20260815120000`, or `20260815130000`.
+
+That evidence permitted the unchanged frozen draft to move to `supabase/drafts/`; its SHA-256 remains `d7870560aaa74a5a024fc77da4659da36b21eb7f798f587bc97e1f197120379b`. The active queue is now 22 files: the 19 Production-recorded versions plus three pending core-auth convergence migrations.
+
+The convergence changes address failure modes that a clean replay alone cannot cover:
+
+- `20260815120000_*` removes legacy policies only when present, converges existing/missing/incompatible target policies without name collisions, repeats grants safely, and revokes the three local-bootstrap sequence default ACLs.
+- `20260815130000_*` drops only the legacy non-boolean overload; an existing boolean function is updated in place with `CREATE OR REPLACE`, preserving its OID/dependencies.
+- `20260815140000_*` leaves exact RESTRICT FKs untouched and replaces missing or non-canonical/CASCADE variants with the confirmed RESTRICT definitions.
+- The replay workflow now reapplies all three migrations twice to the already-final local schema, creates a mixed partial state including CASCADE FKs, tests a missing-function state, reapplies convergence, and requires the final ACL-aware project schema to match the pre-test replay snapshot exactly.
+
+Current hashes awaiting CI verification:
+
+| Migration                                                    | SHA-256                                                            |
+| ------------------------------------------------------------ | ------------------------------------------------------------------ |
+| `20260815120000_core_auth_phase1_catchup_rls_and_grants.sql` | `e40d47873428c18b7a470b8830b030cd921de03a45910aa486689d2830974ac6` |
+| `20260815130000_finalize_student_creation_return_status.sql` | `0cb78db5502b57280ae2f58de22c49e774ea2affeaee9ed4535e71443f543525` |
+| `20260815140000_core_auth_identity_fk_delete_restrict.sql`   | `376a6b8db05759abccb9c23b73e7f095d6214d0c9a20ec6ab94197a7ca9c7414` |
+
+No shared database was modified. A fresh CI run is required; this section does not claim the revised queue has already passed.
 
 ## CI replay contract
 
@@ -239,10 +296,11 @@ replacing the previous `namespace.nspname <> 'information_schema' and namespace.
 - full and project-only replay schema dumps;
 - the ACL-aware project schema dump;
 - `replay_db_migrations.csv`;
-- the Git/replay history comparison and numeric status files.
+- the Git/replay history comparison and numeric status files;
+- convergence logs, post-test schema, and exact schema diff.
 
-The workflow may pass only when startup, replay, snapshot export, and Git/replay history comparison all return zero.
+The workflow may pass only when startup, replay, snapshot export, Git/replay history comparison, and the final/partial/missing-state convergence tests all return zero.
 
 ## Gate decision
 
-The **migration replay gate is PASS** as of run 4. P-1 as a whole remains blocked until the separate Production read-only audit exports Production migration history/schema and completes the Production-vs-Git/replay comparisons with zero unresolved drift. Replay success does not authorize a staging/Production migration application or any new game migration.
+Run `31915313767` is the last verified replay PASS, covering the historical 22-file queue. The revised 22-file active non-game queue is **pending CI verification** because all three convergence migrations and the replay gate changed after that run. The FK authority decision itself is closed as RESTRICT / RESTRICT; P-1 remains blocked by the new verification and pending Production history/application reconciliation in `MIGRATION_DRIFT_REPORT.md`. No replay result authorizes staging/Production migration application or any new game migration.

@@ -5,9 +5,9 @@ Decision for rev2.1 §3.5.1: **方案 B**
 
 ## Evidence boundary
 
-This conclusion comes from all 20 tracked migrations plus the server/UI query paths that currently read and complete work. It is not inferred from UI labels. Production schema export is still required to prove that Production has not drifted from this model; that pending comparison blocks P-1 acceptance but does not make方案 A compatible with the tracked design.
+This conclusion came from the 20-file audit snapshot (19 deployable migrations plus the then-active frozen game draft) and the server/UI query paths that currently read and complete work. The frozen draft has since been archived under `supabase/drafts/` after read-only checks proved it was never recorded in either accessible shared environment. That queue change does not alter the audited assignment-model conclusion.
 
-The last migration, `20260813230000_game_phase0_contract.sql`, is treated as an unapproved pre-P-1 game draft. Its `assignments.assignment_kind in ('plain','game')` addition is documented separately below and is not used to pretend that vocabulary and pronunciation are children of `assignments`.
+The archived `supabase/drafts/20260813230000_game_phase0_contract.sql` is treated as an unapproved pre-P-1 game draft, not an active migration. Its proposed `assignments.assignment_kind in ('plain','game')` addition is documented separately below and is not used to pretend that vocabulary and pronunciation are children of `assignments`.
 
 ## Identity, students, and classes
 
@@ -21,16 +21,16 @@ Primary DDL: `20260810164324_core_auth.sql` and `20260811051226_classes_assignme
 
 ## Three independent assignment systems
 
-| Concern | Plain assignment | Vocabulary | Pronunciation / reading |
-| --- | --- | --- | --- |
-| Parent | `public.assignments` | `public.vocabulary_sets` | `public.pronunciation_tasks` |
-| Content | description + `assignment_files` | `vocabulary_words` and mode/audio configuration | `pronunciation_task_words` |
-| Target table | `assignment_targets` | `vocabulary_targets` | `pronunciation_targets` |
-| Target shape | exactly one of class or student | student only | exactly one of class or student |
-| Due date | `assignments.due_at` | `vocabulary_sets.due_at` | `pronunciation_tasks.due_at` |
-| Publish/assign path | assignment-specific RPCs | vocabulary-specific RPCs | pronunciation-specific RPCs |
-| Attempt/completion | `submissions.submitted_at` | qualifying `practice_sessions` + attempts/audio | `audio_submissions.submitted_at` |
-| Historical snapshot | submission/file attempt | frozen `practice_session_words` plus attempt answer copies | audio submission/file attempt |
+| Concern             | Plain assignment                 | Vocabulary                                                 | Pronunciation / reading          |
+| ------------------- | -------------------------------- | ---------------------------------------------------------- | -------------------------------- |
+| Parent              | `public.assignments`             | `public.vocabulary_sets`                                   | `public.pronunciation_tasks`     |
+| Content             | description + `assignment_files` | `vocabulary_words` and mode/audio configuration            | `pronunciation_task_words`       |
+| Target table        | `assignment_targets`             | `vocabulary_targets`                                       | `pronunciation_targets`          |
+| Target shape        | exactly one of class or student  | student only                                               | exactly one of class or student  |
+| Due date            | `assignments.due_at`             | `vocabulary_sets.due_at`                                   | `pronunciation_tasks.due_at`     |
+| Publish/assign path | assignment-specific RPCs         | vocabulary-specific RPCs                                   | pronunciation-specific RPCs      |
+| Attempt/completion  | `submissions.submitted_at`       | qualifying `practice_sessions` + attempts/audio            | `audio_submissions.submitted_at` |
+| Historical snapshot | submission/file attempt          | frozen `practice_session_words` plus attempt answer copies | audio submission/file attempt    |
 
 ### Plain assignments and submissions
 
@@ -73,18 +73,12 @@ This is a model-selection decision only. It does **not** authorize creating the�
 
 ## Existing game draft caveat
 
-The tracked pre-P-1 game draft adds only `plain | game` to `public.assignments` and attaches game configuration to a game-kind assignment. It does not migrate vocabulary or pronunciation into `assignments`; therefore it cannot satisfy方案 A's condition. The draft must remain frozen until the replay and Production drift audits are resolved.
+The archived pre-P-1 game draft proposed only `plain | game` on `public.assignments` and attached game configuration to a game-kind assignment. It did not migrate vocabulary or pronunciation into `assignments`; therefore it cannot satisfy方案 A's condition. It remains frozen outside the active migration queue.
 
 No `game_unlock_requirements`, `game_assignment_versions`, or `get_game_access_status` object was added by this P-1 work.
 
-## Production confirmations still required
+## Production confirmation
 
-The manual read-only workflow must verify:
+Run `31915313767`'s manual read-only Production export verified the real parent, target, due-date, permission, RLS, RPC-signature, and completion structures used for this decision.方案 B is therefore confirmed rather than provisional.
 
-1. Production contains the same parent, target, due-date, permission, RLS, RPC-signature, and completion tables described above.
-2. `supabase_migrations.schema_migrations` matches `git_migrations.csv` version-for-version.
-3. Production and replay project-schema dumps, including ACL statements, have no unresolved difference.
-4. Any Production-only hotfix or dashboard-created object is recorded in `MIGRATION_DRIFT_REPORT.md` before the model is used for game schema design.
-
-Until those checks complete,方案 B is the evidence-based design choice, but the P-1 gate remains closed.
-
+P-1 remains closed for separate migration-history/FK/ACL reconciliation documented in `MIGRATION_DRIFT_REPORT.md`; those items do not reopen the assignment-model decision. Any future Production-only change that affects this model must still be recorded before formal game schema design.
