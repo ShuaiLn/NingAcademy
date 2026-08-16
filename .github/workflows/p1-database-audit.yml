@@ -333,6 +333,7 @@ jobs:
                 --username postgres --dbname postgres \
                 --schema-only --no-owner \
                 --schema=public --schema=private \
+                --schema=game --schema=game_private \
                 > p1-artifacts/replay/convergence_project_schema_with_acl.sql
               node scripts/p1/normalize-schema-dump.mjs \
                 p1-artifacts/replay/replay_project_schema_with_acl.sql \
