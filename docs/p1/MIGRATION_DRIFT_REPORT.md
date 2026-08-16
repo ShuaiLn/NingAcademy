@@ -1,29 +1,33 @@
 # P-1 Migration Drift Report
 
-Status: **BLOCKED — RESTRICT / RESTRICT is confirmed and encoded in a non-game convergence migration; the revised 22-migration queue still requires CI replay and a later separately authorized Production deployment**
+Status: **BLOCKED — current replay/convergence and ACL-only drift are PASS, but Production history lacks three non-game migrations and application schema still has the two pending FK changes plus one unresolved `complete_password_change` body difference**
 
 Audit date: 2026-08-15
 
 Repository: `NingAcademy`, branch `main`
 
-Last audited commit/run: `ccebaabc9eb27efe7e07ddf832a1e6799dc2a845` / `31915313767`
+Last audited commit/run: `a4b995c5f165489a49a8abe9431d15c4fe046dfa` / `31917569682`
 
 No Production DDL/DML, `db push`, `migration repair`, project relink, or game-schema deployment was executed during this work.
 
-## Last verified Production/replay evidence
+## Current Production/replay evidence
 
-Run `31915313767` remains the latest complete Production artifact baseline:
+Run `31917569682` is the latest complete Production read-only audit:
 
-| Evidence                        | Result                                                                                  |
-| ------------------------------- | --------------------------------------------------------------------------------------- |
-| Production read-only proof      | **PASS** — database `postgres`, role `p1_readonly_audit_v2`, `transaction_read_only=on` |
-| Production migration history    | 19 migrations, ending at `20260813074607_vocabulary_multiple_choice`                    |
-| Historical Git/replay inventory | **PASS** — 22/22 `MATCH`; this was before the frozen draft left the active queue        |
-| Historical clean replay         | **PASS** — baseline/replay/snapshot/history status all zero                             |
-| Historical `replay_schema.sql`  | **PASS** — generated successfully                                                       |
-| Historical drift gate           | Failed only on `git/prod=1`, raw full/project/project-ACL differences                   |
+| Evidence                            | Result                                                                                  |
+| ----------------------------------- | --------------------------------------------------------------------------------------- |
+| Production read-only proof          | **PASS** — database `postgres`, role `p1_readonly_audit_v2`, `transaction_read_only=on` |
+| Production migration history        | 19 migrations, ending at `20260813074607_vocabulary_multiple_choice`                    |
+| Active Git/replay inventory         | **PASS** — 22/22 `MATCH`                                                                |
+| Clean replay                        | **PASS** — baseline/replay/snapshot/history status all zero                             |
+| Convergence-state test              | **PASS** — status zero and final ACL-aware schema diff is empty                         |
+| `replay_schema.sql`                 | **PASS** — generated successfully (443,103 bytes)                                       |
+| Approved intentional-drift filter   | **PASS** — exact IA-2 object removed; raw evidence retained                             |
+| ACL-only unresolved drift           | **PASS** — status zero; `unresolved-project-acl.diff` is empty                          |
+| Active Git vs Production history    | **BLOCKED** — 22 vs 19; exactly three Git-only versions                                 |
+| Application-schema unresolved drift | **BLOCKED** — one function body and two FK definitions                                  |
 
-The old findings 4–6 are closed in that artifact: the combined policies, four `service_role` table grants, and boolean `finalize_student_creation` definition/ACL no longer differ between Production and replay.
+The old findings 4–6 remain closed: the combined policies, four `service_role` table grants, boolean `finalize_student_creation` definition/ACL, and sequence defaults no longer differ between Production and replay.
 
 ## Shared-environment migration-history check
 
@@ -34,7 +38,7 @@ The authenticated Supabase CLI account exposes exactly two shared projects:
 | `NingAcademy` (linked/main) | 19 remote versions, ending at `20260813074607` | Absent           | Absent           | Absent           |
 | `NingAcademy-staging`       | Zero remote versions                           | Absent           | Absent           | Absent           |
 
-The main result independently matches run `31915313767`'s Production `db_migrations.csv`. Both checks used `supabase migration list` only. No link/relink, push, repair, DDL, or DML occurred.
+The main result independently matches run `31917569682`'s Production `db_migrations.csv`. Both checks used `supabase migration list` only. No link/relink, push, repair, DDL, or DML occurred.
 
 Because no accessible shared environment ever recorded `20260813230000`, the draft was safe to remove from the active migration queue.
 
@@ -63,6 +67,17 @@ The working tree now has 22 active migrations. `docs/p1/git_migrations.csv` SHA-
 | 22           | `20260815140000_core_auth_identity_fk_delete_restrict.sql`   | `376a6b8db05759abccb9c23b73e7f095d6214d0c9a20ec6ab94197a7ca9c7414` | Absent — PENDING-DEPLOYMENT |
 
 Production has no Production-only migration version.
+
+## Current drift classification
+
+| Classification       | Remaining items                                                                                                                                                                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| INTENTIONAL-ACCEPTED | IA-1 Supabase-managed full-schema/version noise; IA-2 the exact hash-pinned Dashboard `public.rls_auto_enable()` object. Raw evidence is retained and neither blocks the gated comparison.                                                       |
+| PENDING-DEPLOYMENT   | Git-only versions `20260815120000`, `20260815130000`, and `20260815140000`; the first two describe final schema Production already has, while `20260815140000` carries the confirmed `profiles_id_fkey` and `teachers_id_fkey` RESTRICT changes. |
+| REAL-UNRESOLVED      | `public.complete_password_change(uuid)` has an exception-handler body in clean replay that is absent in Production. No approved disposition or convergence migration exists yet.                                                                 |
+| ACL unresolved       | None. Run `31917569682` produced an empty ACL-only diff after exact IA-2 filtering.                                                                                                                                                              |
+
+The gate is therefore correctly blocked by PENDING-DEPLOYMENT and REAL-UNRESOLVED items only.
 
 ## Convergence migrations
 
@@ -97,11 +112,11 @@ The owner confirmed **RESTRICT / RESTRICT** as the authoritative identity-delete
 - repeated execution is idempotent;
 - no game schema or game object is involved.
 
-The CI replay job now tests the original clean state, reapplies all three migrations twice to the final state, creates an isolated mixed/partial policy, function, and CASCADE-FK state, tests a missing-function state, reapplies the migrations, and requires the final ACL-aware project dump to equal the canonical replay snapshot.
+The CI replay job tests the original clean state, reapplies all three migrations twice to the final state, creates an isolated mixed/partial policy, function, and CASCADE-FK state, tests a missing-function state, reapplies the migrations, and requires the final ACL-aware project dump to equal the canonical replay snapshot.
 
-These changes are locally checked but **not yet CI-verified**. Neither migration was applied to a shared environment.
+Run `31917569682` verified all of those states: `convergence_status=0` and `convergence-schema.diff` is empty. None of the migrations was applied to a shared environment.
 
-## Sequence default ACL decision — RESOLVED IN CODE
+## Sequence default ACL decision — RESOLVED
 
 The replay-only statements granted `UPDATE ON SEQUENCES` in `public` by default to `anon`, `authenticated`, and `service_role`. They are **not** approved as intentional drift:
 
@@ -118,7 +133,7 @@ alter default privileges for role postgres in schema public
   revoke update on sequences from anon, authenticated, service_role;
 ```
 
-Production is already in the intended state, so this is a no-op there. A new clean replay must prove the three ACL lines disappear before this item is finally closed.
+Production is already in the intended state, so this is a no-op there. Run `31917569682` proves the three ACL lines disappear from clean replay: the ACL-only extractor found 209 pg_dump ACL/default-ACL blocks and produced byte-identical Production/replay outputs; `unresolved-project-acl.diff` is empty.
 
 ## FK authority — RESOLVED IN CODE / PENDING DEPLOYMENT
 
@@ -141,6 +156,23 @@ Evidence for the recommendation:
 
 The owner confirmed RESTRICT / RESTRICT on 2026-08-15. Migration `20260815140000_core_auth_identity_fk_delete_restrict.sql` now encodes the decision without touching game schema. Production remains CASCADE / CASCADE until a separate deployment is explicitly authorized, so the FK difference remains **PENDING-DEPLOYMENT**, not intentional drift and not resolved Production state.
 
+## `complete_password_change(uuid)` — REAL-UNRESOLVED
+
+After the approved IA-2 object is removed, run `31917569682` contains one application difference unrelated to the confirmed FKs:
+
+- Production ends `public.complete_password_change(uuid)` after recording the successful password-change audit row.
+- Clean replay adds a `WHEN OTHERS` handler that inserts a failed audit row and then re-raises.
+- Repository history shows the Production-shaped body in the original `20260810164124_core_auth.sql`; commit `05ef89f` renamed that active migration to version `20260810164324` and added the handler. No later active migration converges the function.
+
+The handler's failure audit is not durable: re-raising aborts the same transaction and rolls back the inserted failure row. It can also replace the original error if the compensating insert itself fails. The application already treats any RPC error as failure, so both current bodies surface an error to the caller, but choosing the authoritative database behavior is a design decision not covered by the owner's FK confirmation.
+
+This difference is **REAL-UNRESOLVED**, not intentional drift and not approved for filtering. Before deployment, the owner must choose either:
+
+1. converge clean replay to the simpler current Production body with a new non-game `CREATE OR REPLACE FUNCTION` migration; or
+2. explicitly redesign durable failure reporting and its return/error contract, then implement that as a new non-game convergence migration plus caller tests.
+
+No such migration was created in this turn.
+
 ## Intentional accepted drift
 
 | ID   | Approved difference                                                                                                                                                                      | Enforcement                                                                                                                                                                                                                                                 |
@@ -152,7 +184,7 @@ No game schema/object difference is allowlisted now that the draft is outside th
 
 ## CI drift-gate change
 
-The workflow continues uploading complete raw full/project/project+ACL dumps and diffs. It additionally creates gated project and project+ACL dumps using `scripts/p1/filter-approved-schema-drift.mjs`.
+The workflow continues uploading complete raw full/project/project+ACL dumps and diffs. It additionally creates gated project and project+ACL dumps using `scripts/p1/filter-approved-schema-drift.mjs`. `scripts/p1/extract-schema-acl.mjs` then extracts only pg_dump `ACL` and `DEFAULT ACL` object blocks, so ordinary function/FK differences remain application-schema failures without being double-counted as ACL failures.
 
 The final gate now fails on:
 
@@ -162,7 +194,7 @@ The final gate now fails on:
 - unresolved project ACL drift;
 - replay or convergence-test failure.
 
-The raw full-schema/platform diff is evidence-only. The approved-object filter is fail-closed and hash-pinned; it does not use broad schema patterns and cannot hide FK, policy, function, table, grant, or ACL changes.
+The raw full-schema/platform and full ACL-aware application diffs are evidence-only. The approved-object filter is fail-closed and hash-pinned; it does not use broad schema patterns and cannot hide FK, policy, function, table, grant, or ACL changes. Run `31917569682` proves approved IA-1/IA-2 differences do not block while the real function/FK differences still fail closed.
 
 ## Local verification
 
@@ -176,16 +208,17 @@ The raw full-schema/platform diff is evidence-only. The approved-object filter i
 | `npm run typecheck`                           | PASS                                                                                                                                         |
 | `npm run build`                               | PASS                                                                                                                                         |
 | `npm run lint`                                | Blocked before linting by the pre-existing TypeScript 7 / `typescript-eslint` incompatibility; no P-1 file-specific lint result is available |
-| SQL runtime/convergence test                  | Pending GitHub Actions; this machine has neither Docker nor `psql`                                                                           |
+| SQL runtime/convergence test                  | PASS — run `31917569682`; every replay/convergence status is zero and the convergence diff is empty                                          |
+| Production ACL-only comparison                | PASS — run `31917569682`; status zero and empty ACL diff                                                                                     |
 
 `package.json` has no test script.
 
 ## Remaining actions for P-1 PASS
 
-1. Commit/push the current P-1 changes and run the isolated replay; require all 22 current migrations plus the convergence-state test to pass.
-2. Inspect the replay and Production read-only artifacts before any shared-environment write.
-3. Under a separate explicit authorization, deploy only the three reviewed non-game convergence migrations. Do not deploy the archived game draft and do not use migration repair.
+1. Owner decides the authoritative `complete_password_change(uuid)` error/audit behavior.
+2. Add and CI-test a non-game convergence migration for that function if the decision requires one; do not edit the already-recorded migration in place.
+3. Under a separate explicit authorization, deploy only the reviewed non-game convergence migrations. Do not deploy the archived game draft and do not use migration repair.
 4. Run the complete Production read-only audit again and require active Git history = Production history, zero unresolved project drift, and zero unresolved ACL drift.
-5. Inspect the final artifacts and then change this report to `P-1 PASS`.
+5. Inspect the final artifacts and only then change this report to `P-1 PASS`.
 
-Until all seven actions are complete, do not create `game_unlock_requirements`, `game_assignment_versions`, `game_assignment_completion_status`, `get_game_access_status`, or any other formal game unlock migration/RPC.
+Until all actions are complete, do not create `game_unlock_requirements`, `game_assignment_versions`, `game_assignment_completion_status`, `get_game_access_status`, or any other formal game unlock migration/RPC.

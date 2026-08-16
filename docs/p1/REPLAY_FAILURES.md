@@ -1,9 +1,9 @@
 # P-1 Replay Failures
 
-Status: **Last verified replay PASS — run `31915313767` replayed the historical 22-file queue; the current 22-file non-game queue and expanded convergence-state gate are pending a fresh CI run**
+Status: **PASS — run `31917569682` replayed the current 22-file non-game queue from zero and passed the expanded convergence-state gate**
 Audit date: 2026-08-15
 
-Migration replay through run `31915313767` is fully resolved. Failure 1, Failure 2, and Failure 3 below are retained as historical root-cause records. They are not open replay failures. The Phase-0 draft has since left the active queue without changing bytes, and both core-auth forward fixes have changed SHA to become convergence-safe, so the current queue needs a new replay before it can inherit the PASS result.
+Migration replay through run `31917569682` is fully resolved. Failure 1, Failure 2, and Failure 3 below are retained as historical root-cause records. They are not open replay failures. The Phase-0 draft has left the active queue without changing bytes, and all three active non-game convergence migrations pass clean/final/partial/repeated execution tests.
 
 Run `31915313767` also confirms the separate Production gate corrections: `p1_readonly_audit_v2` passed the restricted-role/project-schema privilege checks with `transaction_read_only=on`, and Production export/comparison proceeded normally. The workflow still concluded failure only because the independent drift gate found documented Git/Production/schema differences. See `MIGRATION_DRIFT_REPORT.md`; those differences do not reopen migration replay.
 
@@ -265,7 +265,7 @@ transaction_read_only = on
 
 The proof step completed, the read-only export generated `db_migrations.csv` and all Production schema dumps, and the job reached the final drift gate. Its final failure (`git/prod=1`, `full-schema=1`, `project-schema=1`, `project-ACL=1`) is classified in `MIGRATION_DRIFT_REPORT.md`; it is not a replay or read-only-gate failure.
 
-## Post-run-15 queue and convergence changes — CI pending
+## Current queue and convergence verification — run 19 PASS
 
 Read-only `supabase migration list` checks found exactly two accessible shared projects. `NingAcademy` has the same 19-version history captured in run 15, and `NingAcademy-staging` has zero remote versions. Neither project records `20260813230000`, `20260815120000`, or `20260815130000`.
 
@@ -278,7 +278,7 @@ The convergence changes address failure modes that a clean replay alone cannot c
 - `20260815140000_*` leaves exact RESTRICT FKs untouched and replaces missing or non-canonical/CASCADE variants with the confirmed RESTRICT definitions.
 - The replay workflow now reapplies all three migrations twice to the already-final local schema, creates a mixed partial state including CASCADE FKs, tests a missing-function state, reapplies convergence, and requires the final ACL-aware project schema to match the pre-test replay snapshot exactly.
 
-Current hashes awaiting CI verification:
+Current CI-verified hashes:
 
 | Migration                                                    | SHA-256                                                            |
 | ------------------------------------------------------------ | ------------------------------------------------------------------ |
@@ -286,7 +286,17 @@ Current hashes awaiting CI verification:
 | `20260815130000_finalize_student_creation_return_status.sql` | `0cb78db5502b57280ae2f58de22c49e774ea2affeaee9ed4535e71443f543525` |
 | `20260815140000_core_auth_identity_fk_delete_restrict.sql`   | `376a6b8db05759abccb9c23b73e7f095d6214d0c9a20ec6ab94197a7ca9c7414` |
 
-No shared database was modified. A fresh CI run is required; this section does not claim the revised queue has already passed.
+Run `31917569682` produced artifact `p1-migration-replay-31917569682` with:
+
+```text
+baseline_status=0
+replay_status=0
+snapshot_status=0
+history_comparison_status=0
+convergence_status=0
+```
+
+`git-vs-replay-migrations.md` reports 22 Git / 22 replay migrations and `MATCH`. `convergence-schema.diff` is empty. `replay_schema.sql` (443,103 bytes), `replay_project_schema.sql` (274,671 bytes), and `replay_project_schema_with_acl.sql` (330,854 bytes) were all generated successfully. No shared database was modified.
 
 ## CI replay contract
 
@@ -303,4 +313,4 @@ The workflow may pass only when startup, replay, snapshot export, Git/replay his
 
 ## Gate decision
 
-Run `31915313767` is the last verified replay PASS, covering the historical 22-file queue. The revised 22-file active non-game queue is **pending CI verification** because all three convergence migrations and the replay gate changed after that run. The FK authority decision itself is closed as RESTRICT / RESTRICT; P-1 remains blocked by the new verification and pending Production history/application reconciliation in `MIGRATION_DRIFT_REPORT.md`. No replay result authorizes staging/Production migration application or any new game migration.
+Migration replay is formally **PASS** for the current active queue as of run `31917569682`. P-1 as a whole remains blocked only by the separate Production history/application reconciliation documented in `MIGRATION_DRIFT_REPORT.md`; that does not reopen replay failures. No replay result authorizes staging/Production migration application or any new game migration.
