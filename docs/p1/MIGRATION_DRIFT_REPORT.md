@@ -56,6 +56,22 @@ document's own rule below, drafting is allowed but execution requires the
 same read-only-preflight-then-explicit-authorization sequence as any other
 Production migration.
 
+The first version of that migration issued the two `REVOKE EXECUTE`
+statements unconditionally at the top level, which broke the CI clean
+replay (GitHub Actions run #38, `SQLSTATE 42883 undefined_function`): a
+from-scratch replay never has `public.rls_auto_enable()`, since it is a
+Production-only object created by the Supabase Dashboard and never by any
+migration in this repo (IA-2 below). The migration is now a **conditional
+no-op on any environment that lacks the function** — clean replay, CI,
+local dev — and only issues the two `REVOKE EXECUTE` statements when
+`pg_catalog.to_regprocedure('public.rls_auto_enable()')` resolves, which is
+true today only on Production. It still creates nothing, still never
+touches the function body/owner/`SECURITY DEFINER`, still never drops the
+function, and still never touches the event trigger; on Production, where
+the function exists, it still revokes `EXECUTE` from `public`, `anon`,
+`authenticated`, `service_role`, `game_server`, and `games_api` exactly as
+before.
+
 The formal protected read-only schema/ACL/FK re-export (the actual gate
 described in "Required fresh read-only gate" below) has **not** been rerun
 since deployment. The application-schema/ACL/FK drift classification further

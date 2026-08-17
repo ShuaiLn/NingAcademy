@@ -15,11 +15,17 @@ check shows Production's **28** versions matching Git's **first 28**
 version-for-version. Git's **29th** entry,
 `20260816150000_restrict_rls_auto_enable_execute.sql`, is a newly drafted
 migration that is **PENDING-DEPLOYMENT** — it has not been applied to
-Production and has not yet had its own CI replay run. See "2026-08-16
-Production deployment confirmed" in `MIGRATION_DRIFT_REPORT.md` for what was
-and was not verified by the live spot-check; deploying the 29th migration
-still needs the same read-only-preflight-then-explicit-approval sequence as
-any other Production migration.
+Production. It is a **conditional no-op** on any environment (clean replay,
+CI, local dev) that lacks the Production-only `public.rls_auto_enable()`
+helper: it checks `pg_catalog.to_regprocedure('public.rls_auto_enable()')`
+first and only issues its `REVOKE EXECUTE` statements when that resolves,
+which today is true only on Production. See "2026-08-16 Production
+deployment confirmed" in `MIGRATION_DRIFT_REPORT.md` for what was and was
+not verified by the live spot-check, and for why the migration needed this
+guard (GitHub Actions run #38 clean-replay failure, `SQLSTATE 42883`).
+Deploying the 29th migration still needs the same
+read-only-preflight-then-explicit-approval sequence as any other Production
+migration.
 
 ## What runs automatically
 
