@@ -1,10 +1,67 @@
 # P-1 Migration Drift Report
 
-Status: **PRODUCTION HISTORY PREFLIGHT PASS / SCHEMA-ACL-FK READ-ONLY REVALIDATION BLOCKED — Git 28; Production 19; no Production write performed**
+Status: **NINE-MIGRATION QUEUE DEPLOYED TO PRODUCTION — Git 29; Production 28; Production's 28 match Git's first 28 version-for-version; Git's 29th (`20260816150000_restrict_rls_auto_enable_execute.sql`) is drafted and PENDING-DEPLOYMENT, not yet applied; formal protected schema/ACL/FK re-export still not rerun since the nine-migration deployment**
 
-Audit date: 2026-08-15
+Audit date: 2026-08-15 (original preflight); deployment and live spot-check 2026-08-16
 
 Repository: `NingAcademy`, branch `main`
+
+## 2026-08-16 Production deployment confirmed
+
+The nine-migration queue below (`20260815120000` through `20260815200000`)
+has been applied to Production. `mcp__supabase__list_migrations` against the
+live project shows exactly 28 versions, ending at
+`20260815200000_game_p2p_signaling`. Git's active migration inventory is
+now **29** entries — those same 28, plus the newly drafted
+`20260816150000_restrict_rls_auto_enable_execute.sql` below. Production's 28
+match Git's first 28 version-for-version; Git's 29th migration has **not**
+been applied to Production (see the next section). This closes the
+PENDING-DEPLOYMENT status recorded below for run `31918316064`, which
+covered only the original nine-migration queue.
+
+Two of the nine game/session migrations (`20260815180000_game_session_
+identity_v2.sql`, `20260815200000_game_p2p_signaling.sql`) were edited after
+their original authoring to fix PostgreSQL 17 temporary role-membership
+cleanup bugs (commits `86a20a4`, `48471fa`, `a0bf694` — see
+`git log -- supabase/migrations/20260815180000_game_session_identity_v2.sql
+supabase/migrations/20260815200000_game_p2p_signaling.sql`). Confirm which
+migration content actually ran on Production before treating Git and
+Production as byte-identical for those two files specifically.
+
+The following were spot-checked live via the Supabase MCP connection (not
+the protected `p1_readonly_audit_v2` read-only role, and not a substitute for
+the formal `pg_dump --schema-only` gate this document otherwise requires)
+and match the expected post-deployment state:
+
+- `game_api_owner`, `game_server`, `games_api` all exist, `NOLOGIN`,
+  `NOINHERIT`, no superuser/createdb/createrole/bypassrls. No
+  `games_api_login` role exists yet.
+- `games_api`: `game` schema `USAGE` granted, `CREATE` denied; `game_private`
+  and `private` schema `USAGE` both denied.
+- The `ensure_rls` event trigger (`ddl_command_end` → `public.rls_
+  auto_enable()`) still exists and is enabled (`evtenabled = 'O'`).
+
+**New gap found by the same spot-check, not previously tracked in this
+document**: `public.rls_auto_enable()` (IA-2 below) still carries
+PostgreSQL's default PUBLIC `EXECUTE` grant, so `anon`, `authenticated`,
+`service_role`, `game_server`, and `games_api` can all call it directly —
+consistent with the Security Advisor's `anon_security_definer_function_
+executable` / `authenticated_security_definer_function_executable` warnings
+for this function. A forward-only migration,
+`supabase/migrations/20260816150000_restrict_rls_auto_enable_execute.sql`,
+has been drafted to revoke that EXECUTE grant (from `public` first, then
+each role explicitly) without touching the function body, its owner, or the
+event trigger. **It has not been applied to Production** — per this
+document's own rule below, drafting is allowed but execution requires the
+same read-only-preflight-then-explicit-authorization sequence as any other
+Production migration.
+
+The formal protected read-only schema/ACL/FK re-export (the actual gate
+described in "Required fresh read-only gate" below) has **not** been rerun
+since deployment. The application-schema/ACL/FK drift classification further
+down this document (run `31918316064`) predates the nine-migration
+deployment and should not be read as still describing current Production
+schema state.
 
 ## 2026-08-15 WebRTC Production rollout update
 

@@ -93,6 +93,9 @@ mismatch, not a code issue, and predates it. There is no `test` script.
   assignment and version its unlock requirements across plain, vocabulary,
   and pronunciation work; students see database-authoritative lock details.
   The earlier staging audit remains historical evidence in
-  `docs/p1/STAGING_GAME_UNLOCK_REPORT.md`; future rollout targets the existing
-  Production Supabase and still requires a read-only preflight plus explicit
-  approval before any Production DDL/DML.
+  `docs/p1/STAGING_GAME_UNLOCK_REPORT.md`; as of 2026-08-16 the game schema
+  and P2P signaling migrations are deployed to the Production Supabase (see
+  `docs/p1/MIGRATION_DRIFT_REPORT.md`). Every future Production migration —
+  including the currently-drafted `rls_auto_enable()` EXECUTE-grant fix —
+  still requires a fresh read-only preflight plus explicit approval before
+  any Production DDL/DML.

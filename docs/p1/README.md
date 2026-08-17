@@ -8,12 +8,18 @@ historical verification evidence. See
 27/27 history, zero-drift, completion, UI, ticket, and staging-backed Games E2E
 results. The formal runtime architecture is now Games Vercel + Host-authoritative
 WebRTC P2P + signaling in the existing Production Supabase; no future staging
-Supabase is required. Git now contains 28 active migrations; a fresh linked
-read-only history query confirms Production contains 19. The exact
-nine-migration queue and still-required schema/ACL/FK UNKNOWN-drift gate are
-listed in `MIGRATION_DRIFT_REPORT.md`. Production has
-not received the pending game migrations, and a fresh read-only preflight plus
-explicit approval is still required first.
+Supabase is required. Git now contains **29** active migrations. As of
+2026-08-16, Production has received the previously-pending nine-migration
+queue (`20260815120000` through `20260815200000`) — a live migration-history
+check shows Production's **28** versions matching Git's **first 28**
+version-for-version. Git's **29th** entry,
+`20260816150000_restrict_rls_auto_enable_execute.sql`, is a newly drafted
+migration that is **PENDING-DEPLOYMENT** — it has not been applied to
+Production and has not yet had its own CI replay run. See "2026-08-16
+Production deployment confirmed" in `MIGRATION_DRIFT_REPORT.md` for what was
+and was not verified by the live spot-check; deploying the 29th migration
+still needs the same read-only-preflight-then-explicit-approval sequence as
+any other Production migration.
 
 ## What runs automatically
 
@@ -21,8 +27,10 @@ Pull requests and pushes that touch migrations or P-1 audit files run the isolat
 
 Latest automatic evidence: commit `6b53658dde40e48b8bf9213a5a5a9d49c39cb18f`,
 run `31930669031`, **PASS** for the 28/28 clean replay, migration-history
-comparison, and four-schema convergence checks. This does not replace the
-manual protected Production read-only audit below.
+comparison, and four-schema convergence checks. That run predates the 29th
+migration (`20260816150000_restrict_rls_auto_enable_execute.sql`), which has
+not yet had a CI replay of its own. This does not replace the manual
+protected Production read-only audit below.
 
 ## Production read-only setup
 
