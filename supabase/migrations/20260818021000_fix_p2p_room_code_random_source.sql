@@ -7,6 +7,26 @@
 -- POST /api/p2p/rooms via create_p2p_room_v1. pg_catalog.gen_random_uuid()/
 -- uuid_send() are core Postgres (not pgcrypto), already reachable under the
 -- empty search_path, so this needs no new schema grants.
+--
+-- CREATE OR REPLACE runs under an explicit SET ROLE game_api_owner rather
+-- than relying on the migration executor's own privileges, so this needs a
+-- temporary, self-scoped membership grant -- same acquire/SET ROLE/revoke
+-- pattern as 20260815200000_game_p2p_signaling.sql. GRANTED BY here matters:
+-- it scopes the later revoke to only the grant edge this migration adds, so
+-- it can never strip the executor's own pre-existing game_api_owner
+-- membership.
+do $grant_temporary_membership$
+begin
+  execute pg_catalog.format(
+    'grant game_api_owner to %I granted by %I',
+    current_user,
+    current_user
+  );
+end
+$grant_temporary_membership$;
+
+set role game_api_owner;
+
 create or replace function game_private.new_p2p_room_code()
 returns text
 language plpgsql
@@ -29,3 +49,15 @@ begin
   return v_code;
 end;
 $$;
+
+set role postgres;
+
+do $drop_temporary_membership$
+begin
+  execute pg_catalog.format(
+    'revoke game_api_owner from %I granted by %I',
+    current_user,
+    current_user
+  );
+end
+$drop_temporary_membership$;

@@ -45,9 +45,19 @@ that migration is now historical, not current.
 been drafted: a `create or replace function` of `game_private.
 new_p2p_room_code()` only, switching its random-byte source from
 `gen_random_bytes(6)` to `pg_catalog.uuid_send(pg_catalog.gen_random_uuid())`.
-It changes no grants, no ownership, no other function, and no other object —
-`CREATE OR REPLACE FUNCTION` preserves the existing owner/ACL for an
-unchanged signature. `docs/p1/git_migrations.csv` has been regenerated
+It runs that replace under an explicit `set role game_api_owner`, acquired
+and dropped via the same temporary, `GRANTED BY`-scoped membership
+grant/revoke pattern as the owner-scoped blocks in
+`20260815200000_game_p2p_signaling.sql` (confirmed live:
+`postgres` already carries a permanent `game_api_owner` membership granted
+by `supabase_admin` — the `GRANTED BY` clause means this migration's own
+grant/revoke pair only ever adds and removes its *own* edge, never that
+pre-existing one). The migration does contain `grant`/`revoke` statements
+for that reason, but they are a self-canceling pair with zero net privilege
+change; it changes no persistent grant, no ownership, no other function, and
+no other object — `CREATE OR REPLACE FUNCTION` preserves the existing
+owner/ACL for an unchanged signature. `docs/p1/git_migrations.csv` has been
+regenerated twice for this migration, most recently against this structure
 (30 tracked migrations). Per this document's own rule below, drafting is
 allowed; **execution against Production has not happened** and requires the
 same read-only-preflight-then-explicit-authorization sequence as any other
