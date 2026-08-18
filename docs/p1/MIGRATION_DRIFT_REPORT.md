@@ -1,10 +1,57 @@
 # P-1 Migration Drift Report
 
-Status: **NINE-MIGRATION QUEUE DEPLOYED TO PRODUCTION — Git 29; Production 28; Production's 28 match Git's first 28 version-for-version; Git's 29th (`20260816150000_restrict_rls_auto_enable_execute.sql`) is drafted and PENDING-DEPLOYMENT, not yet applied; formal protected schema/ACL/FK re-export still not rerun since the nine-migration deployment**
+Status: **Git 30; Production 29; Production's 29 match Git's first 29 version-for-version — this corrects the prior PENDING-DEPLOYMENT note below: `20260816150000_restrict_rls_auto_enable_execute.sql` (Git's 29th) is confirmed deployed as of the 2026-08-17 spot-check; Git's 30th (`20260818021000_fix_p2p_room_code_random_source.sql`) is newly drafted and PENDING-DEPLOYMENT, not yet applied; formal protected schema/ACL/FK re-export still not rerun since the nine-migration deployment**
 
-Audit date: 2026-08-15 (original preflight); deployment and live spot-check 2026-08-16
+Audit date: 2026-08-15 (original preflight); deployment and live spot-check 2026-08-16; second live spot-check 2026-08-17
 
 Repository: `NingAcademy`, branch `main`
+
+## 2026-08-17 P2P room-code bug found; migration 30 drafted
+
+A student's "create game" flow was failing with a 503 from
+`POST /api/p2p/rooms`. Production Postgres logs showed `function
+gen_random_bytes(integer) does not exist` at the same moment, traced through
+the Games API gateway to `game.create_p2p_room_v1` → `game_private.
+new_p2p_room_code()`.
+
+Read-only spot-check against the live project (not the protected
+`p1_readonly_audit_v2` role) confirmed the root cause precisely:
+
+- `gen_random_bytes(integer)` exists only in the `extensions` schema —
+  `pg_catalog` has no function of that name.
+- `game_private.new_p2p_room_code()` is `set search_path = ''` and calls
+  `gen_random_bytes(6)` unqualified, so it can never resolve on Production
+  (or anywhere else) as written in `20260815200000_game_p2p_signaling.sql`.
+- Its owner, `game_api_owner` — the only role ever granted `EXECUTE` on it —
+  has no `USAGE` on the `extensions` schema (only `authenticated`, `anon`,
+  and `service_role` do), so schema-qualifying to
+  `extensions.gen_random_bytes(6)` would additionally require expanding
+  `game_api_owner`'s schema grants.
+- `pg_catalog.gen_random_uuid()` and `pg_catalog.uuid_send(uuid)` are both
+  core Postgres (not pgcrypto) and already resolve under the empty
+  search_path, confirmed present and callable by `game_api_owner`.
+- `new_p2p_room_code` is the only function in the `game`/`game_private`
+  schemas referencing `gen_random_bytes` or `gen_random_uuid()` — no other
+  call site is affected.
+
+The same spot-check incidentally confirmed Git's 29th migration
+(`20260816150000_restrict_rls_auto_enable_execute.sql`), previously recorded
+below as PENDING-DEPLOYMENT, has since been applied to Production:
+`public.rls_auto_enable()` now shows no `EXECUTE` grant to `public`, `anon`,
+or `authenticated`. This document's earlier PENDING-DEPLOYMENT language for
+that migration is now historical, not current.
+
+`supabase/migrations/20260818021000_fix_p2p_room_code_random_source.sql` has
+been drafted: a `create or replace function` of `game_private.
+new_p2p_room_code()` only, switching its random-byte source from
+`gen_random_bytes(6)` to `pg_catalog.uuid_send(pg_catalog.gen_random_uuid())`.
+It changes no grants, no ownership, no other function, and no other object —
+`CREATE OR REPLACE FUNCTION` preserves the existing owner/ACL for an
+unchanged signature. `docs/p1/git_migrations.csv` has been regenerated
+(30 tracked migrations). Per this document's own rule below, drafting is
+allowed; **execution against Production has not happened** and requires the
+same read-only-preflight-then-explicit-authorization sequence as any other
+Production migration.
 
 ## 2026-08-16 Production deployment confirmed
 

@@ -8,22 +8,32 @@ historical verification evidence. See
 27/27 history, zero-drift, completion, UI, ticket, and staging-backed Games E2E
 results. The formal runtime architecture is now Games Vercel + Host-authoritative
 WebRTC P2P + signaling in the existing Production Supabase; no future staging
-Supabase is required. Git now contains **29** active migrations. As of
-2026-08-16, Production has received the previously-pending nine-migration
-queue (`20260815120000` through `20260815200000`) — a live migration-history
-check shows Production's **28** versions matching Git's **first 28**
-version-for-version. Git's **29th** entry,
-`20260816150000_restrict_rls_auto_enable_execute.sql`, is a newly drafted
-migration that is **PENDING-DEPLOYMENT** — it has not been applied to
-Production. It is a **conditional no-op** on any environment (clean replay,
-CI, local dev) that lacks the Production-only `public.rls_auto_enable()`
-helper: it checks `pg_catalog.to_regprocedure('public.rls_auto_enable()')`
-first and only issues its `REVOKE EXECUTE` statements when that resolves,
-which today is true only on Production. See "2026-08-16 Production
-deployment confirmed" in `MIGRATION_DRIFT_REPORT.md` for what was and was
-not verified by the live spot-check, and for why the migration needed this
-guard (GitHub Actions run #38 clean-replay failure, `SQLSTATE 42883`).
-Deploying the 29th migration still needs the same
+Supabase is required. Git now contains **30** active migrations. As of
+2026-08-16, Production received the previously-pending nine-migration
+queue (`20260815120000` through `20260815200000`), and a 2026-08-17 live
+spot-check confirms Git's 29th entry,
+`20260816150000_restrict_rls_auto_enable_execute.sql`, has also since been
+applied — Production's **29** versions now match Git's **first 29**
+version-for-version. It is a **conditional no-op** on any environment (clean
+replay, CI, local dev) that lacks the Production-only `public.
+rls_auto_enable()` helper: it checks
+`pg_catalog.to_regprocedure('public.rls_auto_enable()')` first and only
+issues its `REVOKE EXECUTE` statements when that resolves, which today is
+true only on Production. See "2026-08-16 Production deployment confirmed"
+and "2026-08-17 P2P room-code bug found; migration 30 drafted" in
+`MIGRATION_DRIFT_REPORT.md` for what was and was not verified by each live
+spot-check.
+
+Git's **30th** entry, `20260818021000_fix_p2p_room_code_random_source.sql`,
+is a newly drafted migration that is **PENDING-DEPLOYMENT** — it has not
+been applied to Production. It fixes `game_private.new_p2p_room_code()`,
+which was calling the unqualified `gen_random_bytes(6)` (only present in the
+`extensions` schema) under `set search_path = ''`, causing every
+`POST /api/p2p/rooms` room-creation call to fail in Production with
+`function gen_random_bytes(integer) does not exist`. The fix switches to
+`pg_catalog.gen_random_uuid()`/`uuid_send()`, both core Postgres functions
+already reachable under the empty search_path, so it needs no new schema
+grants. Deploying the 30th migration still needs the same
 read-only-preflight-then-explicit-approval sequence as any other Production
 migration.
 
