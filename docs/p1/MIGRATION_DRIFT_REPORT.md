@@ -1,10 +1,98 @@
 # P-1 Migration Drift Report
 
-Status: **Git 30; Production 29; Production's 29 match Git's first 29 version-for-version — this corrects the prior PENDING-DEPLOYMENT note below: `20260816150000_restrict_rls_auto_enable_execute.sql` (Git's 29th) is confirmed deployed as of the 2026-08-17 spot-check; Git's 30th (`20260818021000_fix_p2p_room_code_random_source.sql`) is newly drafted and PENDING-DEPLOYMENT, not yet applied; the protected audit workflow now has a fail-closed mechanism (`--allow-declared-pending`, prefix replay, migration-30 precondition check — see "P-1 CI gate fixed" below) to pass with exactly this one migration pending, but that mechanism has not been exercised by an actual CI run yet; formal protected schema/ACL/FK re-export still not rerun since the nine-migration deployment; a separate, pre-existing ACL-diff gap unrelated to migration 30 was also found (see below) and will independently surface on the next real protected-audit run**
+Status: **Git 30; Production 29; Production's 29 match Git's first 29 version-for-version. Protected audit run `32098254600` (first real CI exercise of the `--allow-declared-pending`/prefix-replay mechanism) PASSED history/precondition/non-ACL-schema and correctly reproduced the previously-predicted ACL gap below, which is now closed by a second hash-pinned filter entry — see "Protected audit run 32098254600" immediately below. Formal protected schema/ACL/FK evidence is otherwise current as of that run.**
 
-Audit date: 2026-08-15 (original preflight); deployment and live spot-check 2026-08-16; second live spot-check 2026-08-17
+Audit date: 2026-08-15 (original preflight); deployment and live spot-check 2026-08-16; second live spot-check 2026-08-17; first real protected-audit CI run (32098254600) 2026-08-17
 
 Repository: `NingAcademy`, branch `main`
+
+## 2026-08-17 Protected audit run 32098254600: predicted ACL gap confirmed and closed
+
+The first real CI run of the protected Production read-only audit since the
+"P-1 CI gate fixed" mechanism (below) was authored passed
+`git_vs_production_migrations`, `git_vs_replay_migrations`, the migration-30
+precondition, and `unresolved_project_schema_diff` (all `0`), confirming
+Production's 29 migrations match Git's first 29 and no non-ACL application
+schema drift exists. `unresolved_project_schema_with_acl_diff` and
+`unresolved_acl_diff` both failed (`1`) — exactly the gap flagged as unfixed
+in the "2026-08-17 P2P room-code bug found" section below at the time it was
+written.
+
+`prod_project_schema_with_acl.approved-drift.log` showed the existing `IA-2`
+entry still correctly matching and removing `rls_auto_enable()`'s `Type:
+FUNCTION` block on Production (`APPROVED_REMOVED`) and correctly absent on
+the replay-prefix side (`NOT_PRESENT`) — that filter entry was never the
+problem. `unresolved-project-acl.diff` isolated the actual gap to exactly one
+object, matching the prediction precisely:
+
+```diff
+--- Production/project-ACL-unresolved
++++ Replay-prefix/project-ACL-unresolved
+@@ -1062,12 +1062,6 @@
+ GRANT ALL ON FUNCTION public.revoke_game_sessions_v1(p_user_id uuid, p_reason text, p_request_id uuid) TO service_role;
+
+ --
+-- Name: FUNCTION rls_auto_enable(); Type: ACL; Schema: public; Owner: -
+--
+-
+-REVOKE ALL ON FUNCTION public.rls_auto_enable() FROM PUBLIC;
+-
+--
+ -- Name: FUNCTION set_game_assignment_accommodation_v1(p_assignment_id uuid, p_student_id uuid, p_timing_mode text, p_timing_multiplier numeric, p_flash_intensity text, p_screen_shake_max smallint, p_screamer_distortion_allowed boolean, p_request_id uuid); Type: ACL; Schema: public; Owner: -
+ --
+```
+
+The full raw `project-schema-with-acl.diff` for this run contains exactly two
+hunks: the already-approved `IA-2` `Type: FUNCTION` block (removed by the
+existing filter entry, confirmed absent from `unresolved-project-schema-
+with-acl.diff`) and this one `Type: ACL` block. No other `GRANT`, `REVOKE`,
+or `ALTER DEFAULT PRIVILEGES` line differs anywhere in the `public`/
+`private`/`game`/`game_private` project schema between Production and the
+declared-pending-prefix replay.
+
+**Classification: expected, already-approved Production-only drift, not a
+new forward-migration case.** This block is the direct, correct, and already
+live-confirmed effect of migration 29
+(`20260816150000_restrict_rls_auto_enable_execute.sql`, applied to
+Production per the 2026-08-17 spot-check recorded in "2026-08-16 Production
+deployment confirmed" below) revoking `rls_auto_enable()`'s default `PUBLIC`
+`EXECUTE` grant on the Dashboard-created function. It is not Production
+drift needing a fix (the migration that caused it is correct and already
+shipped), not a clean-replay/migration bug (a from-scratch replay correctly
+never creates this Production-only object, so its guarded `REVOKE` is
+correctly a no-op there, and correctly produces no `Type: ACL` block for an
+object that doesn't exist), and not a normalization/extraction bug (`extract-
+schema-acl.mjs` correctly identified it as a `Type: ACL` block; the actual
+gap was that `filter-approved-schema-drift.mjs`'s `IA-2` entry was authored
+before migration 29 shipped and only ever covered the function's own `Type:
+FUNCTION` block). No production write, migration, or schema change of any
+kind was needed.
+
+Per this document's own instruction in "2026-08-17 P2P room-code bug found"
+below ("capture the real ACL block text from that run's evidence, and add a
+second IA-2-style entry"), a second `approvedObjects` entry (`IA-2-ACL`) was
+added to `scripts/p1/filter-approved-schema-drift.mjs`, hash-pinned to this
+run's real evidence: header `-- Name: FUNCTION rls_auto_enable(); Type: ACL;
+Schema: public; Owner: -`, SHA-256
+`8c8ee46e4da5b5e88d1a9fa1d2f974286b99f4454c4c0f1d1cc5c2732b133251`, computed
+by running the filter script's own `findObjectBlock` logic directly against
+run `32098254600`'s `prod_project_schema_with_acl.normalized.sql` (not
+hand-transcribed). Locally reproducing the full filter → extract → diff
+pipeline against this run's real `prod_project_schema_with_acl.normalized.sql`
+and `replay_prefix_project_schema_with_acl.normalized.sql` with the updated
+filter confirms both the fail-closed filter step (`APPROVED_REMOVED` for both
+`IA-2` and `IA-2-ACL` on Production; `NOT_PRESENT` for both on the
+replay-prefix, as expected since the function never exists there) and the
+resulting `unresolved-project-acl.diff` / `unresolved-project-schema-with-
+acl.diff` are now empty (`diff` exit `0`). This was not re-run through actual
+CI/Docker in this session (none available locally, consistent with prior
+sessions' constraints noted throughout this document) — it was verified by
+replaying the exact scripted pipeline against the real downloaded Production
+artifact, byte-for-byte the same inputs CI itself produced.
+
+No Production DDL/DML, migration, `db push`, or migration repair was
+executed or is required by this fix. Migration 30 remains drafted and
+PENDING-DEPLOYMENT, unaffected by and unrelated to this change.
 
 ## 2026-08-17 P2P room-code bug found; migration 30 drafted
 
@@ -155,6 +243,9 @@ audit for real should expect this specific diff, capture the real ACL block
 text from that run's evidence, and add a second `IA-2`-style entry (or
 extend the existing one) before assuming an unrelated audit failure means
 migration 30's own mechanism is broken.
+
+**Resolved 2026-08-17** by run `32098254600` — see "2026-08-17 Protected
+audit run 32098254600: predicted ACL gap confirmed and closed" above.
 
 **Also not run in this session, same reason (no local Docker/Supabase
 CLI/`psql`, and pushing was explicitly out of scope for this change)**: the
@@ -503,6 +594,7 @@ Run `31918316064` proves that this removes the prior REAL-UNRESOLVED body differ
 | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | IA-1 | Supabase-managed full-schema/version differences (`_realtime`, `supabase_functions`, Realtime partitions, Storage Iceberg, Auth indexes, migration-catalog and extension bootstrap text) | Full raw dump/diff remains in artifacts; the application drift gate does not fail on platform-owned schemas                                                                                                                                                 |
 | IA-2 | Production-only `public.rls_auto_enable()` / global `ensure_rls`, created by the Supabase Dashboard automatically-enable-RLS setting                                                     | Raw diff remains; only the exact normalized `rls_auto_enable()` object block with SHA-256 `7934281d71e6f47c7f1fcbaaa8d6be2496b77d6f34dca21994264cdcc2b9718e` is removed from the gated application comparison; any body change remains unresolved and fails |
+| IA-2-ACL | The `Type: ACL` block for the same `public.rls_auto_enable()`, produced by migration 29 (`20260816150000_restrict_rls_auto_enable_execute.sql`) revoking its default PUBLIC EXECUTE grant on Production only                                    | Raw diff remains; only the exact normalized `Type: ACL` object block with SHA-256 `8c8ee46e4da5b5e88d1a9fa1d2f974286b99f4454c4c0f1d1cc5c2732b133251` (captured from run `32098254600`) is removed from the gated application comparison; any different ACL text remains unresolved and fails |
 
 No game schema/object difference is allowlisted now that the draft is outside the active queue.
 

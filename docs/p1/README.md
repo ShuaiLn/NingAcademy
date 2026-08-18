@@ -45,8 +45,18 @@ situation it most needs to handle. It now has a fail-closed mechanism for
 tolerating exactly the migration(s) declared in `scripts/p1/approved-
 pending-migrations.mjs` (today: just the 30th) — see "2026-08-17 P-1 CI gate
 fixed to tolerate exactly one declared-pending migration" in
-`MIGRATION_DRIFT_REPORT.md` for the full mechanism and what has and hasn't
-been verified about it yet (no actual CI run has exercised it).
+`MIGRATION_DRIFT_REPORT.md` for the full mechanism.
+
+Run `32098254600` was the first actual CI run to exercise that mechanism:
+history, precondition, and non-ACL schema comparisons all passed, and it
+correctly reproduced the ACL-diff gap predicted in `MIGRATION_DRIFT_REPORT.md`'s
+"2026-08-17 P2P room-code bug found" section (migration 29's
+`Type: ACL` block for `rls_auto_enable()` was unaccounted for in the
+approved-drift filter). That gap is now closed by a second hash-pinned
+filter entry (`IA-2-ACL` in `scripts/p1/filter-approved-schema-drift.mjs`)
+— see "2026-08-17 Protected audit run 32098254600" in
+`MIGRATION_DRIFT_REPORT.md`. No Production write was made or needed; this
+was a gate/filter fix only.
 
 ## What runs automatically
 

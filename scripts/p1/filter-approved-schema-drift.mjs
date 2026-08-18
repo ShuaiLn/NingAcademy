@@ -22,14 +22,14 @@ const approvedObjects = [
     sha256: "7934281d71e6f47c7f1fcbaaa8d6be2496b77d6f34dca21994264cdcc2b9718e",
     reason: "Supabase Dashboard automatically-enable-RLS function",
   },
-  // Known gap, not yet an entry here (see docs/p1/MIGRATION_DRIFT_REPORT.md,
-  // "2026-08-17 P-1 CI gate fixed"): migration 29 revoked this function's
-  // default PUBLIC EXECUTE grant, so its ACL is no longer default and
-  // pg_dump now emits a "Type: ACL" object block for it that did not exist
-  // when IA-2 above was pinned. That block is unaccounted for and will show
-  // up as unresolved ACL drift on the next real protected-audit run,
-  // independent of any migration-30 mechanism. Not added here because no
-  // session has captured real pg_dump output for it to hash-pin correctly.
+  {
+    id: "IA-2-ACL",
+    header:
+      "-- Name: FUNCTION rls_auto_enable(); Type: ACL; Schema: public; Owner: -",
+    sha256: "8c8ee46e4da5b5e88d1a9fa1d2f974286b99f4454c4c0f1d1cc5c2732b133251",
+    reason:
+      "Migration 29 (20260816150000_restrict_rls_auto_enable_execute.sql) revoked this Dashboard-created function's default PUBLIC EXECUTE grant on Production, which makes pg_dump emit a Type: ACL block that a clean replay never has (the function itself never exists there, so the migration's guarded REVOKE is a no-op) -- captured from run 32098254600's prod_project_schema_with_acl.normalized.sql",
+  },
 ];
 
 function sha256(value) {
