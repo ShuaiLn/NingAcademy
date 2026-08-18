@@ -22,6 +22,14 @@ const approvedObjects = [
     sha256: "7934281d71e6f47c7f1fcbaaa8d6be2496b77d6f34dca21994264cdcc2b9718e",
     reason: "Supabase Dashboard automatically-enable-RLS function",
   },
+  // Known gap, not yet an entry here (see docs/p1/MIGRATION_DRIFT_REPORT.md,
+  // "2026-08-17 P-1 CI gate fixed"): migration 29 revoked this function's
+  // default PUBLIC EXECUTE grant, so its ACL is no longer default and
+  // pg_dump now emits a "Type: ACL" object block for it that did not exist
+  // when IA-2 above was pinned. That block is unaccounted for and will show
+  // up as unresolved ACL drift on the next real protected-audit run,
+  // independent of any migration-30 mechanism. Not added here because no
+  // session has captured real pg_dump output for it to hash-pin correctly.
 ];
 
 function sha256(value) {

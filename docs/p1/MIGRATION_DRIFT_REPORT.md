@@ -1,6 +1,6 @@
 # P-1 Migration Drift Report
 
-Status: **Git 30; Production 29; Production's 29 match Git's first 29 version-for-version — this corrects the prior PENDING-DEPLOYMENT note below: `20260816150000_restrict_rls_auto_enable_execute.sql` (Git's 29th) is confirmed deployed as of the 2026-08-17 spot-check; Git's 30th (`20260818021000_fix_p2p_room_code_random_source.sql`) is newly drafted and PENDING-DEPLOYMENT, not yet applied; formal protected schema/ACL/FK re-export still not rerun since the nine-migration deployment**
+Status: **Git 30; Production 29; Production's 29 match Git's first 29 version-for-version — this corrects the prior PENDING-DEPLOYMENT note below: `20260816150000_restrict_rls_auto_enable_execute.sql` (Git's 29th) is confirmed deployed as of the 2026-08-17 spot-check; Git's 30th (`20260818021000_fix_p2p_room_code_random_source.sql`) is newly drafted and PENDING-DEPLOYMENT, not yet applied; the protected audit workflow now has a fail-closed mechanism (`--allow-declared-pending`, prefix replay, migration-30 precondition check — see "P-1 CI gate fixed" below) to pass with exactly this one migration pending, but that mechanism has not been exercised by an actual CI run yet; formal protected schema/ACL/FK re-export still not rerun since the nine-migration deployment; a separate, pre-existing ACL-diff gap unrelated to migration 30 was also found (see below) and will independently surface on the next real protected-audit run**
 
 Audit date: 2026-08-15 (original preflight); deployment and live spot-check 2026-08-16; second live spot-check 2026-08-17
 
@@ -62,6 +62,111 @@ regenerated twice for this migration, most recently against this structure
 allowed; **execution against Production has not happened** and requires the
 same read-only-preflight-then-explicit-authorization sequence as any other
 Production migration.
+
+## 2026-08-17 P-1 CI gate fixed to tolerate exactly one declared-pending migration
+
+`.github/workflows/p1-database-audit.yml`'s protected Production audit
+previously required Production's migration history and schema to match a
+replay of **every** Git migration, including ones not yet applied to
+Production — so it could never pass while a drafted, reviewed, not-yet-
+authorized forward migration like migration 30 existed in Git at all. That
+made the gate indistinguishable from "broken" in the one situation it most
+needs to handle correctly: a migration that has cleared drafting and
+read-only preflight and is waiting on explicit owner authorization to
+execute. Fixed as follows, fail-closed throughout:
+
+- `scripts/p1/approved-pending-migrations.mjs` (new) is the single source of
+  truth for which migration(s) Production is allowed to be missing right
+  now: version, filename, and reason, entered only after a live read-only
+  preflight of that exact migration. Today it lists exactly one entry,
+  migration 30. Both a Node comparison script and a CI bash step consume it,
+  so the two can never drift out of sync with each other.
+- `scripts/p1/compare-migration-history.mjs` gained an
+  `--allow-declared-pending` flag. With it, Git-vs-Production history
+  comparison passes only if: every version Production is missing exactly
+  matches the declared list (wrong count, wrong version, or wrong filename
+  all fail closed); Production has zero migrations Git doesn't have (never
+  exempted); every already-applied version's recorded name matches Git
+  (never exempted); and the missing versions are an exact trailing suffix of
+  Git's version-ordered history, so a gap earlier in the middle can never be
+  mistaken for the declared tail. Verified locally against the real current
+  30 Git / 29 Production state (MATCH) plus six synthetic fail-closed cases
+  (extra Production-only migration, an earlier migration missing instead,
+  two migrations missing, the declared migration already applied but still
+  listed, and the flag omitted entirely) — all six correctly failed. The
+  flag is applied only to the Git-vs-Production comparison; the existing
+  Git-vs-**replay** comparisons (both the full 30/30 one in the `replay` job
+  and the equivalent one inside the Production audit job) stay unflagged
+  and must still match Git exactly, so "clean replay 30/30" keeps meaning
+  what it always meant.
+- The `replay` job now also replays a **prefix**: after the existing full
+  30/30 replay (unchanged), it temporarily removes the declared-pending
+  migration file(s) (named via `scripts/p1/list-approved-pending-
+  migrations.mjs`, reading the same shared list) from `supabase/migrations`,
+  runs `supabase db reset --local --no-seed` again on the same already-
+  started instance, dumps that schema, and restores the file(s). A new
+  `compare-migration-history.mjs --allow-declared-pending` check (gated,
+  like everything else in this job) proves the prefix replay's own history
+  is exactly Git's declared prefix, catching any bug in the exclusion logic
+  itself on every normal PR/push run, not only during a manual Production
+  audit.
+- The Production audit job's schema/ACL diffs (`full-schema.diff`,
+  `project-schema.diff`, `project-schema-with-acl.diff`, and everything
+  downstream of them, including the approved-drift-filtered unresolved
+  diffs) now compare Production against this **prefix** replay instead of
+  the full 30/30 replay. This is what actually lets the gate pass while
+  migration 30 is pending, without hash-pinning the function-body diff it
+  introduces: Production today should equal a fresh replay of Git's first
+  29 migrations, full stop, and the full 30/30 replay (still required to
+  pass on its own) already separately proves migration 30 correctly
+  transforms that same state once applied.
+- A new step, "Assert Migration 30 precondition holds in Production"
+  (`scripts/p1/assert-migration-030-precondition.sql`), directly checks —
+  before trusting the exemption — that `game_private.new_p2p_room_code()`
+  still has exactly its pre-migration-30 definition (`pg_get_functiondef`
+  compared byte-for-byte against the literal text confirmed live 2026-08-17,
+  re-verified live again just before writing this script) and is still
+  owned by `game_api_owner`. This is a direct, targeted, fail-fast check
+  layered on top of the schema-diff proof above, not a replacement for it.
+  Its status is folded into the same final "Enforce zero unresolved drift"
+  gate as everything else in the job.
+
+**Not fixed by this change, found while making it, and independent of
+migration 30**: migration 29 (`20260816150000_restrict_rls_auto_enable_
+execute.sql`) revoked `public.rls_auto_enable()`'s default PUBLIC `EXECUTE`
+grant. Live spot-check confirms `proacl` for that function is now
+non-default (`{postgres=X/postgres}`, no `=X` PUBLIC entry), which means
+`pg_dump` will now emit an explicit `Type: ACL` object block for it that did
+not exist before migration 29 (a function with only its original default
+ACL needs no explicit GRANT/REVOKE statements to reproduce, so pg_dump
+omits the block entirely). The existing `IA-2` entry in `scripts/p1/filter-
+approved-schema-drift.mjs` only covers the function's own `Type: FUNCTION`
+block, authored before migration 29 shipped — it does not cover this new
+ACL block, which will show up as unresolved drift in `unresolved-project-
+schema-with-acl.diff` / `unresolved-project-acl.diff` the next time the
+protected Production audit actually runs, regardless of migration 30's
+state. This was **not** fixed here because doing so would mean hash-pinning
+`pg_dump`'s exact generated ACL statement text, and unlike migration 30's
+function body (captured from a live, verified `pg_get_functiondef` call),
+nothing in this session has actually seen real `pg_dump` output for this
+object to pin correctly — no Docker, no `pg_dump` binary, and no push to
+trigger CI were available in this session. Whoever next runs the protected
+audit for real should expect this specific diff, capture the real ACL block
+text from that run's evidence, and add a second `IA-2`-style entry (or
+extend the existing one) before assuming an unrelated audit failure means
+migration 30's own mechanism is broken.
+
+**Also not run in this session, same reason (no local Docker/Supabase
+CLI/`psql`, and pushing was explicitly out of scope for this change)**: the
+actual `supabase db reset` replay (full or prefix), and the actual
+`assert-migration-030-precondition.sql` execution against Production. What
+*was* verified locally: `compare-migration-history.mjs`'s new logic against
+real and synthetic fixtures (above); the workflow YAML parses correctly and
+every `run:` block passes `bash -n`; every `GITHUB_OUTPUT` key written by
+`production_compare` matches what the final gate step reads; and the exact
+literal text embedded in `assert-migration-030-precondition.sql` was
+diffed against a fresh live `pg_get_functiondef` call and confirmed to
+match byte-for-byte. The mechanism has not been proven by an actual CI run.
 
 ## 2026-08-16 Production deployment confirmed
 

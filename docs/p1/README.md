@@ -37,9 +37,20 @@ grants. Deploying the 30th migration still needs the same
 read-only-preflight-then-explicit-approval sequence as any other Production
 migration.
 
+The protected audit workflow previously required Production's history and
+schema to match a replay of Git's **entire** migration set, which meant it
+could never pass while any drafted-but-not-yet-authorized forward migration
+existed at all — indistinguishable from a broken gate in exactly the
+situation it most needs to handle. It now has a fail-closed mechanism for
+tolerating exactly the migration(s) declared in `scripts/p1/approved-
+pending-migrations.mjs` (today: just the 30th) — see "2026-08-17 P-1 CI gate
+fixed to tolerate exactly one declared-pending migration" in
+`MIGRATION_DRIFT_REPORT.md` for the full mechanism and what has and hasn't
+been verified about it yet (no actual CI run has exercised it).
+
 ## What runs automatically
 
-Pull requests and pushes that touch migrations or P-1 audit files run the isolated migration replay. The developer machine does not need Docker. The workflow uploads the complete replay log, migration history, and schema dumps before enforcing the zero-failure gate.
+Pull requests and pushes that touch migrations or P-1 audit files run the isolated migration replay. The developer machine does not need Docker. The workflow uploads the complete replay log, migration history, and schema dumps before enforcing the zero-failure gate. It now replays twice: the full Git migration set (unchanged, still gates "clean replay 30/30"), and a second **prefix** replay with whatever `scripts/p1/list-approved-pending-migrations.mjs` currently declares temporarily excluded — the baseline the protected Production audit compares Production against, so Production is never unfairly diffed against a replay state that already includes migrations it hasn't received yet.
 
 Latest automatic evidence: commit `6b53658dde40e48b8bf9213a5a5a9d49c39cb18f`,
 run `31930669031`, **PASS** for the 28/28 clean replay, migration-history
@@ -63,11 +74,11 @@ Provisioning or changing that Production role is outside this audit and requires
 
 ## Artifacts
 
-- `p1-migration-replay-<run_id>`: full replay log, full/project schema, ACL-aware project schema, replay migration history, comparison result, final/partial/missing-state convergence logs/diff, and before/after `complete_password_change` identity/owner/ACL/security metadata.
-- `p1-production-read-only-audit-<run_id>`: the replay evidence plus `db_migrations.csv`, `prod_schema.sql`, project schema dumps, normalized dumps, complete raw unified diffs, exact approved-drift logs, an unresolved application-schema diff, and an ACL-only unresolved diff extracted from pg_dump `ACL`/`DEFAULT ACL` blocks.
+- `p1-migration-replay-<run_id>`: full replay log, full/project schema, ACL-aware project schema, replay migration history, comparison result, final/partial/missing-state convergence logs/diff, before/after `complete_password_change` identity/owner/ACL/security metadata, and the equivalent prefix-replay log/schema dumps/migration history/comparison result for whatever `approved-pending-migrations.mjs` currently declares.
+- `p1-production-read-only-audit-<run_id>`: the replay evidence plus `db_migrations.csv`, `prod_schema.sql`, project schema dumps, normalized dumps, complete raw unified diffs (against the prefix replay, not the full one), exact approved-drift logs, an unresolved application-schema diff, an ACL-only unresolved diff extracted from pg_dump `ACL`/`DEFAULT ACL` blocks, and `migration-030-precondition.log` from the direct pre-migration-30-state assertion.
 
 The canonical Production export deliberately uses PostgreSQL 17 `pg_dump --schema-only --no-owner --no-privileges`. A second project-only dump retains ACL statements for grant comparison.
 
 ## Closing P-1
 
-After a successful manual run, review every artifact and update the three reports with the exact run ID and result. Raw full/platform diffs are always retained as evidence. The gate ignores only exact hash-pinned objects with an approved disposition; changed approved objects are preserved and fail closed. P-1 may pass only when replay/convergence has zero failures, active Git and Production migration histories match, and unresolved project schema/ACL diffs are empty. Drafting reviewed forward migrations is allowed; executing any pending Production migration remains forbidden until the protected read-only rerun passes and the owner explicitly authorizes the write.
+After a successful manual run, review every artifact and update the three reports with the exact run ID and result. Raw full/platform diffs are always retained as evidence. The gate ignores only exact hash-pinned objects with an approved disposition; changed approved objects are preserved and fail closed. P-1 may pass only when replay/convergence (both the full 30/30 replay and the declared-pending prefix replay) has zero failures, active Git and Production migration histories match exactly for every version *not* declared in `scripts/p1/approved-pending-migrations.mjs` (an undeclared, wrong-version, or non-trailing-suffix gap always fails closed), any migration-specific precondition check (e.g. `scripts/p1/assert-migration-030-precondition.sql`) passes, and unresolved project schema/ACL diffs against the prefix replay are empty. Drafting reviewed forward migrations is allowed; executing any pending Production migration remains forbidden until the protected read-only rerun passes and the owner explicitly authorizes the write. A passing protected audit with a migration still listed in `approved-pending-migrations.mjs` is not itself that authorization — it only proves Production is safely in the expected pre-migration state; the owner's explicit go-ahead to execute is a separate step.

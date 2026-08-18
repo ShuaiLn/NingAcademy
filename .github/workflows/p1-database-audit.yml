@@ -355,6 +355,148 @@ jobs:
           echo "status=$convergence_status" >> "$GITHUB_OUTPUT"
           exit 0
 
+      - name: Replay the Production-approved-pending-exempt prefix
+        id: replay_prefix
+        if: always()
+        shell: bash
+        run: |
+          # Production is allowed to lag Git by exactly the migrations
+          # declared in scripts/p1/approved-pending-migrations.mjs (today:
+          # just migration 30). The comparison against Production is only
+          # fair if it's made against a from-scratch replay of that same
+          # prefix, not the full 30/30 replay above -- so reset the same
+          # already-running local instance again with the declared-pending
+          # migration file(s) temporarily removed.
+          set +e
+          set -uo pipefail
+          mkdir -p p1-artifacts/replay
+
+          mapfile -t pending_migrations < <(node scripts/p1/list-approved-pending-migrations.mjs)
+          if [[ "${#pending_migrations[@]}" -eq 0 ]]; then
+            printf 'No approved-pending migrations declared; nothing to exclude from the prefix replay.\n' \
+              | tee p1-artifacts/replay/replay-prefix.log
+            prefix_status=0
+          else
+            moved_dir="$RUNNER_TEMP/p1-pending-migrations"
+            mkdir -p "$moved_dir"
+            move_failed=0
+            for filename in "${pending_migrations[@]}"; do
+              if [[ ! -e "supabase/migrations/$filename" ]]; then
+                printf 'Approved-pending migration file missing from supabase/migrations: %s\n' "$filename" \
+                  | tee -a p1-artifacts/replay/replay-prefix.log
+                move_failed=1
+                continue
+              fi
+              mv "supabase/migrations/$filename" "$moved_dir/$filename"
+            done
+
+            if [[ "$move_failed" != "0" ]]; then
+              prefix_status=125
+            else
+              supabase db reset --local --no-seed --debug 2>&1 | tee -a p1-artifacts/replay/replay-prefix.log
+              prefix_status=${PIPESTATUS[0]}
+            fi
+
+            for filename in "${pending_migrations[@]}"; do
+              if [[ -e "$moved_dir/$filename" ]]; then
+                mv "$moved_dir/$filename" "supabase/migrations/$filename"
+              fi
+            done
+          fi
+
+          printf '%s\n' "$prefix_status" > p1-artifacts/replay/replay_prefix_status.txt
+          echo "status=$prefix_status" >> "$GITHUB_OUTPUT"
+
+      - name: Export prefix replay schema and migration history
+        id: replay_prefix_snapshot
+        if: always()
+        shell: bash
+        run: |
+          set -uo pipefail
+          snapshot_status=0
+          mkdir -p p1-artifacts/replay
+
+          db_container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -n 1 || true)"
+          if [[ -z "$db_container" ]]; then
+            printf 'No running Supabase database container was found.\n' \
+              | tee p1-artifacts/replay/prefix-snapshot-error.log
+            : > p1-artifacts/replay/replay_prefix_schema.sql
+            : > p1-artifacts/replay/replay_prefix_project_schema.sql
+            : > p1-artifacts/replay/replay_prefix_project_schema_with_acl.sql
+            : > p1-artifacts/replay/replay_prefix_db_migrations.csv
+            snapshot_status=1
+          else
+            docker exec "$db_container" pg_dump \
+              --username postgres --dbname postgres \
+              --schema-only --no-owner --no-privileges \
+              > p1-artifacts/replay/replay_prefix_schema.sql || snapshot_status=$?
+
+            mapfile -t project_schemas < <(
+              docker exec "$db_container" psql --username postgres --dbname postgres \
+                --no-psqlrc --tuples-only --no-align \
+                --command "select nspname from pg_namespace where nspname in ('public','private','game','game_private') order by nspname"
+            )
+            schema_args=()
+            for schema in "${project_schemas[@]}"; do
+              [[ -n "$schema" ]] && schema_args+=("--schema=$schema")
+            done
+            if [[ "${#schema_args[@]}" == "0" ]]; then
+              printf 'No project schema exists in the prefix replay database.\n' \
+                | tee -a p1-artifacts/replay/prefix-snapshot-error.log
+              : > p1-artifacts/replay/replay_prefix_project_schema.sql
+              snapshot_status=1
+            else
+              docker exec "$db_container" pg_dump \
+                --username postgres --dbname postgres \
+                --schema-only --no-owner --no-privileges \
+                "${schema_args[@]}" \
+                > p1-artifacts/replay/replay_prefix_project_schema.sql || snapshot_status=$?
+              docker exec "$db_container" pg_dump \
+                --username postgres --dbname postgres \
+                --schema-only --no-owner \
+                "${schema_args[@]}" \
+                > p1-artifacts/replay/replay_prefix_project_schema_with_acl.sql || snapshot_status=$?
+            fi
+
+            history_has_name="$(
+              docker exec "$db_container" psql --username postgres --dbname postgres \
+                --no-psqlrc --tuples-only --no-align \
+                --command "select exists (select 1 from information_schema.columns where table_schema = 'supabase_migrations' and table_name = 'schema_migrations' and column_name = 'name')"
+            )"
+            if [[ "$history_has_name" == "t" ]]; then
+              history_name_expression="coalesce(name, '')::text"
+            else
+              history_name_expression="''::text"
+            fi
+            docker exec "$db_container" psql --username postgres --dbname postgres \
+              --no-psqlrc --set ON_ERROR_STOP=1 \
+              --command "copy (select row_number() over (order by version)::integer as execution_order, version::text as version, $history_name_expression as name from supabase_migrations.schema_migrations order by version) to stdout with (format csv, header true)" \
+              > p1-artifacts/replay/replay_prefix_db_migrations.csv || snapshot_status=$?
+          fi
+
+          printf '%s\n' "$snapshot_status" > p1-artifacts/replay/prefix_snapshot_status.txt
+          echo "status=$snapshot_status" >> "$GITHUB_OUTPUT"
+
+      - name: Compare Git and prefix-replay migration histories
+        id: replay_prefix_history
+        if: always()
+        shell: bash
+        run: |
+          # Fails closed on any bug in the exclusion logic above: this
+          # proves the prefix replay's own history is exactly Git's declared
+          # approved-pending set removed, nothing more or less.
+          set +e
+          node scripts/p1/compare-migration-history.mjs \
+            docs/p1/git_migrations.csv \
+            p1-artifacts/replay/replay_prefix_db_migrations.csv \
+            replay-prefix \
+            --allow-declared-pending \
+            > p1-artifacts/replay/git-vs-replay-prefix-migrations.md 2>&1
+          comparison_status=$?
+          printf '%s\n' "$comparison_status" > p1-artifacts/replay/prefix_history_comparison_status.txt
+          echo "status=$comparison_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
       - name: Upload replay evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -373,8 +515,11 @@ jobs:
           snapshot_status="${{ steps.replay_snapshot.outputs.status }}"
           history_status="${{ steps.replay_history.outputs.status }}"
           convergence_status="${{ steps.convergence.outputs.status }}"
-          if [[ "$baseline_status" != "0" || "$replay_status" != "0" || "$snapshot_status" != "0" || "$history_status" != "0" || "$convergence_status" != "0" ]]; then
-            echo "P-1 replay gate failed: baseline=$baseline_status replay=$replay_status snapshot=$snapshot_status history=$history_status convergence=$convergence_status"
+          prefix_status="${{ steps.replay_prefix.outputs.status }}"
+          prefix_snapshot_status="${{ steps.replay_prefix_snapshot.outputs.status }}"
+          prefix_history_status="${{ steps.replay_prefix_history.outputs.status }}"
+          if [[ "$baseline_status" != "0" || "$replay_status" != "0" || "$snapshot_status" != "0" || "$history_status" != "0" || "$convergence_status" != "0" || "$prefix_status" != "0" || "$prefix_snapshot_status" != "0" || "$prefix_history_status" != "0" ]]; then
+            echo "P-1 replay gate failed: baseline=$baseline_status replay=$replay_status snapshot=$snapshot_status history=$history_status convergence=$convergence_status prefix=$prefix_status prefix_snapshot=$prefix_snapshot_status prefix_history=$prefix_history_status"
             exit 1
           fi
 
@@ -421,6 +566,31 @@ jobs:
             postgres:17 \
             psql "$PRODUCTION_DATABASE_READ_ONLY_URL" \
               --no-psqlrc --file /audit-scripts/assert-production-read-only.sql
+
+      - name: Assert Migration 30 precondition holds in Production
+        id: migration_030_precondition
+        if: always()
+        shell: bash
+        run: |
+          # The --allow-declared-pending exemption below is only sound if
+          # Production is actually still in the exact pre-migration-30 state
+          # the migration was authored against. Prove that directly and
+          # fail closed if it no longer holds, rather than relying solely on
+          # the general schema diff to notice.
+          set +e
+          mkdir -p p1-artifacts/production
+          docker run --rm \
+            --env PGCONNECT_TIMEOUT \
+            --env PGOPTIONS \
+            --volume "$PWD/scripts/p1:/audit-scripts:ro" \
+            postgres:17 \
+            psql "$PRODUCTION_DATABASE_READ_ONLY_URL" \
+              --no-psqlrc --file /audit-scripts/assert-migration-030-precondition.sql \
+            > p1-artifacts/production/migration-030-precondition.log 2>&1
+          precondition_status=$?
+          printf '%s\n' "$precondition_status" > p1-artifacts/production/migration_030_precondition_status.txt
+          echo "status=$precondition_status" >> "$GITHUB_OUTPUT"
+          exit 0
 
       - name: Export Production migration history and schema
         shell: bash
@@ -473,13 +643,22 @@ jobs:
         run: |
           set +e
 
+          # Production is only ever compared against a replay of the exact
+          # prefix it's allowed to be missing (see "Replay the
+          # Production-approved-pending-exempt prefix" in the replay job) --
+          # never against the full 30/30 replay, which already includes the
+          # migration(s) Production hasn't received yet by design.
           node scripts/p1/compare-migration-history.mjs \
             docs/p1/git_migrations.csv \
             p1-artifacts/production/db_migrations.csv \
             Production \
+            --allow-declared-pending \
             > p1-artifacts/production/git-vs-production-migrations.md 2>&1
           git_prod_status=$?
 
+          # This one intentionally stays unflagged: it proves the full
+          # 30/30 replay (not the prefix) matches Git exactly, independent
+          # of whatever Production currently lags behind by.
           node scripts/p1/compare-migration-history.mjs \
             docs/p1/git_migrations.csv \
             p1-artifacts/replay/replay_db_migrations.csv \
@@ -491,13 +670,13 @@ jobs:
             p1-artifacts/production/prod_schema.sql \
             > p1-artifacts/production/prod_schema.normalized.sql
           node scripts/p1/normalize-schema-dump.mjs \
-            p1-artifacts/replay/replay_schema.sql \
-            > p1-artifacts/production/replay_schema.normalized.sql
+            p1-artifacts/replay/replay_prefix_schema.sql \
+            > p1-artifacts/production/replay_prefix_schema.normalized.sql
           diff -u \
             --label Production/full \
-            --label Replay/full \
+            --label Replay-prefix/full \
             p1-artifacts/production/prod_schema.normalized.sql \
-            p1-artifacts/production/replay_schema.normalized.sql \
+            p1-artifacts/production/replay_prefix_schema.normalized.sql \
             > p1-artifacts/production/full-schema.diff
           full_schema_status=$?
 
@@ -505,13 +684,13 @@ jobs:
             p1-artifacts/production/prod_project_schema.sql \
             > p1-artifacts/production/prod_project_schema.normalized.sql
           node scripts/p1/normalize-schema-dump.mjs \
-            p1-artifacts/replay/replay_project_schema.sql \
-            > p1-artifacts/production/replay_project_schema.normalized.sql
+            p1-artifacts/replay/replay_prefix_project_schema.sql \
+            > p1-artifacts/production/replay_prefix_project_schema.normalized.sql
           diff -u \
             --label Production/project \
-            --label Replay/project \
+            --label Replay-prefix/project \
             p1-artifacts/production/prod_project_schema.normalized.sql \
-            p1-artifacts/production/replay_project_schema.normalized.sql \
+            p1-artifacts/production/replay_prefix_project_schema.normalized.sql \
             > p1-artifacts/production/project-schema.diff
           project_schema_status=$?
 
@@ -519,13 +698,13 @@ jobs:
             p1-artifacts/production/prod_project_schema_with_acl.sql \
             > p1-artifacts/production/prod_project_schema_with_acl.normalized.sql
           node scripts/p1/normalize-schema-dump.mjs \
-            p1-artifacts/replay/replay_project_schema_with_acl.sql \
-            > p1-artifacts/production/replay_project_schema_with_acl.normalized.sql
+            p1-artifacts/replay/replay_prefix_project_schema_with_acl.sql \
+            > p1-artifacts/production/replay_prefix_project_schema_with_acl.normalized.sql
           diff -u \
             --label Production/project-with-ACL \
-            --label Replay/project-with-ACL \
+            --label Replay-prefix/project-with-ACL \
             p1-artifacts/production/prod_project_schema_with_acl.normalized.sql \
-            p1-artifacts/production/replay_project_schema_with_acl.normalized.sql \
+            p1-artifacts/production/replay_prefix_project_schema_with_acl.normalized.sql \
             > p1-artifacts/production/project-schema-with-acl.diff
           project_acl_status=$?
 
@@ -538,17 +717,17 @@ jobs:
             2> p1-artifacts/production/prod_project_schema.approved-drift.log
           prod_project_filter_status=$?
           node scripts/p1/filter-approved-schema-drift.mjs \
-            p1-artifacts/production/replay_project_schema.normalized.sql \
-            > p1-artifacts/production/replay_project_schema.gated.sql \
-            2> p1-artifacts/production/replay_project_schema.approved-drift.log
+            p1-artifacts/production/replay_prefix_project_schema.normalized.sql \
+            > p1-artifacts/production/replay_prefix_project_schema.gated.sql \
+            2> p1-artifacts/production/replay_prefix_project_schema.approved-drift.log
           replay_project_filter_status=$?
 
           if [[ "$prod_project_filter_status" == "0" && "$replay_project_filter_status" == "0" ]]; then
             diff -u \
               --label Production/project-unresolved \
-              --label Replay/project-unresolved \
+              --label Replay-prefix/project-unresolved \
               p1-artifacts/production/prod_project_schema.gated.sql \
-              p1-artifacts/production/replay_project_schema.gated.sql \
+              p1-artifacts/production/replay_prefix_project_schema.gated.sql \
               > p1-artifacts/production/unresolved-project-schema.diff
             unresolved_project_schema_status=$?
           else
@@ -563,17 +742,17 @@ jobs:
             2> p1-artifacts/production/prod_project_schema_with_acl.approved-drift.log
           prod_project_acl_filter_status=$?
           node scripts/p1/filter-approved-schema-drift.mjs \
-            p1-artifacts/production/replay_project_schema_with_acl.normalized.sql \
-            > p1-artifacts/production/replay_project_schema_with_acl.gated.sql \
-            2> p1-artifacts/production/replay_project_schema_with_acl.approved-drift.log
+            p1-artifacts/production/replay_prefix_project_schema_with_acl.normalized.sql \
+            > p1-artifacts/production/replay_prefix_project_schema_with_acl.gated.sql \
+            2> p1-artifacts/production/replay_prefix_project_schema_with_acl.approved-drift.log
           replay_project_acl_filter_status=$?
 
           if [[ "$prod_project_acl_filter_status" == "0" && "$replay_project_acl_filter_status" == "0" ]]; then
             diff -u \
               --label Production/project-with-ACL-unresolved \
-              --label Replay/project-with-ACL-unresolved \
+              --label Replay-prefix/project-with-ACL-unresolved \
               p1-artifacts/production/prod_project_schema_with_acl.gated.sql \
-              p1-artifacts/production/replay_project_schema_with_acl.gated.sql \
+              p1-artifacts/production/replay_prefix_project_schema_with_acl.gated.sql \
               > p1-artifacts/production/unresolved-project-schema-with-acl.diff
             unresolved_project_acl_status=$?
           else
@@ -591,16 +770,16 @@ jobs:
             > p1-artifacts/production/prod_project_acl.gated.sql
           prod_acl_extract_status=$?
           node scripts/p1/extract-schema-acl.mjs \
-            p1-artifacts/production/replay_project_schema_with_acl.gated.sql \
-            > p1-artifacts/production/replay_project_acl.gated.sql
+            p1-artifacts/production/replay_prefix_project_schema_with_acl.gated.sql \
+            > p1-artifacts/production/replay_prefix_project_acl.gated.sql
           replay_acl_extract_status=$?
 
           if [[ "$prod_acl_extract_status" == "0" && "$replay_acl_extract_status" == "0" ]]; then
             diff -u \
               --label Production/project-ACL-unresolved \
-              --label Replay/project-ACL-unresolved \
+              --label Replay-prefix/project-ACL-unresolved \
               p1-artifacts/production/prod_project_acl.gated.sql \
-              p1-artifacts/production/replay_project_acl.gated.sql \
+              p1-artifacts/production/replay_prefix_project_acl.gated.sql \
               > p1-artifacts/production/unresolved-project-acl.diff
             unresolved_acl_status=$?
           else
@@ -643,6 +822,7 @@ jobs:
         if: always()
         shell: bash
         run: |
+          precondition_status="${{ steps.migration_030_precondition.outputs.status }}"
           git_prod_status="${{ steps.production_compare.outputs.git_prod_status }}"
           git_replay_status="${{ steps.production_compare.outputs.git_replay_status }}"
           full_schema_status="${{ steps.production_compare.outputs.full_schema_status }}"
@@ -651,9 +831,10 @@ jobs:
           unresolved_project_schema_status="${{ steps.production_compare.outputs.unresolved_project_schema_status }}"
           unresolved_project_acl_status="${{ steps.production_compare.outputs.unresolved_project_acl_status }}"
           unresolved_acl_status="${{ steps.production_compare.outputs.unresolved_acl_status }}"
+          echo "Migration 30 precondition (evidence + gate): $precondition_status"
           echo "Raw diff status (evidence only): full-schema=$full_schema_status project-schema=$project_schema_status project-ACL=$project_acl_status"
           echo "ACL-aware full application diff (evidence only): project-with-ACL=$unresolved_project_acl_status"
-          if [[ "$git_prod_status" != "0" || "$git_replay_status" != "0" || "$unresolved_project_schema_status" != "0" || "$unresolved_acl_status" != "0" ]]; then
-            echo "P-1 unresolved drift gate failed: git/prod=$git_prod_status git/replay=$git_replay_status project-schema=$unresolved_project_schema_status ACL=$unresolved_acl_status"
+          if [[ "$precondition_status" != "0" || "$git_prod_status" != "0" || "$git_replay_status" != "0" || "$unresolved_project_schema_status" != "0" || "$unresolved_acl_status" != "0" ]]; then
+            echo "P-1 unresolved drift gate failed: migration-030-precondition=$precondition_status git/prod=$git_prod_status git/replay=$git_replay_status project-schema=$unresolved_project_schema_status ACL=$unresolved_acl_status"
             exit 1
           fi
