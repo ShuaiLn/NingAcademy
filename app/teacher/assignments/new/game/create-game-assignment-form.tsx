@@ -39,6 +39,10 @@ export function CreateGameAssignmentForm({
   const [studentIds, setStudentIds] = useState<string[]>([]);
   const [sourceIds, setSourceIds] = useState<string[]>([]);
   const [requirementIds, setRequirementIds] = useState<string[]>([]);
+  const [questionTypes, setQuestionTypes] = useState<string[]>([
+    "en_to_zh",
+    "zh_to_en",
+  ]);
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -119,6 +123,27 @@ export function CreateGameAssignmentForm({
         )}
       </fieldset>
 
+      <fieldset className="flex flex-col gap-2 rounded-md border border-slate-200 p-4">
+        <legend className="px-1 text-sm font-medium text-slate-700">Question modes</legend>
+        <p className="text-xs text-slate-500">
+          Listening remains fail-closed until every selected vocabulary word has a formally provisioned private audio asset.
+        </p>
+        {[
+          ["en_to_zh", "English to Chinese"],
+          ["zh_to_en", "Chinese to English"],
+          ["listening_spelling", "Private listening spelling"],
+        ].map(([value, label]) => (
+          <label key={value} className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={questionTypes.includes(value)}
+              onChange={() => setQuestionTypes((values) => toggle(values, value))}
+            />
+            {label}
+          </label>
+        ))}
+      </fieldset>
+
       <fieldset className="flex flex-col gap-2 rounded-md border border-violet-200 bg-violet-50 p-4">
         <legend className="px-1 text-sm font-medium text-violet-800">进入 Games 前必须完成</legend>
         <p className="text-xs text-slate-600">
@@ -158,10 +183,11 @@ export function CreateGameAssignmentForm({
         name="requirementAssignableIds"
         value={JSON.stringify(requirementIds)}
       />
+      <input type="hidden" name="questionTypes" value={JSON.stringify(questionTypes)} />
 
       <button
         type="submit"
-        disabled={pending || vocabularySources.length === 0}
+        disabled={pending || vocabularySources.length === 0 || questionTypes.length === 0}
         className="w-fit rounded-md bg-violet-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
       >
         {pending ? "发布中…" : "发布游戏作业"}

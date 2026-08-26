@@ -1,6 +1,57 @@
 # P-1 Migration Drift Report
 
-Status: **Git 30; Production 29; Production's 29 match Git's first 29 version-for-version. Protected audit run `32098254600` (first real CI exercise of the `--allow-declared-pending`/prefix-replay mechanism) PASSED history/precondition/non-ACL-schema and correctly reproduced the previously-predicted ACL gap below, which is now closed by a second hash-pinned filter entry — see "Protected audit run 32098254600" immediately below. Formal protected schema/ACL/FK evidence is otherwise current as of that run.**
+Status: **Production's read-only migration-history evidence is 30 versions. The active local inventory is 34: migrations 31–34 are unapproved, unapplied local drafts. The last protected schema/ACL/FK audit remains run `32098254600`, which predates migration 30's deployment and all four drafts; a fresh protected read-only audit is required before the new queue can be declared pending or deployed. Production was not changed by this work.**
+
+## 2026-08-23 P2P late-join, academic-broker and privacy queue drafted
+
+The active local inventory adds four forward-only migrations after Production's
+known 30-version baseline:
+
+- `20260822205440_allow_running_p2p_late_join_v2.sql` adds only the sibling
+  `game.join_p2p_room_v2` contract for an eligible new member joining a running
+  P2P room; V1 remains unchanged.
+- `20260822230000_p2p_question_broker.sql` adds the per-member academic attempt
+  and immutable assignment-version handoff, same-origin member-owned freeze/
+  answer/finalize broker RPCs, Host-readable opaque proof verification,
+  server-derived terminal Run evidence, and caller-specific academic checkpoint
+  projection. It grants the runtime only the new catalog-whitelisted `game.*`
+  RPCs and no table access.
+- `20260823120000_p2p_question_owner_privacy.sql` revokes the legacy
+  prompt-bearing Host verifier from `games_api`, replaces it with an opaque
+  metadata-only verifier, and adds the fail-closed trusted-listening foundation:
+  private rotated salts/object keys, member/question/revision-bound authorization,
+  a three-request audit limit, settled/expired rejection, and ≤90-second
+  session-bound delivery evidence. Assets and a Worker remain unprovisioned.
+- `20260823230000_private_listening_delivery_contract.sql` is the forward-only
+  convergence sibling after the frozen hashes above. It adds formal private
+  asset metadata, assignment-version/member-frozen Question and accessibility
+  policy, DB-triggered trusted reporting, owner-bound/single-use Worker
+  resolution, and main-site/runtime v2/v3 sibling RPCs. It does not replace or
+  rewrite functions in migrations 31–33 and grants the raw R2 resolver only to
+  `games_api`, never a browser role.
+
+`docs/p1/git_migrations.csv` records all four exact hashes. Migration 30's stale
+declared-pending entry has been removed because the repository's 2026-08-21
+read-only history check confirmed it deployed; the old migration-30 precondition
+step now records a successful skip unless that migration is explicitly declared
+pending. Migrations 31–34 are deliberately absent from the allowlist because
+no fresh protected Production read-only preflight has approved them. No `db
+push`, migration repair, DDL/DML, secret, deployment, or other Production write
+was performed.
+
+Local static verification recomputed all 34 SHA-256 entries with zero mismatch.
+The normal inventory command correctly fails while migrations 31–34 remain
+untracked in this preserved working tree; using an isolated temporary Git index
+that models those four files as tracked, `npm run audit:p1:git-migrations`
+reports `Verified 34 tracked migrations`. The new
+`npm run audit:p1:game-listening` also passes ordering, frozen 31–33 hashes,
+SECURITY DEFINER `search_path`, private-table revokes, runtime grant whitelist,
+and empty approved-pending checks. `npx supabase db reset --local
+--no-seed` fails at local-service inspection (`LegacyLocalDbRunningError`), and
+neither Docker nor `psql` is installed on this workstation, so the mandatory
+clean database replay/convergence and
+protected Production read-only comparison remain CI/operator gates, not claimed
+local passes.
 
 Audit date: 2026-08-15 (original preflight); deployment and live spot-check 2026-08-16; second live spot-check 2026-08-17; first real protected-audit CI run (32098254600) 2026-08-17
 
