@@ -46,6 +46,23 @@ function parseDueAt(raw: FormDataEntryValue | null): string | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
+const GAME_QUESTION_TYPES = ["en_to_zh", "zh_to_en", "listening_spelling"] as const;
+
+function parseQuestionTypes(raw: FormDataEntryValue | null): string[] | null {
+  if (typeof raw !== "string") return null;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length < 1 || parsed.length > 3) return null;
+    const values = parsed.map(String);
+    if (values.some((value) => !GAME_QUESTION_TYPES.includes(
+      value as (typeof GAME_QUESTION_TYPES)[number]
+    ))) return null;
+    return [...new Set(values)].length === values.length ? values : null;
+  } catch {
+    return null;
+  }
+}
+
 async function getAuthenticatedTeacher() {
   const supabase = await createClient();
   const {
@@ -76,6 +93,7 @@ export async function createAndPublishGameAssignment(
   const requirementAssignableIds = parseIdsField(
     formData.get("requirementAssignableIds")
   );
+  const questionTypes = parseQuestionTypes(formData.get("questionTypes"));
 
   if (!title || title.length > 200) {
     return { ok: false, error: "请填写不超过 200 字的游戏作业标题" };
@@ -84,7 +102,8 @@ export async function createAndPublishGameAssignment(
     !classIds ||
     !studentIds ||
     !vocabularySourceIds ||
-    !requirementAssignableIds
+    !requirementAssignableIds ||
+    !questionTypes
   ) {
     return { ok: false, error: "提交参数无效，请刷新页面后重试" };
   }
@@ -104,7 +123,7 @@ export async function createAndPublishGameAssignment(
     Date.now() + 180 * 24 * 60 * 60 * 1000
   ).toISOString();
   const { data, error } = await rpcClient(authenticated.supabase).rpc(
-    "create_and_publish_game_assignment_v2",
+    "create_and_publish_game_assignment_v3",
     {
       p_title: title,
       p_description: description,
@@ -112,7 +131,7 @@ export async function createAndPublishGameAssignment(
       p_class_ids: classIds,
       p_student_ids: studentIds,
       p_vocabulary_set_ids: vocabularySourceIds,
-      p_allowed_modes: ["pve"],
+      p_allowed_modes: ["pve", "coop"],
       p_map_key: "house",
       p_learning_difficulty: "standard",
       p_minimum_day: 3,
@@ -131,6 +150,7 @@ export async function createAndPublishGameAssignment(
       p_content_release_id: "p0",
       p_retention_until: retentionUntil,
       p_requirement_assignable_ids: requirementAssignableIds,
+      p_question_types: questionTypes,
       p_request_id: randomUUID(),
     }
   );
@@ -145,6 +165,10 @@ export async function createAndPublishGameAssignment(
 }
 
 export type UpdateGameUnlockRequirementsResult =
+  | { ok: true; message: string }
+  | { ok: false; error: string };
+
+export type SetGameListeningAccommodationResult =
   | { ok: true; message: string }
   | { ok: false; error: string };
 
@@ -183,6 +207,86 @@ export async function updateGameUnlockRequirements(
 
   revalidatePath(`/teacher/assignments/${assignmentId}`);
   return { ok: true, message: "解锁要求已保存并创建新版本" };
+}
+
+export async function setGameListeningAccommodation(
+  assignmentId: string,
+  _previousState: SetGameListeningAccommodationResult,
+  formData: FormData
+): Promise<SetGameListeningAccommodationResult> {
+  const studentId = String(formData.get("studentId") ?? "");
+  const listeningMode = String(formData.get("listeningMode") ?? "");
+  const worldAudioEffectsEnabled =
+    formData.get("worldAudioEffectsEnabled") === "on";
+  if (
+    !UUID_PATTERN.test(assignmentId) ||
+    !UUID_PATTERN.test(studentId) ||
+    !["audio", "text_alternative"].includes(listeningMode)
+  ) {
+    return { ok: false, error: "听力辅助设置参数无效" };
+  }
+
+  const authenticated = await getAuthenticatedTeacher();
+  if (!authenticated) {
+    return { ok: false, error: "请使用教师账号重新登录" };
+  }
+
+  const [configResult, accommodationResult] = await Promise.all([
+    authenticated.supabase
+      .from("game_assignment_configs")
+      .select(
+        "flash_intensity, screen_shake_max, screamer_distortion_allowed"
+      )
+      .eq("assignment_id", assignmentId)
+      .maybeSingle(),
+    authenticated.supabase
+      .from("game_assignment_accommodations")
+      .select(
+        "timing_mode, timing_multiplier, flash_intensity, screen_shake_max, screamer_distortion_allowed"
+      )
+      .eq("assignment_id", assignmentId)
+      .eq("student_id", studentId)
+      .maybeSingle(),
+  ]);
+  if (configResult.error || accommodationResult.error || !configResult.data) {
+    return { ok: false, error: "无法读取当前游戏辅助设置，请稍后重试" };
+  }
+
+  const existing = accommodationResult.data;
+  const config = configResult.data;
+  const { error } = await authenticated.supabase.rpc(
+    "set_game_assignment_accommodation_v2",
+    {
+      p_assignment_id: assignmentId,
+      p_student_id: studentId,
+      p_timing_mode: existing?.timing_mode ?? "standard",
+      p_timing_multiplier: existing?.timing_multiplier ?? 1,
+      p_flash_intensity: existing?.flash_intensity ?? config.flash_intensity,
+      p_screen_shake_max:
+        existing?.screen_shake_max ?? config.screen_shake_max,
+      p_screamer_distortion_allowed:
+        existing?.screamer_distortion_allowed ??
+        config.screamer_distortion_allowed,
+      p_listening_mode: listeningMode,
+      p_world_audio_effects_enabled: worldAudioEffectsEnabled,
+      p_request_id: randomUUID(),
+    }
+  );
+  if (error) {
+    console.error("set listening accommodation RPC failed", {
+      code: error.code,
+    });
+    return {
+      ok: false,
+      error:
+        listeningMode === "text_alternative"
+          ? "无法启用文字替代；请确认所有听力词条都已有经审核的安全文字提示"
+          : "保存听力辅助设置失败，请稍后重试",
+    };
+  }
+
+  revalidatePath(`/teacher/assignments/${assignmentId}`);
+  return { ok: true, message: "听力辅助设置已保存；新游戏尝试将冻结此设置" };
 }
 
 export async function launchGameAssignment(

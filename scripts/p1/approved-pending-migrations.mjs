@@ -13,11 +13,8 @@
 // fails closed the moment the declared version is no longer missing from
 // the database being audited), but it should still be removed promptly so
 // the report stays accurate.
-export const approvedPendingMigrations = [
-  {
-    version: "20260818021000",
-    filename: "20260818021000_fix_p2p_room_code_random_source.sql",
-    reason:
-      "game_private.new_p2p_room_code() random-byte source fix -- only CREATE OR REPLACE FUNCTION of that one function, temporary self-scoped role membership only, no ACL/owner/other-object change. Read-only-preflighted against Production 2026-08-17. Awaiting explicit owner authorization to execute.",
-  },
-];
+// Migration 30 was confirmed deployed on 2026-08-21. Migrations 31 through 35
+// are local, unapproved and undeployed. The 2026-08-25 protected preflight ran
+// but failed closed because the exact queue cannot replay from zero, so none is
+// eligible for this exemption yet.
+export const approvedPendingMigrations = [];

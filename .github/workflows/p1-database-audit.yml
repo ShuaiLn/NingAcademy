@@ -56,6 +56,9 @@ jobs:
       - name: Verify the committed Git migration inventory
         run: node scripts/p1/generate-git-migrations.mjs --check docs/p1/git_migrations.csv
 
+      - name: Verify the Games academic/listening migration contract
+        run: node scripts/p1/audit-game-listening-migrations.mjs
+
       - name: Start an empty local Supabase and replay from zero
         id: replay
         shell: bash
@@ -101,6 +104,36 @@ jobs:
           printf '%s\n' "$replay_status" > p1-artifacts/replay/replay_status.txt
           echo "baseline_status=$baseline_status" >> "$GITHUB_OUTPUT"
           echo "replay_status=$replay_status" >> "$GITHUB_OUTPUT"
+
+      - name: Assert the post-replay Games runtime privilege catalog
+        id: runtime_privileges
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          mkdir -p p1-artifacts/replay
+          if [[ "${{ steps.replay.outputs.replay_status }}" != "0" ]]; then
+            printf 'SKIPPED: full replay did not complete.\n' \
+              | tee p1-artifacts/replay/games-runtime-privileges.log
+            privilege_status=125
+          else
+            db_container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -n 1 || true)"
+            if [[ -z "$db_container" ]]; then
+              printf 'No running Supabase database container was found.\n' \
+                | tee p1-artifacts/replay/games-runtime-privileges.log
+              privilege_status=125
+            else
+              docker exec --interactive "$db_container" psql \
+                --username postgres --dbname postgres --no-psqlrc \
+                < scripts/p1/assert-games-runtime-privileges.sql \
+                2>&1 | tee p1-artifacts/replay/games-runtime-privileges.log
+              privilege_status=${PIPESTATUS[0]}
+            fi
+          fi
+          printf '%s\n' "$privilege_status" \
+            > p1-artifacts/replay/games_runtime_privileges_status.txt
+          echo "status=$privilege_status" >> "$GITHUB_OUTPUT"
 
       - name: Export replay schema and migration history
         id: replay_snapshot
@@ -361,10 +394,11 @@ jobs:
         shell: bash
         run: |
           # Production is allowed to lag Git by exactly the migrations
-          # declared in scripts/p1/approved-pending-migrations.mjs (today:
-          # just migration 30). The comparison against Production is only
+          # declared in scripts/p1/approved-pending-migrations.mjs (currently
+          # none; local drafts fail closed until read-only-preflighted). The
+          # comparison against Production is only
           # fair if it's made against a from-scratch replay of that same
-          # prefix, not the full 30/30 replay above -- so reset the same
+          # prefix, not the full Git replay above -- so reset the same
           # already-running local instance again with the declared-pending
           # migration file(s) temporarily removed.
           set +e
@@ -518,8 +552,9 @@ jobs:
           prefix_status="${{ steps.replay_prefix.outputs.status }}"
           prefix_snapshot_status="${{ steps.replay_prefix_snapshot.outputs.status }}"
           prefix_history_status="${{ steps.replay_prefix_history.outputs.status }}"
-          if [[ "$baseline_status" != "0" || "$replay_status" != "0" || "$snapshot_status" != "0" || "$history_status" != "0" || "$convergence_status" != "0" || "$prefix_status" != "0" || "$prefix_snapshot_status" != "0" || "$prefix_history_status" != "0" ]]; then
-            echo "P-1 replay gate failed: baseline=$baseline_status replay=$replay_status snapshot=$snapshot_status history=$history_status convergence=$convergence_status prefix=$prefix_status prefix_snapshot=$prefix_snapshot_status prefix_history=$prefix_history_status"
+          runtime_privilege_status="${{ steps.runtime_privileges.outputs.status }}"
+          if [[ "$baseline_status" != "0" || "$replay_status" != "0" || "$snapshot_status" != "0" || "$history_status" != "0" || "$convergence_status" != "0" || "$prefix_status" != "0" || "$prefix_snapshot_status" != "0" || "$prefix_history_status" != "0" || "$runtime_privilege_status" != "0" ]]; then
+            echo "P-1 replay gate failed: baseline=$baseline_status replay=$replay_status snapshot=$snapshot_status history=$history_status convergence=$convergence_status prefix=$prefix_status prefix_snapshot=$prefix_snapshot_status prefix_history=$prefix_history_status runtime_privileges=$runtime_privilege_status"
             exit 1
           fi
 
@@ -572,6 +607,14 @@ jobs:
         if: always()
         shell: bash
         run: |
+          if ! node scripts/p1/list-approved-pending-migrations.mjs | grep -qx '20260818021000_fix_p2p_room_code_random_source.sql'; then
+            mkdir -p p1-artifacts/production
+            echo 'SKIPPED: migration 30 is no longer declared pending.' > p1-artifacts/production/migration-030-precondition.log
+            echo '0' > p1-artifacts/production/migration_030_precondition_status.txt
+            echo 'status=0' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           # The --allow-declared-pending exemption below is only sound if
           # Production is actually still in the exact pre-migration-30 state
           # the migration was authored against. Prove that directly and

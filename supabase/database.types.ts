@@ -599,34 +599,40 @@ export type Database = {
           assignment_id: string
           created_at: string
           flash_intensity: string
+          listening_mode: string
           screamer_distortion_allowed: boolean
           screen_shake_max: number
           student_id: string
           timing_mode: string
           timing_multiplier: number
           updated_at: string
+          world_audio_effects_enabled: boolean
         }
         Insert: {
           assignment_id: string
           created_at?: string
           flash_intensity?: string
+          listening_mode?: string
           screamer_distortion_allowed?: boolean
           screen_shake_max?: number
           student_id: string
           timing_mode?: string
           timing_multiplier?: number
           updated_at?: string
+          world_audio_effects_enabled?: boolean
         }
         Update: {
           assignment_id?: string
           created_at?: string
           flash_intensity?: string
+          listening_mode?: string
           screamer_distortion_allowed?: boolean
           screen_shake_max?: number
           student_id?: string
           timing_mode?: string
           timing_multiplier?: number
           updated_at?: string
+          world_audio_effects_enabled?: boolean
         }
         Relationships: [
           {
@@ -705,6 +711,7 @@ export type Database = {
           content_release_id: string
           created_at: string
           current_unlock_version_id: string | null
+          enabled_question_nodes: string[]
           flash_intensity: string
           hit_stop_allowed: boolean
           learning_difficulty: string
@@ -713,6 +720,7 @@ export type Database = {
           minimum_day: number
           minimum_learning_questions: number
           motion_blur_allowed: boolean
+          question_types: string[]
           retention_until: string
           ruleset_version: string
           screamer_distortion_allowed: boolean
@@ -729,6 +737,7 @@ export type Database = {
           content_release_id: string
           created_at?: string
           current_unlock_version_id?: string | null
+          enabled_question_nodes?: string[]
           flash_intensity?: string
           hit_stop_allowed?: boolean
           learning_difficulty?: string
@@ -737,6 +746,7 @@ export type Database = {
           minimum_day?: number
           minimum_learning_questions?: number
           motion_blur_allowed?: boolean
+          question_types?: string[]
           retention_until: string
           ruleset_version: string
           screamer_distortion_allowed?: boolean
@@ -753,6 +763,7 @@ export type Database = {
           content_release_id?: string
           created_at?: string
           current_unlock_version_id?: string | null
+          enabled_question_nodes?: string[]
           flash_intensity?: string
           hit_stop_allowed?: boolean
           learning_difficulty?: string
@@ -761,6 +772,7 @@ export type Database = {
           minimum_day?: number
           minimum_learning_questions?: number
           motion_blur_allowed?: boolean
+          question_types?: string[]
           retention_until?: string
           ruleset_version?: string
           screamer_distortion_allowed?: boolean
@@ -2245,6 +2257,38 @@ export type Database = {
         }
         Returns: string
       }
+      create_and_publish_game_assignment_v3: {
+        Args: {
+          p_allowed_modes: string[]
+          p_camera_bob_allowed: boolean
+          p_class_ids: string[]
+          p_content_release_id: string
+          p_description: string
+          p_due_at: string
+          p_flash_intensity: string
+          p_hit_stop_allowed: boolean
+          p_learning_difficulty: string
+          p_map_key: string
+          p_minimum_accuracy: number
+          p_minimum_day: number
+          p_minimum_learning_questions: number
+          p_motion_blur_allowed: boolean
+          p_question_types: string[]
+          p_request_id: string
+          p_requirement_assignable_ids: string[]
+          p_retention_until: string
+          p_ruleset_version: string
+          p_screamer_distortion_allowed: boolean
+          p_screen_shake_max: number
+          p_shard_intensity: string
+          p_slow_motion_allowed: boolean
+          p_student_ids: string[]
+          p_timing_multiplier: number
+          p_title: string
+          p_vocabulary_set_ids: string[]
+        }
+        Returns: string
+      }
       create_and_publish_pronunciation_task: {
         Args: {
           p_class_ids: string[]
@@ -2381,6 +2425,7 @@ export type Database = {
         }[]
       }
       get_my_game_profile_v1: { Args: never; Returns: Json }
+      get_my_game_profile_v2: { Args: never; Returns: Json }
       get_practice_session_state_v2: {
         Args: { p_session_id: string }
         Returns: {
@@ -2422,6 +2467,14 @@ export type Database = {
         }[]
       }
       get_teacher_game_report_v1: {
+        Args: { p_student_id?: string }
+        Returns: {
+          report: Json
+          student_id: string
+          student_name: string
+        }[]
+      }
+      get_teacher_game_report_v2: {
         Args: { p_student_id?: string }
         Returns: {
           report: Json
@@ -2545,6 +2598,21 @@ export type Database = {
           p_student_id: string
           p_timing_mode: string
           p_timing_multiplier: number
+        }
+        Returns: undefined
+      }
+      set_game_assignment_accommodation_v2: {
+        Args: {
+          p_assignment_id: string
+          p_flash_intensity: string
+          p_listening_mode: string
+          p_request_id: string
+          p_screamer_distortion_allowed: boolean
+          p_screen_shake_max: number
+          p_student_id: string
+          p_timing_mode: string
+          p_timing_multiplier: number
+          p_world_audio_effects_enabled: boolean
         }
         Returns: undefined
       }

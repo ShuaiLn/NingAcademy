@@ -1,6 +1,128 @@
 # P-1 Migration Drift Report
 
-Status: **Git 30; Production 29; Production's 29 match Git's first 29 version-for-version. Protected audit run `32098254600` (first real CI exercise of the `--allow-declared-pending`/prefix-replay mechanism) PASSED history/precondition/non-ACL-schema and correctly reproduced the previously-predicted ACL gap below, which is now closed by a second hash-pinned filter entry — see "Protected audit run 32098254600" immediately below. Formal protected schema/ACL/FK evidence is otherwise current as of that run.**
+Status: **Production's fresh protected read-only evidence is 30 versions. The active local inventory is 35: migrations 31–35 are unapproved and unapplied. Run `32923601592` actually executed both empty replay and Production read-only jobs; the Production/post-30-prefix schema and ACL comparison has zero unresolved drift, but the overall gate FAILED because migration 31 cannot create in schema `game` under the replay executor (`SQLSTATE 42501`). Migration 35 is forward-only final-state hardening and cannot repair that earlier immutable statement. No queue entry is approved-pending and Production was not changed.**
+
+## 2026-08-25 protected run 32923601592 and migration 35
+
+The audit used isolated branch `codex/p1-audit-20260825-194013`, commit
+`ce898d9a035a66ccee13cd2004df1fdb7a769944`, and workflow dispatch input
+`run_production_audit=true`. The replay workflow first moved the repository
+migrations/seed aside and started the canonical empty Supabase baseline;
+`baseline_status.txt` is `0`. It restored the complete migration directory and
+ran the canonical command:
+
+```text
+supabase db reset --local --no-seed --debug
+```
+
+This is a genuine from-zero migration application, not an inventory/static
+substitute. `replay_status.txt` is `1`. The exact first failure is migration 31,
+`20260822205440_allow_running_p2p_late_join_v2.sql`, statement 0 (`create
+function game.join_p2p_room_v2`):
+
+```text
+ERROR: permission denied for schema game (SQLSTATE 42501)
+```
+
+Migration 28 made `game_api_owner` the schema/object owner and revoked `CREATE`
+from the replay executor. Unlike migrations that use the established temporary
+membership plus `SET ROLE game_api_owner` pattern, migration 31 begins directly
+with `create function game.*`. This is a privilege/order migration defect. The
+replay history and exact clean prefix end at migration 30. A new migration 35
+cannot execute before 31 and therefore cannot close a from-zero replay while
+31–34 remain immutable. No workflow pregrant, skip, repair, or hidden state was
+introduced to disguise the failure.
+
+The protected Production job independently ran even though replay failed. Its
+dedicated `p1_readonly_audit_v2` proof passed, forced read-only transactions,
+and completed the schema/history exports. Production has exactly 30 migrations,
+ending at `20260818021000_fix_p2p_room_code_random_source`. Git-vs-Production
+and Git-vs-replay histories fail closed because migrations 31–34 were undeclared
+local-only entries in that run. The replay snapshot is the exact post-30 prefix,
+so the schema evidence is still useful: after the existing hash-pinned IA-2 and
+IA-2-ACL filters, `unresolved_project_schema_diff=0`,
+`unresolved_project_schema_with_acl_diff=0`, and `unresolved_acl_diff=0`.
+This proves current Production matches canonical post-30 application state
+modulo already-approved `rls_auto_enable()` drift; it does not make the overall
+audit pass or authorize deployment.
+
+The joint 31–34 audit found four additional final-state defects:
+
+- the new seven `game_private` academic/listening tables lacked explicit RLS;
+- stale `games_api` grants retained V1/generic/prompt-capable or unprojected
+  siblings, including peer-callable `poll_p2p_room_v1`;
+- `poll_p2p_room_v2` projected learning only for an expected object shape and
+  otherwise returned the original checkpoint;
+- listening authorization locked question→access/delivery, while V1 consume
+  locked access/delivery→question, allowing a deadlock cycle.
+
+Forward-only migration 35,
+`20260825200000_game_runtime_security_convergence.sql`, addresses only the
+resulting final state: explicit RLS, fail-closed `poll_p2p_room_v3`, consistent
+question→access→delivery `consume_p2p_listening_delivery_v2`, and a revoke-first
+exact 22-signature `games_api` allowlist. It preserves SECURITY DEFINER empty
+`search_path`, `game_api_owner` ownership, no `game_private` schema usage and
+zero table/sequence privileges. Its SHA-256 is
+`74112ae68ac47fec403778ad138cce975e4977a42afda953ce9e90453d0c1801`.
+`scripts/p1/assert-games-runtime-privileges.sql` is the deterministic post-replay
+catalog gate, but it has not run because replay cannot reach migration 35.
+
+Disposition: **P-1 FAILED / ROLLOUT PROHIBITED**. Migrations 31–35 remain absent
+from `approved-pending-migrations.mjs`, unapproved and undeployed. The required
+next decision is how to reconcile migration 31's immutable-history rule with
+the required from-zero replay; only then can a 35/35 replay and fresh protected
+audit be treated as release evidence.
+
+## 2026-08-23 P2P late-join, academic-broker and privacy queue drafted
+
+The active local inventory adds four forward-only migrations after Production's
+known 30-version baseline:
+
+- `20260822205440_allow_running_p2p_late_join_v2.sql` adds only the sibling
+  `game.join_p2p_room_v2` contract for an eligible new member joining a running
+  P2P room; V1 remains unchanged.
+- `20260822230000_p2p_question_broker.sql` adds the per-member academic attempt
+  and immutable assignment-version handoff, same-origin member-owned freeze/
+  answer/finalize broker RPCs, Host-readable opaque proof verification,
+  server-derived terminal Run evidence, and caller-specific academic checkpoint
+  projection. It grants the runtime only the new catalog-whitelisted `game.*`
+  RPCs and no table access.
+- `20260823120000_p2p_question_owner_privacy.sql` revokes the legacy
+  prompt-bearing Host verifier from `games_api`, replaces it with an opaque
+  metadata-only verifier, and adds the fail-closed trusted-listening foundation:
+  private rotated salts/object keys, member/question/revision-bound authorization,
+  a three-request audit limit, settled/expired rejection, and ≤90-second
+  session-bound delivery evidence. Assets and a Worker remain unprovisioned.
+- `20260823230000_private_listening_delivery_contract.sql` is the forward-only
+  convergence sibling after the frozen hashes above. It adds formal private
+  asset metadata, assignment-version/member-frozen Question and accessibility
+  policy, DB-triggered trusted reporting, owner-bound/single-use Worker
+  resolution, and main-site/runtime v2/v3 sibling RPCs. It does not replace or
+  rewrite functions in migrations 31–33 and grants the raw R2 resolver only to
+  `games_api`, never a browser role.
+
+`docs/p1/git_migrations.csv` records all four exact hashes. Migration 30's stale
+declared-pending entry has been removed because the repository's 2026-08-21
+read-only history check confirmed it deployed; the old migration-30 precondition
+step now records a successful skip unless that migration is explicitly declared
+pending. Migrations 31–34 are deliberately absent from the allowlist because
+no fresh protected Production read-only preflight has approved them. No `db
+push`, migration repair, DDL/DML, secret, deployment, or other Production write
+was performed.
+
+Local static verification recomputed all 34 SHA-256 entries with zero mismatch.
+The normal inventory command correctly fails while migrations 31–34 remain
+untracked in this preserved working tree; using an isolated temporary Git index
+that models those four files as tracked, `npm run audit:p1:git-migrations`
+reports `Verified 34 tracked migrations`. The new
+`npm run audit:p1:game-listening` also passes ordering, frozen 31–33 hashes,
+SECURITY DEFINER `search_path`, private-table revokes, runtime grant whitelist,
+and empty approved-pending checks. `npx supabase db reset --local
+--no-seed` fails at local-service inspection (`LegacyLocalDbRunningError`), and
+neither Docker nor `psql` is installed on this workstation, so the mandatory
+clean database replay/convergence and
+protected Production read-only comparison remain CI/operator gates, not claimed
+local passes.
 
 Audit date: 2026-08-15 (original preflight); deployment and live spot-check 2026-08-16; second live spot-check 2026-08-17; first real protected-audit CI run (32098254600) 2026-08-17
 
@@ -612,7 +734,7 @@ The final gate now fails on:
 
 The raw full-schema/platform and full ACL-aware application diffs are evidence-only. The approved-object filter is fail-closed and hash-pinned; it does not use broad schema patterns and cannot hide FK, policy, function, table, grant, or ACL changes. Run `31918316064` proves approved IA-1/IA-2 differences do not block while the two reviewed PENDING-DEPLOYMENT FK changes still fail closed.
 
-## Local verification
+## Historical local verification (2026-08-15 baseline; superseded above)
 
 | Check                                         | Result                                                                                                                                       |
 | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -629,7 +751,7 @@ The raw full-schema/platform and full ACL-aware application diffs are evidence-o
 
 `package.json` has no test script.
 
-## P-1 PRE-DEPLOYMENT READY decision
+## Historical P-1 PRE-DEPLOYMENT READY decision (superseded by run 32923601592)
 
 All required pre-deployment conditions are satisfied:
 

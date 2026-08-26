@@ -9,6 +9,7 @@ import { SubmissionsPanel } from "./submissions-panel";
 import { DueDateBadge } from "@/app/_components/due-date-badge";
 import { listGameUnlockCandidates } from "@/app/_lib/game-unlock";
 import { GameUnlockRequirementsForm } from "./game-unlock-requirements-form";
+import { GameListeningAccommodationForm } from "./game-listening-accommodation-form";
 
 export default async function AssignmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -29,7 +30,29 @@ export default async function AssignmentDetailPage({ params }: { params: Promise
   // Game assignments have their own attempt/report model and must not show
   // plain attachment, submission, or grading controls.
   if (assignment.assignment_kind === "game") {
-    const unlockCandidates = await listGameUnlockCandidates(supabase, assignment.id);
+    const [unlockCandidates, studentsResult, accommodationsResult] =
+      await Promise.all([
+        listGameUnlockCandidates(supabase, assignment.id),
+        supabase
+          .from("students")
+          .select("id, profiles(full_name)")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("game_assignment_accommodations")
+          .select("student_id, listening_mode, world_audio_effects_enabled")
+          .eq("assignment_id", assignment.id),
+      ]);
+    const gameStudents = (studentsResult.data ?? []).map((student) => ({
+      id: student.id,
+      fullName: student.profiles?.full_name ?? "",
+    }));
+    const listeningAccommodations = (accommodationsResult.data ?? []).map(
+      (row) => ({
+        studentId: row.student_id,
+        listeningMode: row.listening_mode,
+        worldAudioEffectsEnabled: row.world_audio_effects_enabled,
+      })
+    );
     return (
       <div className="flex max-w-3xl flex-col gap-6">
         <div>
@@ -56,6 +79,17 @@ export default async function AssignmentDetailPage({ params }: { params: Promise
           <GameUnlockRequirementsForm
             assignmentId={assignment.id}
             candidates={unlockCandidates}
+          />
+        )}
+        {studentsResult.error || accommodationsResult.error ? (
+          <p className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            暂时无法加载听力辅助设置；系统不会使用不受信任的默认替代模式。
+          </p>
+        ) : (
+          <GameListeningAccommodationForm
+            assignmentId={assignment.id}
+            students={gameStudents}
+            accommodations={listeningAccommodations}
           />
         )}
       </div>
