@@ -32,9 +32,7 @@ export type BeginUploadResult =
 // two-phase flow and its known limitations.
 // purpose === "vocabulary_audio_submission_file" is the only branch that
 // calls begin_upload_v2() (routing wordId to p_vocabulary_word_id); every
-// other existing purpose keeps calling the original, completely unmodified
-// begin_upload() exactly as today -- this branch is the only change to this
-// function's existing behavior.
+// other existing purpose keeps calling the original begin_upload().
 export async function beginUpload(
   purpose: UploadPurpose,
   subjectId: string,
@@ -44,6 +42,18 @@ export async function beginUpload(
   wordId?: string
 ): Promise<BeginUploadResult> {
   const supabase = await createClient();
+
+  if (purpose === "assignment_file") {
+    const { data: assignment, error: assignmentError } = await supabase
+      .from("assignments")
+      .select("id")
+      .eq("id", subjectId)
+      .eq("assignment_kind", "plain")
+      .maybeSingle();
+    if (assignmentError || !assignment) {
+      return { ok: false, error: "无法开始上传，请稍后重试" };
+    }
+  }
 
   const { data, error } =
     purpose === "vocabulary_audio_submission_file"

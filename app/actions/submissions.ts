@@ -17,8 +17,8 @@ export async function createSubmission(assignmentId: string, note: string): Prom
     .eq("id", assignmentId)
     .maybeSingle();
 
-  // Defense in depth for direct Server Action calls: a game assignment
-  // cannot be routed into the legacy plain-submission RPC.
+  // Defense in depth for direct Server Action calls: only plain assignments
+  // can be routed into the plain-submission RPC.
   if (assignmentError || !assignment || assignment.assignment_kind !== "plain") {
     return { ok: false, error: "这个作业不使用普通提交" };
   }

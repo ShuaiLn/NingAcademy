@@ -28,9 +28,6 @@ SUPABASE_SECRET_KEY=
 # One-time /setup teacher-bootstrap token, generated locally -- not derived
 # from any Supabase secret.
 SETUP_TOKEN=
-# Server-only exact Games Vercel exchange endpoint. Production value:
-# https://game.ningacademy.org/redeem
-GAME_LAUNCH_EXCHANGE_URL=
 ```
 
 ## Development
@@ -84,18 +81,3 @@ mismatch, not a code issue, and predates it. There is no `test` script.
   one or more students.
 - **Teacher dashboard**: due/overdue items across all homework types,
   recent activity, per-student stats.
-- **Game homework (Scheme B + WebRTC Host-P2P)**: a fourth homework kind
-  (`assignments.assignment_kind = 'game'`) launched into the independent
-  Games Vercel app through a one-time ticket. The Host browser runs the
-  authoritative simulation and 2–8 players exchange game traffic over a
-  star of RTCDataChannels; the shared NingAcademy Production Supabase stores
-  the Games session and short-lived signaling only. Teachers can create a game
-  assignment and version its unlock requirements across plain, vocabulary,
-  and pronunciation work; students see database-authoritative lock details.
-  The earlier staging audit remains historical evidence in
-  `docs/p1/STAGING_GAME_UNLOCK_REPORT.md`; as of 2026-08-16 the game schema
-  and P2P signaling migrations are deployed to the Production Supabase (see
-  `docs/p1/MIGRATION_DRIFT_REPORT.md`). Every future Production migration —
-  including the currently-drafted `rls_auto_enable()` EXECUTE-grant fix —
-  still requires a fresh read-only preflight plus explicit approval before
-  any Production DDL/DML.

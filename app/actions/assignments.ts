@@ -3,6 +3,22 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/supabase/database.types";
+
+async function isPlainAssignment(
+  supabase: SupabaseClient<Database>,
+  assignmentId: string
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("assignments")
+    .select("id")
+    .eq("id", assignmentId)
+    .eq("assignment_kind", "plain")
+    .maybeSingle();
+
+  return !error && !!data;
+}
 
 // Mirrors parseWordsField in actions/vocabulary.ts -- the target-picker
 // checkbox lists serialize into one hidden JSON field rather than repeated
@@ -126,7 +142,8 @@ export async function updateAssignmentDetails(
   const { error, count } = await supabase
     .from("assignments")
     .update({ title, description: description || null, due_at: dueAt }, { count: "exact" })
-    .eq("id", assignmentId);
+    .eq("id", assignmentId)
+    .eq("assignment_kind", "plain");
 
   if (error || !count) {
     return { ok: false, error: "保存失败，请稍后重试" };
@@ -144,6 +161,7 @@ export async function archiveAssignment(assignmentId: string): Promise<ArchiveAs
     .from("assignments")
     .update({ archived_at: new Date().toISOString() }, { count: "exact" })
     .eq("id", assignmentId)
+    .eq("assignment_kind", "plain")
     .is("archived_at", null);
 
   if (error || !count) {
@@ -161,6 +179,9 @@ export type PublishAssignmentResult = { ok: true } | { ok: false; error: string 
 // through publish_assignment().
 export async function publishAssignment(assignmentId: string): Promise<PublishAssignmentResult> {
   const supabase = await createClient();
+  if (!(await isPlainAssignment(supabase, assignmentId))) {
+    return { ok: false, error: "发布失败，请稍后重试" };
+  }
   const { error } = await supabase.rpc("publish_assignment", { p_assignment_id: assignmentId });
 
   if (error) {
@@ -188,6 +209,9 @@ export async function assignAssignmentToTargets(
   }
 
   const supabase = await createClient();
+  if (!(await isPlainAssignment(supabase, assignmentId))) {
+    return { ok: false, error: "指定失败，请确认作业已发布" };
+  }
   const { error } = await supabase.rpc("assign_assignment_to_targets", {
     p_assignment_id: assignmentId,
     p_class_ids: classIds,
@@ -206,6 +230,9 @@ export type UnassignResult = { ok: true } | { ok: false; error: string };
 
 export async function unassignAssignmentTarget(assignmentId: string, targetId: string): Promise<UnassignResult> {
   const supabase = await createClient();
+  if (!(await isPlainAssignment(supabase, assignmentId))) {
+    return { ok: false, error: "操作失败，请稍后重试" };
+  }
   const { error, count } = await supabase
     .from("assignment_targets")
     .update({ revoked_at: new Date().toISOString() }, { count: "exact" })
