@@ -96,7 +96,8 @@ jobs:
               "$baseline_status" | tee p1-artifacts/replay/replay.log
             replay_status=125
           else
-            supabase db reset --local --no-seed --debug 2>&1 | tee p1-artifacts/replay/replay.log
+            bash scripts/p1/replay-local-with-games-retirement.sh \
+              2>&1 | tee p1-artifacts/replay/replay.log
             replay_status=${PIPESTATUS[0]}
           fi
 
@@ -426,7 +427,8 @@ jobs:
             if [[ "$move_failed" != "0" ]]; then
               prefix_status=125
             else
-              supabase db reset --local --no-seed --debug 2>&1 | tee -a p1-artifacts/replay/replay-prefix.log
+              bash scripts/p1/replay-local-with-games-retirement.sh \
+                2>&1 | tee -a p1-artifacts/replay/replay-prefix.log
               prefix_status=${PIPESTATUS[0]}
             fi
 
