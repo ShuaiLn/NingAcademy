@@ -860,6 +860,14 @@ begin
 end
 $schema_dependency_preflight$;
 
+-- Normalize the one Games-only private helper that was historically
+-- created under postgres so the reviewed grouped DROP has one owner.
+grant create on schema private to game_api_owner;
+
+alter function private.current_game_user_id() owner to game_api_owner;
+
+revoke create on schema private from game_api_owner;
+
 -- The dependency graph is now proven closed. Enter the dedicated owner only
 -- for the reviewed Games-owned tables, routines, sequences, and schemas.
 set role game_api_owner;
