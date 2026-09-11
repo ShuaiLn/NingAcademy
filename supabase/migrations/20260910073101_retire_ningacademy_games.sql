@@ -186,19 +186,14 @@ begin
   from pg_catalog.pg_roles r
   where r.rolname = current_user;
 
-  -- Every Games-owned object is dropped directly by the normal migration
-  -- executor. No GRANT, REVOKE of membership, or SET ROLE is performed here.
   -- Hosted Supabase postgres is intentionally not a true superuser. The
   -- historical migrations record a permanent, supabase_admin-granted owner
-  -- membership in addition to their self-canceling temporary edges. Require
-  -- that membership to be directly usable without SET ROLE.
-  if not pg_catalog.pg_has_role(current_user, 'game_api_owner', 'MEMBER') then
-    raise exception 'Games teardown executor % is not an existing member of game_api_owner; ALTER DEFAULT PRIVILEGES is unavailable',
-      current_user;
-  end if;
-
-  if not pg_catalog.pg_has_role(current_user, 'game_api_owner', 'USAGE') then
-    raise exception 'Games teardown executor % cannot directly use game_api_owner ownership privileges without SET ROLE',
+  -- membership in addition to their self-canceling temporary edges. That
+  -- expected membership is NOINHERIT, so require its existing SET capability;
+  -- the reviewed Games-owned cleanup below enters and then resets the owner
+  -- role without granting, revoking, or changing any membership.
+  if not pg_catalog.pg_has_role(current_user, 'game_api_owner', 'SET') then
+    raise exception 'Games teardown executor % cannot SET ROLE game_api_owner through the existing membership',
       current_user;
   end if;
 
@@ -572,6 +567,11 @@ drop policy if exists "vocabulary_attempts_game_api_owner_select" on public.voca
 drop policy if exists "vocabulary_audio_submissions_game_api_owner_select" on public.vocabulary_audio_submissions;
 drop policy if exists "vocabulary_audio_submission_files_game_api_owner_select" on public.vocabulary_audio_submission_files;
 
+-- Enter the dedicated owner only for cleanup of its own default privileges
+-- and reviewed public Games API. The existing membership was validated above;
+-- this migration does not mutate any role edge.
+set role game_api_owner;
+
 -- Remove every default-privilege entry installed by the Games migrations.
 -- EXECUTE-for-PUBLIC is PostgreSQL's built-in function default, so granting it
 -- back here removes game_api_owner's non-default pg_default_acl row. No Games
@@ -628,6 +628,8 @@ begin
   end if;
 end
 $drop_public_games_api$;
+
+reset role;
 
 -- Build the same dependency direction PostgreSQL follows for a drop: objects
 -- in the two Games schemas plus the explicitly reviewed public/private Games
@@ -858,6 +860,10 @@ begin
 end
 $schema_dependency_preflight$;
 
+-- The dependency graph is now proven closed. Enter the dedicated owner only
+-- for the reviewed Games-owned tables, routines, sequences, and schemas.
+set role game_api_owner;
+
 -- Drop every reviewed Games table in one RESTRICT operation. Grouping the
 -- targets allows their mutual foreign keys to disappear together while an FK,
 -- view, or any other dependent outside the exact list still blocks the drop.
@@ -958,6 +964,10 @@ $drop_games_sequences$;
 -- inside either schema may be removed implicitly.
 drop schema game, game_private restrict;
 
+-- Shared NingAcademy cleanup and final role deletion require the migration
+-- executor, not the retired Games owner.
+reset role;
+
 -- Remove Games assignment targeting and then the game parent rows. The
 -- preflight has already proved that no shared submission/attachment/upload
 -- history would be lost. public.audit_log is deliberately not touched.
@@ -1022,7 +1032,7 @@ revoke usage, create on schema private from game_api_owner;
 -- checked separately because pg_auth_members is the authoritative catalog.
 -- Only the hosted executor's pre-existing, capability-checked ADMIN edges may
 -- survive to DROP ROLE; PostgreSQL removes those edges with the retired roles.
--- This migration never grants, revokes, or assumes a Games role.
+-- This migration never grants, revokes, or changes a Games role membership.
 do $role_dependency_preflight$
 declare
   v_dependencies text;
