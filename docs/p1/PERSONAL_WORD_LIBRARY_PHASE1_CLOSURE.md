@@ -32,10 +32,11 @@ TTS, or any other Phase 2+ behavior.
 
 | Evidence | Status |
 | --- | --- |
-| Final Git SHA | **UNVERIFIED** — assigned only after the candidate is committed |
-| Final P-1 workflow run URL/ID | **UNVERIFIED** — required after push on the exact candidate SHA |
-| Final replay/application/aggregate jobs | **UNVERIFIED** |
-| Final artifacts | **UNVERIFIED** — expected names are `p1-migration-replay-<run_id>` and `p1-application-verification-<run_id>` |
+| Final Phase 1.5 application SHA | `83f679ad73d308a1fc3cfd7bfece9cf3a004c686` |
+| Final application-candidate P-1 workflow | [run 34686453567](https://github.com/ShuaiLn/NingAcademy/actions/runs/34686453567), `success`, pull request #2, exact candidate SHA |
+| Final replay/application/aggregate jobs | **PASS** — job IDs `103534156695`, `103534476821`, and `103534580696` |
+| Production job in candidate run | Skipped as required because no protected Production audit was authorized |
+| Final artifacts | `p1-migration-replay-34686453567` (404,116 bytes); `p1-application-verification-34686453567` (13,814 bytes); both recorded unexpired with 2026-09-26 expiry |
 | Docker-free local inventory check | **PASS** — 33 tracked migrations verified against `git_migrations.csv` |
 | Docker-free retired-Games evidence check | **PASS** — five frozen files verified outside the active/pending inventory |
 | Docker-free local typecheck | **PASS** |
@@ -94,7 +95,7 @@ repair, Production mutation, or forward fix is authorized by Phase 1.5.
 | State | Label |
 | --- | --- |
 | Phase 1 database/application core | Implemented, merged, baseline-CI-verified, and observed deployed |
-| Phase 1.5 application/documentation patch | Candidate implementation; final candidate CI **UNVERIFIED** |
+| Phase 1.5 application patch | **IMPLEMENTATION COMPLETE** — exact application SHA CI passed; evidence-recording follow-up is documentation-only |
 | Phase 1 verification | Incomplete — hosted non-Production and protected Production evidence **UNVERIFIED** |
 | Phase 1 owner closure | Incomplete — migrations 31–33 disposition, sequencing exception, and deployment approval **UNVERIFIED** |
 | Phase 1 final decision | **OPEN — NOT PASS** |

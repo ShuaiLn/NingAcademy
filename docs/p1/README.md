@@ -31,9 +31,14 @@ tables, RPCs, RLS, grants, migration inventory, Games retirement, convergence,
 or CI architecture. The durable evidence manifest is
 [`PERSONAL_WORD_LIBRARY_PHASE1_CLOSURE.md`](./PERSONAL_WORD_LIBRARY_PHASE1_CLOSURE.md).
 
-The final Phase 1.5 candidate CI, isolated hosted non-Production acceptance,
+Phase 1.5 application candidate
+`83f679ad73d308a1fc3cfd7bfece9cf3a004c686` passed its exact-SHA pull-request
+workflow in
+[`34686453567`](https://github.com/ShuaiLn/NingAcademy/actions/runs/34686453567),
+including the replay, application, and aggregate jobs. The protected Production
+job was intentionally skipped. Isolated hosted non-Production acceptance,
 protected Production read-only audit, migrations 31–33 owner disposition,
-sequencing-exception decision, and final deployment approval are
+sequencing-exception decision, and final deployment approval remain
 **UNVERIFIED**. Phase 1 remains open and is **NOT PASS**.
 
 > The dated sections below are retained as historical audit snapshots. Any

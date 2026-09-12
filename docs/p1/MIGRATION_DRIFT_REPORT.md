@@ -10,6 +10,13 @@ That run includes both pgTAP suites, replay-generated type equality,
 history/convergence/prefix checks, typecheck, lint, build, both evidence
 artifacts, and the aggregate gate; its Production job was skipped.**
 
+Phase 1.5 application candidate
+`83f679ad73d308a1fc3cfd7bfece9cf3a004c686` subsequently passed the same
+non-Production workflow path on its exact SHA in
+[`34686453567`](https://github.com/ShuaiLn/NingAcademy/actions/runs/34686453567):
+replay, application verification, and aggregate gate all succeeded, both
+expected artifacts were produced, and the Production audit was skipped.
+
 A read-only connected-service inspection on 2026-09-12 observed all 33 Git
 migration versions in the NingAcademy Production project, ending at
 `20260911213841_personal_words_core.sql`. This supersedes the old current-state
