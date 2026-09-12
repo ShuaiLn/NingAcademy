@@ -627,17 +627,21 @@ select is(
   'Student A cannot invoke publish_assignment successfully'
 );
 
+do $test$
+begin
+  perform public.create_submission(
+    '30000000-0000-0000-0000-000000000001'::uuid,
+    'Student A authorization fixture'
+  );
+end;
+$test$;
+
 select is(
   (
-    with created as (
-      select public.create_submission(
-        '30000000-0000-0000-0000-000000000001'::uuid,
-        'Student A authorization fixture'
-      ) as id
-    )
-    select submission.student_id
-    from created
-    join public.submissions as submission on submission.id = created.id
+    select student_id
+    from public.submissions
+    where assignment_id = '30000000-0000-0000-0000-000000000001'
+      and student_id = '20000000-0000-0000-0000-000000000001'
   ),
   '20000000-0000-0000-0000-000000000001'::uuid,
   'create_submission derives Student A identity from auth.uid()'
