@@ -310,17 +310,17 @@ select is(
   'Teacher A can read their private assignment'
 );
 
+update public.assignments
+set title = 'Authorization private assignment updated by owner'
+where id = '30000000-0000-0000-0000-000000000002';
+
 select is(
   (
-    with changed as (
-      update public.assignments
-      set title = 'Authorization private assignment updated by owner'
-      where id = '30000000-0000-0000-0000-000000000002'
-      returning 1
-    )
-    select count(*) from changed
+    select title
+    from public.assignments
+    where id = '30000000-0000-0000-0000-000000000002'
   ),
-  1::bigint,
+  'Authorization private assignment updated by owner'::text,
   'Teacher A can directly update an allowed column on their assignment'
 );
 
