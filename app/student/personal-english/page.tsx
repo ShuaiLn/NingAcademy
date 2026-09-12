@@ -4,7 +4,7 @@ import { WordCard } from "./_components/word-card";
 
 export default async function PersonalEnglishPage() {
   const supabase = await createClient();
-  const { data: words } = await supabase
+  const { data: words, error } = await supabase
     .from("personal_words")
     .select("id, term, meaning")
     .is("archived_at", null)
@@ -25,14 +25,19 @@ export default async function PersonalEnglishPage() {
         <h2 id="personal-word-list-heading" className="mb-3 font-medium">
           我的生词
         </h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {(words ?? []).map((word) => (
-            <WordCard key={word.id} word={word} />
-          ))}
-        </div>
-        {!words?.length ? (
+        {error ? (
+          <p role="alert" className="text-sm text-red-600">
+            生词加载失败，请稍后重试。
+          </p>
+        ) : words?.length ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {words.map((word) => (
+              <WordCard key={word.id} word={word} />
+            ))}
+          </div>
+        ) : (
           <p className="text-sm text-slate-400">还没有生词，先添加一个吧。</p>
-        ) : null}
+        )}
       </section>
     </div>
   );

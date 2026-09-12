@@ -1,6 +1,44 @@
 # P-1 Database Audit Runbook
 
-This directory contains the audit evidence and reports required before any new game database migration.
+This directory contains the P-1 migration-replay, drift, and closure evidence
+used by the repository's database-audit gate.
+
+## 2026-09-12 Personal Word Library Phase 1 closure status
+
+The active inventory contains 33 migrations and ends at
+`20260911213841_personal_words_core.sql`. The Phase 1 database and application
+core were merged to `main` in commit
+[`6fa3f1820852af27852e63c815bbba17c070ae44`](https://github.com/ShuaiLn/NingAcademy/commit/6fa3f1820852af27852e63c815bbba17c070ae44).
+The exact-merge workflow
+[`34682685882`](https://github.com/ShuaiLn/NingAcademy/actions/runs/34682685882)
+passed the 33/33 clean replay, post-retirement Games catalog assertion,
+authorization and Personal English pgTAP suites, replay-generated type match,
+history/convergence/prefix checks, application verification, production build,
+and aggregate gate. Its Production job was skipped. The retained artifacts are
+`p1-migration-replay-34682685882` and
+`p1-application-verification-34682685882`.
+
+A read-only connected-service inspection on 2026-09-12 observed all 33
+migration versions in the NingAcademy Production project, including migrations
+31–33, and a READY Vercel Production deployment associated with merge commit
+`6fa3f182…`. This observation is evidence of deployed state, not a substitute
+for the protected `production-read-only-audit` workflow. The exact deployment
+mechanism and Vercel deployment ID remain **UNVERIFIED**.
+
+Phase 1.5 closes only the remaining load-error UI, behavior-copy, and evidence
+documentation gaps. It requires no migration and does not alter the existing
+tables, RPCs, RLS, grants, migration inventory, Games retirement, convergence,
+or CI architecture. The durable evidence manifest is
+[`PERSONAL_WORD_LIBRARY_PHASE1_CLOSURE.md`](./PERSONAL_WORD_LIBRARY_PHASE1_CLOSURE.md).
+
+The final Phase 1.5 candidate CI, isolated hosted non-Production acceptance,
+protected Production read-only audit, migrations 31–33 owner disposition,
+sequencing-exception decision, and final deployment approval are
+**UNVERIFIED**. Phase 1 remains open and is **NOT PASS**.
+
+> The dated sections below are retained as historical audit snapshots. Any
+> present-tense deployment count or pending status in those sections applies to
+> its stated date and is superseded by the 2026-09-12 status above.
 
 ## 2026-09-10 Games retirement status
 
@@ -13,25 +51,6 @@ inventory contained 32 migrations: the 30 known Production migrations, the
 independent audit-log restriction migration, and the forward Games teardown.
 Earlier 31–35 replay findings below remain historical evidence of why that
 unapplied queue was retired.
-
-## 2026-09-11 Personal Word Library Phase 1 status
-
-The feature branch adds migration 33,
-`20260911213841_personal_words_core.sql`. Its migration, pgTAP suite,
-application surface, replay-generated type check, application-verification job,
-aggregate gate, and read-only Production predecessor precondition are drafted.
-The inventory hash is generated and the Docker-free static checks are recorded
-in the implementation handoff. The current 32-migration baseline workflow,
-[run 34673059863](https://github.com/ShuaiLn/NingAcademy/actions/runs/34673059863)
-on `main` commit `1e8aa9a1ed0bbf66e58ac70d04c8a79cce475445`, passed on
-2026-09-11 local time with successful full replay, Games-retirement catalog,
-schema/history, convergence, prefix replay, evidence upload, and final replay
-gate steps. Its Production job was disabled/skipped. Baseline status: **PASS**.
-No 33-migration Phase 1 replay, Personal English pgTAP run, replay-generated
-type artifact, hosted browser verification, or protected Production read-only
-preflight has run. Phase 1 status: **UNVERIFIED**. No Phase 1 `PASS`,
-approved-pending disposition, merge, deployment, or Production change is
-claimed.
 
 The post-audit staging baseline and Scheme B implementation are complete as
 historical verification evidence. See
@@ -78,7 +97,7 @@ projection fail closed, aligns listening locks, and rebuilds `games_api` as an
 exact 22-signature allowlist. It cannot repair an earlier migration before the
 replay executor reaches it.
 
-## 2026-08-29 current gate result
+## 2026-08-29 historical gate result (superseded)
 
 Final workflow run `32926070717` exercised both jobs. Its canonical baseline started
 an empty local Supabase (`baseline_status=0`), then `supabase db reset --local
@@ -135,12 +154,12 @@ was a gate/filter fix only.
 
 Pull requests and pushes that touch migrations or P-1 audit files run the isolated migration replay. The developer machine does not need Docker. The workflow uploads the complete replay log, migration history, and schema dumps before enforcing the zero-failure gate. It replays both the full active Git migration set and the prefix produced by `scripts/p1/list-approved-pending-migrations.mjs`. The five retired Games files are statically hash-checked in their evidence directory but are absent from both replay sets and from Production-pending expectations. After a successful full replay, CI runs `scripts/p1/assert-games-retired.sql` to require the post-teardown catalog state.
 
-Latest automatic evidence: commit `6b53658dde40e48b8bf9213a5a5a9d49c39cb18f`,
-run `31930669031`, **PASS** for the 28/28 clean replay, migration-history
-comparison, and four-schema convergence checks. That run predates the 29th
-migration (`20260816150000_restrict_rls_auto_enable_execute.sql`), which has
-not yet had a CI replay of its own. This does not replace the manual
-protected Production read-only audit below.
+Latest automatic evidence is merge commit
+`6fa3f1820852af27852e63c815bbba17c070ae44`, run
+[`34682685882`](https://github.com/ShuaiLn/NingAcademy/actions/runs/34682685882):
+**PASS** for the 33/33 clean replay and the complete replay/application
+aggregate gate. This does not replace the manual protected Production
+read-only audit below.
 
 ## Production read-only setup
 
@@ -158,7 +177,8 @@ Provisioning or changing that Production role is outside this audit and requires
 ## Artifacts
 
 - `p1-migration-replay-<run_id>`: full replay log, full/project schema, ACL-aware project schema, replay migration history, comparison result, final/partial/missing-state convergence logs/diff, before/after `complete_password_change` identity/owner/ACL/security metadata, and the equivalent prefix-replay log/schema dumps/migration history/comparison result for whatever `approved-pending-migrations.mjs` currently declares.
-- `p1-production-read-only-audit-<run_id>`: the replay evidence plus `db_migrations.csv`, `prod_schema.sql`, project schema dumps, normalized dumps, complete raw unified diffs (against the prefix replay, not the full one), exact approved-drift logs, an unresolved application-schema diff, an ACL-only unresolved diff extracted from pg_dump `ACL`/`DEFAULT ACL` blocks, and `migration-030-precondition.log` (a recorded skip now that migration 30 is no longer declared pending).
+- `p1-application-verification-<run_id>`: replay-generated/committed type comparison and npm install, typecheck, lint, applicable non-database-test, and production-build logs/statuses.
+- `p1-production-read-only-audit-<run_id>`: the replay evidence plus `db_migrations.csv`, `prod_schema.sql`, project schema dumps, normalized dumps, complete raw unified diffs (against the prefix replay, not the full one), exact approved-drift logs, unresolved application-schema and ACL diffs, `migration-030-precondition.log`, and `personal-words-phase1-precondition.log`.
 
 The canonical Production export deliberately uses PostgreSQL 17 `pg_dump --schema-only --no-owner --no-privileges`. A second project-only dump retains ACL statements for grant comparison.
 
