@@ -69,6 +69,9 @@ export async function setupTeacher(
       error_code: "auth_create_user_failed",
       detail: { username, error: createError?.message ?? "unknown error" },
     });
+    if (createError?.code === "email_exists" || createError?.code === "user_already_exists") {
+      return { ok: false, error: "用户名已被使用，请换一个" };
+    }
     return { ok: false, error: "创建账号失败，请稍后重试" };
   }
 

@@ -101,14 +101,16 @@ begin
     from pg_catalog.pg_auth_members membership
     where membership.member = pg_catalog.to_regrole('postgres')
       and membership.roleid = pg_catalog.to_regrole('game_api_owner')
+      and membership.grantor = pg_catalog.to_regrole('postgres')
   ) then
-    raise exception 'postgres already has an unexpected game_api_owner membership';
+    raise exception 'postgres already has an unexpected temporary game_api_owner membership';
   end if;
 end
 $precondition$;
 
 grant game_api_owner to postgres
-  with admin false, inherit false, set true;
+  with admin false, inherit false, set true
+  granted by postgres;
 
 do $postcondition$
 begin
@@ -117,6 +119,7 @@ begin
     from pg_catalog.pg_auth_members membership
     where membership.member = pg_catalog.to_regrole('postgres')
       and membership.roleid = pg_catalog.to_regrole('game_api_owner')
+      and membership.grantor = pg_catalog.to_regrole('postgres')
       and not membership.admin_option
       and not membership.inherit_option
       and membership.set_option

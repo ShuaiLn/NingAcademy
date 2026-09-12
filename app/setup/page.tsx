@@ -35,7 +35,11 @@ export default function SetupPage() {
           minLength={8}
           autoComplete="new-password"
         />
-        {state.error ? <p className="text-sm text-red-600">{state.error}</p> : null}
+        {state.error ? (
+          <p role="alert" aria-live="assertive" className="text-sm text-red-600">
+            {state.error}
+          </p>
+        ) : null}
         <button
           type="submit"
           disabled={pending}

@@ -39,7 +39,11 @@ export default function ChangePasswordPage() {
             className="rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-slate-500"
           />
         </label>
-        {state.error ? <p className="text-sm text-red-600">{state.error}</p> : null}
+        {state.error ? (
+          <p role="alert" aria-live="assertive" className="text-sm text-red-600">
+            {state.error}
+          </p>
+        ) : null}
         <button
           type="submit"
           disabled={pending}
