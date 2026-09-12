@@ -19,9 +19,24 @@ exception
 end;
 $$;
 
+create function test_support.capture_row_count(p_sql text)
+returns bigint
+language plpgsql
+set search_path = ''
+as $$
+declare
+  v_row_count bigint;
+begin
+  execute p_sql;
+  get diagnostics v_row_count = row_count;
+  return v_row_count;
+end;
+$$;
+
 grant usage on schema extensions, test_support to anon, authenticated, service_role;
 grant execute on all functions in schema extensions to anon, authenticated, service_role;
 grant execute on function test_support.capture_sqlstate(text) to anon, authenticated, service_role;
+grant execute on function test_support.capture_row_count(text) to anon, authenticated, service_role;
 
 select plan(98);
 
@@ -310,17 +325,17 @@ select is(
   'Teacher A can read their private assignment'
 );
 
+update public.assignments
+set title = 'Authorization private assignment updated by owner'
+where id = '30000000-0000-0000-0000-000000000002';
+
 select is(
   (
-    with changed as (
-      update public.assignments
-      set title = 'Authorization private assignment updated by owner'
-      where id = '30000000-0000-0000-0000-000000000002'
-      returning 1
-    )
-    select count(*) from changed
+    select title
+    from public.assignments
+    where id = '30000000-0000-0000-0000-000000000002'
   ),
-  1::bigint,
+  'Authorization private assignment updated by owner'::text,
   'Teacher A can directly update an allowed column on their assignment'
 );
 
@@ -457,14 +472,12 @@ select is(
 );
 
 select is(
-  (
-    with changed as (
+  test_support.capture_row_count(
+    $sql$
       update public.assignments
       set title = 'forged cross-teacher update'
       where id = '30000000-0000-0000-0000-000000000001'
-      returning 1
-    )
-    select count(*) from changed
+    $sql$
   ),
   0::bigint,
   'Teacher B cannot directly update Teacher A assignment'
@@ -580,14 +593,12 @@ select is(
 );
 
 select is(
-  (
-    with changed as (
+  test_support.capture_row_count(
+    $sql$
       update public.assignments
       set title = 'forged student update'
       where id = '30000000-0000-0000-0000-000000000001'
-      returning 1
-    )
-    select count(*) from changed
+    $sql$
   ),
   0::bigint,
   'Student A cannot directly update a teacher assignment'
@@ -616,17 +627,21 @@ select is(
   'Student A cannot invoke publish_assignment successfully'
 );
 
+do $test$
+begin
+  perform public.create_submission(
+    '30000000-0000-0000-0000-000000000001'::uuid,
+    'Student A authorization fixture'
+  );
+end;
+$test$;
+
 select is(
   (
-    with created as (
-      select public.create_submission(
-        '30000000-0000-0000-0000-000000000001'::uuid,
-        'Student A authorization fixture'
-      ) as id
-    )
-    select submission.student_id
-    from created
-    join public.submissions as submission on submission.id = created.id
+    select student_id
+    from public.submissions
+    where assignment_id = '30000000-0000-0000-0000-000000000001'
+      and student_id = '20000000-0000-0000-0000-000000000001'
   ),
   '20000000-0000-0000-0000-000000000001'::uuid,
   'create_submission derives Student A identity from auth.uid()'
@@ -674,15 +689,13 @@ select is(
 );
 
 select is(
-  (
-    with changed as (
+  test_support.capture_row_count(
+    $sql$
       update public.submissions
       set score = 100
       where assignment_id = '30000000-0000-0000-0000-000000000001'
         and student_id = '20000000-0000-0000-0000-000000000001'
-      returning 1
-    )
-    select count(*) from changed
+    $sql$
   ),
   0::bigint,
   'Student A cannot directly grade their submission'
@@ -847,15 +860,13 @@ select is(
 );
 
 select is(
-  (
-    with changed as (
+  test_support.capture_row_count(
+    $sql$
       update public.submissions
       set score = 0
       where assignment_id = '30000000-0000-0000-0000-000000000001'
         and student_id = '20000000-0000-0000-0000-000000000001'
-      returning 1
-    )
-    select count(*) from changed
+    $sql$
   ),
   0::bigint,
   'Student B cannot directly update Student A submission'
@@ -1159,15 +1170,13 @@ select is(
 );
 
 select is(
-  (
-    with changed as (
+  test_support.capture_row_count(
+    $sql$
       update public.submissions
       set score = 95
       where assignment_id = '30000000-0000-0000-0000-000000000001'
         and student_id = '20000000-0000-0000-0000-000000000001'
-      returning 1
-    )
-    select count(*) from changed
+    $sql$
   ),
   1::bigint,
   'Teacher A can grade their submitted student work'
@@ -1280,15 +1289,13 @@ select is(
 );
 
 select is(
-  (
-    with changed as (
+  test_support.capture_row_count(
+    $sql$
       update public.submissions
       set score = 0
       where assignment_id = '30000000-0000-0000-0000-000000000001'
         and student_id = '20000000-0000-0000-0000-000000000001'
-      returning 1
-    )
-    select count(*) from changed
+    $sql$
   ),
   0::bigint,
   'Teacher B cannot grade Teacher A student submission'

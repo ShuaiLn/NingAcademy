@@ -8,8 +8,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "npm run test:auth",
+    "test": "npm run test:auth && npm run test:personal-english",
     "test:auth": "supabase test db --local supabase/tests/authorization.test.sql",
+    "test:personal-english": "supabase test db --local supabase/tests/personal_english.test.sql",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ."
   },
