@@ -38,6 +38,7 @@ npm run dev          # start the dev server
 npm run build         # production build
 npm run typecheck     # tsc --noEmit
 npm run lint           # eslint
+npm test              # authorization + Personal English pgTAP suites (requires local Supabase/Docker)
 ```
 
 Database schema lives entirely in `supabase/migrations/*.sql`, applied in
@@ -54,9 +55,10 @@ scratch in CI (`.github/workflows/p1-database-audit.yml`) and checked
 against a committed hash inventory (`npm run audit:p1:git-migrations`) —
 see `docs/p1/README.md` and `AGENTS.md` before writing a new migration.
 
-`npm run lint` currently fails at startup: the installed `typescript-eslint`
-doesn't yet support TypeScript 7 (tracked upstream). This is a toolchain
-mismatch, not a code issue, and predates it. There is no `test` script.
+`npm run lint` runs the configured ESLint checks. `npm test` runs the
+authorization and Personal English pgTAP suites against a running local
+Supabase stack, so it is not a Docker-free developer check; the P-1 GitHub
+workflow provisions that stack for its clean replay and database tests.
 
 ## Features
 

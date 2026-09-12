@@ -1,26 +1,40 @@
 # P-1 Migration Drift Report
 
-Current disposition (2026-09-10): **The five unapplied Games migrations dated
-`20260822205440` through `20260825200000` were retired from the active queue and
-preserved unchanged in `supabase/drafts/retired-games-unapplied/`. They were
-never applied to Production and are not Production-pending migrations. The
-2026-08-29 status and detailed failed-replay analysis below remain historical
-audit evidence. Production remains at the confirmed 30-migration boundary.**
+Current disposition (2026-09-12): **The active inventory contains 33
+migrations. Merge commit
+[`6fa3f1820852af27852e63c815bbba17c070ae44`](https://github.com/ShuaiLn/NingAcademy/commit/6fa3f1820852af27852e63c815bbba17c070ae44)
+has a successful 33/33 clean-replay and application-verification baseline in
+workflow run
+[`34682685882`](https://github.com/ShuaiLn/NingAcademy/actions/runs/34682685882).
+That run includes both pgTAP suites, replay-generated type equality,
+history/convergence/prefix checks, typecheck, lint, build, both evidence
+artifacts, and the aggregate gate; its Production job was skipped.**
 
-Status (2026-09-11): **The active inventory is now 33 migrations: the 30
-known Production migrations, migration 31's independent audit-log restriction,
-migration 32's forward Games retirement, and migration 33's Personal Word
-Library Phase 1. Current-head baseline
-[`34673059863`](https://github.com/ShuaiLn/NingAcademy/actions/runs/34673059863)
-passed the 32/32 full replay, Games-retirement catalog, schema/history,
-convergence, prefix replay, artifact upload, and final replay gate; its
-Production job was skipped. The 32-migration baseline is **PASS**. No 33/33
-Phase 1 replay has run. Phase 1's Personal English pgTAP, replay-generated types,
-hosted browser
-verification, and protected Production predecessor precondition remain
-UNVERIFIED. No queue entry is approved-pending and Production was not
-changed.** The 35-migration failure described below is historical evidence from
-the now-retired unapplied Games queue, not the current active inventory.
+Phase 1.5 application candidate
+`83f679ad73d308a1fc3cfd7bfece9cf3a004c686` subsequently passed the same
+non-Production workflow path on its exact SHA in
+[`34686453567`](https://github.com/ShuaiLn/NingAcademy/actions/runs/34686453567):
+replay, application verification, and aggregate gate all succeeded, both
+expected artifacts were produced, and the Production audit was skipped.
+
+A read-only connected-service inspection on 2026-09-12 observed all 33 Git
+migration versions in the NingAcademy Production project, ending at
+`20260911213841_personal_words_core.sql`. This supersedes the old current-state
+claim that Production ends at migration 30. It does not replace the protected,
+dedicated-read-only Production workflow: current Production schema/ACL
+convergence, its artifact, and the exact deployment mechanism remain
+**UNVERIFIED**. The deployment occurred before the intended Phase 1 predecessor
+precondition and hosted acceptance sequence; no retroactive precondition PASS
+is claimed.
+
+The five unapplied Games migrations dated `20260822205440` through
+`20260825200000` remain retired, frozen under
+`supabase/drafts/retired-games-unapplied/`, and outside both the active history
+and Production-pending expectations. The detailed 2026-08 sections below are
+historical audit evidence, not current deployment status. Phase 1 remains open
+and is **NOT PASS**; see
+[`PERSONAL_WORD_LIBRARY_PHASE1_CLOSURE.md`](./PERSONAL_WORD_LIBRARY_PHASE1_CLOSURE.md)
+for the remaining evidence and owner decisions.
 
 ## 2026-08-29 final protected run 32926070717 and migration 35
 
@@ -581,7 +595,7 @@ game migrations were authored and before migration 28 was added. Current Git
 inventory is 28 and Production remains at its read-only audited 19-version
 state; staging is historical evidence, not a rollout target.
 
-## Current Production/replay evidence
+## Historical Production/replay evidence (2026-08-15 snapshot)
 
 Run `31918316064` is the latest complete Production read-only audit:
 
@@ -641,7 +655,7 @@ At that historical run the working tree had 23 active migrations.
 
 Production has no Production-only migration version.
 
-## Current drift classification
+## Historical drift classification (2026-08-15 snapshot)
 
 | Classification       | Remaining items                                                                                                                                                                                                                                                                   |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

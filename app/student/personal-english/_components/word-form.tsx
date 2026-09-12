@@ -52,7 +52,8 @@ export function WordForm() {
             id="personal-word-meaning-help"
             className="text-xs text-slate-500"
           >
-            重复添加同一个词时，留空会保留已有释义。
+            英文大小写或多余空格不同也会视为同一条；重新添加已归档的词会恢复它。
+            释义不为空时会替换已有释义，留空则保留已有释义。
           </span>
         </label>
       </div>
