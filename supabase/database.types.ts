@@ -1073,6 +1073,135 @@ export type Database = {
           },
         ]
       }
+      personal_word_sources: {
+        Row: {
+          created_at: string
+          id: string
+          personal_word_id: string
+          pronunciation_task_word_id: string | null
+          source_type: string
+          vocabulary_word_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          personal_word_id: string
+          pronunciation_task_word_id?: string | null
+          source_type: string
+          vocabulary_word_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          personal_word_id?: string
+          pronunciation_task_word_id?: string | null
+          source_type?: string
+          vocabulary_word_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_word_sources_personal_word_id_fkey"
+            columns: ["personal_word_id"]
+            isOneToOne: false
+            referencedRelation: "personal_words"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_word_sources_pronunciation_task_word_id_fkey"
+            columns: ["pronunciation_task_word_id"]
+            isOneToOne: false
+            referencedRelation: "pronunciation_task_words"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_word_sources_vocabulary_word_id_fkey"
+            columns: ["vocabulary_word_id"]
+            isOneToOne: false
+            referencedRelation: "vocabulary_words"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personal_words: {
+        Row: {
+          archived_at: string | null
+          correct_streak: number
+          created_at: string
+          difficulty: string | null
+          ease_factor: number
+          example_sentence: string | null
+          example_sentence_source: string | null
+          id: string
+          interval_days: number
+          last_seen_at: string | null
+          mastery_status: string
+          meaning: string | null
+          mistake_count: number
+          normalized_term: string
+          practice_count: number
+          pronunciation_score: number | null
+          review_due_at: string
+          student_id: string
+          success_count: number
+          term: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          correct_streak?: number
+          created_at?: string
+          difficulty?: string | null
+          ease_factor?: number
+          example_sentence?: string | null
+          example_sentence_source?: string | null
+          id?: string
+          interval_days?: number
+          last_seen_at?: string | null
+          mastery_status?: string
+          meaning?: string | null
+          mistake_count?: number
+          normalized_term: string
+          practice_count?: number
+          pronunciation_score?: number | null
+          review_due_at?: string
+          student_id: string
+          success_count?: number
+          term: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          correct_streak?: number
+          created_at?: string
+          difficulty?: string | null
+          ease_factor?: number
+          example_sentence?: string | null
+          example_sentence_source?: string | null
+          id?: string
+          interval_days?: number
+          last_seen_at?: string | null
+          mastery_status?: string
+          meaning?: string | null
+          mistake_count?: number
+          normalized_term?: string
+          practice_count?: number
+          pronunciation_score?: number | null
+          review_due_at?: string
+          student_id?: string
+          success_count?: number
+          term?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_words_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       practice_session_tab_events: {
         Row: {
           created_at: string
@@ -2124,6 +2253,10 @@ export type Database = {
         Args: { p_set_id: string; p_words: Json }
         Returns: undefined
       }
+      archive_personal_word_v1: {
+        Args: { p_personal_word_id: string }
+        Returns: undefined
+      }
       assign_assignment_to_targets: {
         Args: {
           p_assignment_id: string
@@ -2143,6 +2276,14 @@ export type Database = {
       assign_vocabulary_set_to_students: {
         Args: { p_set_id: string; p_student_ids: string[] }
         Returns: undefined
+      }
+      attach_personal_word_source_v1: {
+        Args: {
+          p_personal_word_id: string
+          p_source_id?: string
+          p_source_type: string
+        }
+        Returns: string
       }
       begin_upload: {
         Args: {
@@ -2633,6 +2774,10 @@ export type Database = {
       upgrade_vocabulary_set_to_v2: {
         Args: { p_set_id: string }
         Returns: undefined
+      }
+      upsert_personal_word_v1: {
+        Args: { p_meaning?: string; p_term: string }
+        Returns: string
       }
     }
     Enums: {

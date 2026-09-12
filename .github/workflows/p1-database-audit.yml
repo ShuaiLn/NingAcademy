@@ -9,6 +9,13 @@ on:
       - "supabase/config.toml"
       - "supabase/drafts/**"
       - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - "supabase/database.types.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "app/actions/personal-words.ts"
+      - "app/student/personal-english/**"
+      - "app/student/student-nav.tsx"
   push:
     branches:
       - main
@@ -19,6 +26,13 @@ on:
       - "supabase/config.toml"
       - "supabase/drafts/**"
       - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - "supabase/database.types.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "app/actions/personal-words.ts"
+      - "app/student/personal-english/**"
+      - "app/student/student-nav.tsx"
   workflow_dispatch:
     inputs:
       run_production_audit:
@@ -42,6 +56,20 @@ jobs:
     name: Replay every migration from zero
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      baseline_status: ${{ steps.replay.outputs.baseline_status }}
+      replay_status: ${{ steps.replay.outputs.replay_status }}
+      games_retirement_status: ${{ steps.runtime_privileges.outputs.status }}
+      authorization_test_status: ${{ steps.authorization_tests.outputs.status }}
+      personal_english_test_status: ${{ steps.personal_english_tests.outputs.status }}
+      type_generation_status: ${{ steps.type_generation.outputs.status }}
+      type_drift_status: ${{ steps.type_drift.outputs.status }}
+      snapshot_status: ${{ steps.replay_snapshot.outputs.status }}
+      history_status: ${{ steps.replay_history.outputs.status }}
+      convergence_status: ${{ steps.convergence.outputs.status }}
+      prefix_status: ${{ steps.replay_prefix.outputs.status }}
+      prefix_snapshot_status: ${{ steps.replay_prefix_snapshot.outputs.status }}
+      prefix_history_status: ${{ steps.replay_prefix_history.outputs.status }}
 
     steps:
       - name: Check out repository
@@ -135,6 +163,107 @@ jobs:
           printf '%s\n' "$privilege_status" \
             > p1-artifacts/replay/games_retirement_status.txt
           echo "status=$privilege_status" >> "$GITHUB_OUTPUT"
+
+      - name: Run authorization pgTAP suite against the full replay
+        id: authorization_tests
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          mkdir -p p1-artifacts/replay
+          if [[ "${{ steps.replay.outputs.replay_status }}" != "0" || "${{ steps.runtime_privileges.outputs.status }}" != "0" ]]; then
+            printf 'SKIPPED: full replay or post-retirement assertion did not pass.\n' \
+              | tee p1-artifacts/replay/authorization-pgtap.log
+            test_status=125
+          else
+            supabase test db --local supabase/tests/authorization.test.sql \
+              2>&1 | tee p1-artifacts/replay/authorization-pgtap.log
+            test_status=${PIPESTATUS[0]}
+          fi
+          printf '%s\n' "$test_status" \
+            > p1-artifacts/replay/authorization_pgtap_status.txt
+          echo "status=$test_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Run Personal English pgTAP suite against the full replay
+        id: personal_english_tests
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          mkdir -p p1-artifacts/replay
+          if [[ "${{ steps.replay.outputs.replay_status }}" != "0" || "${{ steps.runtime_privileges.outputs.status }}" != "0" ]]; then
+            printf 'SKIPPED: full replay or post-retirement assertion did not pass.\n' \
+              | tee p1-artifacts/replay/personal-english-pgtap.log
+            test_status=125
+          else
+            supabase test db --local supabase/tests/personal_english.test.sql \
+              2>&1 | tee p1-artifacts/replay/personal-english-pgtap.log
+            test_status=${PIPESTATUS[0]}
+          fi
+          printf '%s\n' "$test_status" \
+            > p1-artifacts/replay/personal_english_pgtap_status.txt
+          echo "status=$test_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Generate public-schema TypeScript types from the full replay
+        id: type_generation
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          mkdir -p p1-artifacts/replay
+          generated_types=p1-artifacts/replay/generated.database.types.ts
+          if [[ "${{ steps.replay.outputs.replay_status }}" != "0" || "${{ steps.runtime_privileges.outputs.status }}" != "0" ]]; then
+            printf 'SKIPPED: full replay or post-retirement assertion did not pass.\n' \
+              | tee p1-artifacts/replay/type-generation.log
+            : > "$generated_types"
+            generation_status=125
+          else
+            supabase gen types typescript --local --schema public \
+              > "$generated_types" \
+              2> p1-artifacts/replay/type-generation.log
+            generation_status=$?
+          fi
+          printf '%s\n' "$generation_status" \
+            > p1-artifacts/replay/type_generation_status.txt
+          echo "status=$generation_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Compare generated and committed database types
+        id: type_drift
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          mkdir -p p1-artifacts/replay
+          generated_types=p1-artifacts/replay/generated.database.types.ts
+          generated_normalized=p1-artifacts/replay/generated.database.types.normalized.ts
+          committed_normalized=p1-artifacts/replay/committed.database.types.normalized.ts
+
+          if [[ "${{ steps.type_generation.outputs.status }}" != "0" || ! -s "$generated_types" ]]; then
+            printf 'Type comparison unavailable: generation failed or produced an empty artifact.\n' \
+              > p1-artifacts/replay/database-types.diff
+            type_status=125
+          else
+            sed 's/\r$//' "$generated_types" > "$generated_normalized"
+            sed 's/\r$//' supabase/database.types.ts > "$committed_normalized"
+            diff -u \
+              --label committed/supabase/database.types.ts \
+              --label replay/generated.database.types.ts \
+              "$committed_normalized" \
+              "$generated_normalized" \
+              > p1-artifacts/replay/database-types.diff
+            type_status=$?
+          fi
+
+          printf '%s\n' "$type_status" \
+            > p1-artifacts/replay/type_drift_status.txt
+          echo "status=$type_status" >> "$GITHUB_OUTPUT"
+          exit 0
 
       - name: Export replay schema and migration history
         id: replay_snapshot
@@ -532,6 +661,18 @@ jobs:
           echo "status=$comparison_status" >> "$GITHUB_OUTPUT"
           exit 0
 
+      - name: Stop the disposable Supabase stack
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          supabase stop --no-backup \
+            > p1-artifacts/replay/supabase-stop.log 2>&1
+          stop_status=$?
+          printf '%s\n' "$stop_status" \
+            > p1-artifacts/replay/supabase_stop_status.txt
+          exit 0
+
       - name: Upload replay evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -554,15 +695,267 @@ jobs:
           prefix_snapshot_status="${{ steps.replay_prefix_snapshot.outputs.status }}"
           prefix_history_status="${{ steps.replay_prefix_history.outputs.status }}"
           games_retirement_status="${{ steps.runtime_privileges.outputs.status }}"
-          if [[ "$baseline_status" != "0" || "$replay_status" != "0" || "$snapshot_status" != "0" || "$history_status" != "0" || "$convergence_status" != "0" || "$prefix_status" != "0" || "$prefix_snapshot_status" != "0" || "$prefix_history_status" != "0" || "$games_retirement_status" != "0" ]]; then
-            echo "P-1 replay gate failed: baseline=$baseline_status replay=$replay_status snapshot=$snapshot_status history=$history_status convergence=$convergence_status prefix=$prefix_status prefix_snapshot=$prefix_snapshot_status prefix_history=$prefix_history_status games_retirement=$games_retirement_status"
+          authorization_status="${{ steps.authorization_tests.outputs.status }}"
+          personal_english_status="${{ steps.personal_english_tests.outputs.status }}"
+          type_generation_status="${{ steps.type_generation.outputs.status }}"
+          type_drift_status="${{ steps.type_drift.outputs.status }}"
+          if [[ "$baseline_status" != "0" || "$replay_status" != "0" || "$snapshot_status" != "0" || "$history_status" != "0" || "$convergence_status" != "0" || "$prefix_status" != "0" || "$prefix_snapshot_status" != "0" || "$prefix_history_status" != "0" || "$games_retirement_status" != "0" || "$authorization_status" != "0" || "$personal_english_status" != "0" || "$type_generation_status" != "0" || "$type_drift_status" != "0" ]]; then
+            echo "P-1 replay gate failed: baseline=$baseline_status replay=$replay_status snapshot=$snapshot_status history=$history_status convergence=$convergence_status prefix=$prefix_status prefix_snapshot=$prefix_snapshot_status prefix_history=$prefix_history_status games_retirement=$games_retirement_status authorization_pgtap=$authorization_status personal_english_pgtap=$personal_english_status type_generation=$type_generation_status type_drift=$type_drift_status"
             exit 1
           fi
 
+  application_verification:
+    name: Verify application against replay-generated types
+    needs: replay
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-publishable-key
+      SUPABASE_SECRET_KEY: ci-placeholder-secret-key
+      SETUP_TOKEN: ci-placeholder-setup-token
+    outputs:
+      artifact_status: ${{ steps.install_replay_types.outputs.artifact_status }}
+      type_match_status: ${{ steps.install_replay_types.outputs.type_match_status }}
+      install_status: ${{ steps.npm_install.outputs.status }}
+      typecheck_status: ${{ steps.typecheck.outputs.status }}
+      lint_status: ${{ steps.lint.outputs.status }}
+      tests_status: ${{ steps.app_tests.outputs.status }}
+      build_status: ${{ steps.build.outputs.status }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download replay-generated schema types
+        id: download_replay
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: p1-migration-replay-${{ github.run_id }}
+          path: p1-artifacts/replay
+
+      - name: Compare and install replay-generated schema types
+        id: install_replay_types
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          mkdir -p p1-artifacts/application
+          generated_types=p1-artifacts/replay/generated.database.types.ts
+          if [[ ! -s "$generated_types" ]]; then
+            echo 'Replay-generated database types artifact is absent or empty.' \
+              | tee p1-artifacts/application/database-types-artifact.log
+            artifact_status=1
+            type_match_status=125
+          else
+            artifact_status=0
+            sed 's/\r$//' "$generated_types" \
+              > p1-artifacts/application/generated.database.types.normalized.ts
+            sed 's/\r$//' supabase/database.types.ts \
+              > p1-artifacts/application/committed.database.types.normalized.ts
+            diff -u \
+              --label committed/supabase/database.types.ts \
+              --label replay/generated.database.types.ts \
+              p1-artifacts/application/committed.database.types.normalized.ts \
+              p1-artifacts/application/generated.database.types.normalized.ts \
+              > p1-artifacts/application/database-types.diff
+            type_match_status=$?
+            cp "$generated_types" supabase/database.types.ts
+          fi
+          printf '%s\n' "$artifact_status" \
+            > p1-artifacts/application/types_artifact_status.txt
+          printf '%s\n' "$type_match_status" \
+            > p1-artifacts/application/types_match_status.txt
+          echo "artifact_status=$artifact_status" >> "$GITHUB_OUTPUT"
+          echo "type_match_status=$type_match_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Set up Node.js
+        if: always()
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install application dependencies
+        id: npm_install
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          mkdir -p p1-artifacts/application
+          npm ci 2>&1 | tee p1-artifacts/application/npm-ci.log
+          install_status=${PIPESTATUS[0]}
+          printf '%s\n' "$install_status" \
+            > p1-artifacts/application/npm_ci_status.txt
+          echo "status=$install_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Type-check application
+        id: typecheck
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          if [[ "${{ steps.install_replay_types.outputs.artifact_status }}" != "0" || "${{ steps.npm_install.outputs.status }}" != "0" ]]; then
+            echo 'SKIPPED: generated types or dependency installation unavailable.' \
+              | tee p1-artifacts/application/typecheck.log
+            check_status=125
+          else
+            npm run typecheck 2>&1 | tee p1-artifacts/application/typecheck.log
+            check_status=${PIPESTATUS[0]}
+          fi
+          printf '%s\n' "$check_status" \
+            > p1-artifacts/application/typecheck_status.txt
+          echo "status=$check_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Lint application
+        id: lint
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          if [[ "${{ steps.install_replay_types.outputs.artifact_status }}" != "0" || "${{ steps.npm_install.outputs.status }}" != "0" ]]; then
+            echo 'SKIPPED: generated types or dependency installation unavailable.' \
+              | tee p1-artifacts/application/lint.log
+            check_status=125
+          else
+            npm run lint 2>&1 | tee p1-artifacts/application/lint.log
+            check_status=${PIPESTATUS[0]}
+          fi
+          printf '%s\n' "$check_status" \
+            > p1-artifacts/application/lint_status.txt
+          echo "status=$check_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Run applicable non-database tests
+        id: app_tests
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          if [[ "${{ steps.install_replay_types.outputs.artifact_status }}" != "0" || "${{ steps.npm_install.outputs.status }}" != "0" ]]; then
+            echo 'SKIPPED: generated types or dependency installation unavailable.' \
+              | tee p1-artifacts/application/non-database-tests.log
+            check_status=125
+          else
+            npm run test:unit --if-present \
+              2>&1 | tee p1-artifacts/application/non-database-tests.log
+            check_status=${PIPESTATUS[0]}
+          fi
+          printf '%s\n' "$check_status" \
+            > p1-artifacts/application/non_database_tests_status.txt
+          echo "status=$check_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Build application
+        id: build
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          if [[ "${{ steps.install_replay_types.outputs.artifact_status }}" != "0" || "${{ steps.npm_install.outputs.status }}" != "0" ]]; then
+            echo 'SKIPPED: generated types or dependency installation unavailable.' \
+              | tee p1-artifacts/application/build.log
+            check_status=125
+          else
+            npm run build 2>&1 | tee p1-artifacts/application/build.log
+            check_status=${PIPESTATUS[0]}
+          fi
+          printf '%s\n' "$check_status" \
+            > p1-artifacts/application/build_status.txt
+          echo "status=$check_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload application verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p1-application-verification-${{ github.run_id }}
+          path: p1-artifacts/application/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Enforce zero application verification failures
+        if: always()
+        shell: bash
+        run: |
+          artifact_status="${{ steps.install_replay_types.outputs.artifact_status }}"
+          type_match_status="${{ steps.install_replay_types.outputs.type_match_status }}"
+          install_status="${{ steps.npm_install.outputs.status }}"
+          typecheck_status="${{ steps.typecheck.outputs.status }}"
+          lint_status="${{ steps.lint.outputs.status }}"
+          tests_status="${{ steps.app_tests.outputs.status }}"
+          build_status="${{ steps.build.outputs.status }}"
+          if [[ "$artifact_status" != "0" || "$type_match_status" != "0" || "$install_status" != "0" || "$typecheck_status" != "0" || "$lint_status" != "0" || "$tests_status" != "0" || "$build_status" != "0" ]]; then
+            echo "Application verification failed: artifact=$artifact_status type_match=$type_match_status npm_ci=$install_status typecheck=$typecheck_status lint=$lint_status tests=$tests_status build=$build_status"
+            exit 1
+          fi
+
+  verification_gate:
+    name: P-1 replay and application aggregate gate
+    needs: [replay, application_verification]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every replay and application status
+        shell: bash
+        run: |
+          replay_result="${{ needs.replay.result }}"
+          application_result="${{ needs.application_verification.result }}"
+          baseline_status="${{ needs.replay.outputs.baseline_status }}"
+          replay_status="${{ needs.replay.outputs.replay_status }}"
+          games_retirement_status="${{ needs.replay.outputs.games_retirement_status }}"
+          snapshot_status="${{ needs.replay.outputs.snapshot_status }}"
+          history_status="${{ needs.replay.outputs.history_status }}"
+          authorization_status="${{ needs.replay.outputs.authorization_test_status }}"
+          personal_english_status="${{ needs.replay.outputs.personal_english_test_status }}"
+          type_generation_status="${{ needs.replay.outputs.type_generation_status }}"
+          type_drift_status="${{ needs.replay.outputs.type_drift_status }}"
+          convergence_status="${{ needs.replay.outputs.convergence_status }}"
+          prefix_status="${{ needs.replay.outputs.prefix_status }}"
+          prefix_snapshot_status="${{ needs.replay.outputs.prefix_snapshot_status }}"
+          prefix_history_status="${{ needs.replay.outputs.prefix_history_status }}"
+          artifact_status="${{ needs.application_verification.outputs.artifact_status }}"
+          app_type_match_status="${{ needs.application_verification.outputs.type_match_status }}"
+          install_status="${{ needs.application_verification.outputs.install_status }}"
+          typecheck_status="${{ needs.application_verification.outputs.typecheck_status }}"
+          lint_status="${{ needs.application_verification.outputs.lint_status }}"
+          tests_status="${{ needs.application_verification.outputs.tests_status }}"
+          build_status="${{ needs.application_verification.outputs.build_status }}"
+
+          statuses=(
+            "$baseline_status" "$replay_status" "$games_retirement_status"
+            "$snapshot_status" "$history_status" "$authorization_status"
+            "$personal_english_status" "$type_generation_status"
+            "$type_drift_status" "$convergence_status" "$prefix_status"
+            "$prefix_snapshot_status" "$prefix_history_status"
+            "$artifact_status" "$app_type_match_status" "$install_status"
+            "$typecheck_status" "$lint_status" "$tests_status" "$build_status"
+          )
+          if [[ "$replay_result" != "success" || "$application_result" != "success" ]]; then
+            echo "P-1 aggregate gate failed: replay job=$replay_result application job=$application_result"
+            exit 1
+          fi
+          for status in "${statuses[@]}"; do
+            if [[ "$status" != "0" ]]; then
+              echo "P-1 aggregate gate failed. Replay: baseline=$baseline_status replay=$replay_status games_retirement=$games_retirement_status snapshot=$snapshot_status history=$history_status authorization=$authorization_status personal_english=$personal_english_status type_generation=$type_generation_status type_drift=$type_drift_status convergence=$convergence_status prefix=$prefix_status prefix_snapshot=$prefix_snapshot_status prefix_history=$prefix_history_status. Application: artifact=$artifact_status type_match=$app_type_match_status npm_ci=$install_status typecheck=$typecheck_status lint=$lint_status tests=$tests_status build=$build_status"
+              exit 1
+            fi
+          done
+
   production_read_only_audit:
     name: Production read-only audit
-    needs: replay
-    if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.run_production_audit }}
+    needs: [replay, verification_gate]
+    if: ${{ always() && needs.verification_gate.result == 'success' && github.event_name == 'workflow_dispatch' && inputs.run_production_audit }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: production-read-only-audit
@@ -636,6 +1029,38 @@ jobs:
           echo "status=$precondition_status" >> "$GITHUB_OUTPUT"
           exit 0
 
+      - name: Assert Personal Word Library predecessor in Production
+        id: personal_words_precondition
+        if: always()
+        shell: bash
+        run: |
+          if ! node scripts/p1/list-approved-pending-migrations.mjs | grep -qx '20260911213841_personal_words_core.sql'; then
+            mkdir -p p1-artifacts/production
+            echo 'SKIPPED: the Personal Word Library migration is not declared pending.' \
+              > p1-artifacts/production/personal-words-phase1-precondition.log
+            echo '0' \
+              > p1-artifacts/production/personal_words_phase1_precondition_status.txt
+            echo 'status=0' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          set +e
+          mkdir -p p1-artifacts/production
+          docker run --rm \
+            --env PGCONNECT_TIMEOUT \
+            --env PGOPTIONS \
+            --volume "$PWD/scripts/p1:/audit-scripts:ro" \
+            postgres:17 \
+            psql "$PRODUCTION_DATABASE_READ_ONLY_URL" \
+              --no-psqlrc \
+              --file /audit-scripts/assert-personal-words-phase1-precondition.sql \
+            > p1-artifacts/production/personal-words-phase1-precondition.log 2>&1
+          precondition_status=$?
+          printf '%s\n' "$precondition_status" \
+            > p1-artifacts/production/personal_words_phase1_precondition_status.txt
+          echo "status=$precondition_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
       - name: Export Production migration history and schema
         shell: bash
         run: |
@@ -690,8 +1115,8 @@ jobs:
           # Production is only ever compared against a replay of the exact
           # prefix it's allowed to be missing (see "Replay the
           # Production-approved-pending-exempt prefix" in the replay job) --
-          # never against the full 30/30 replay, which already includes the
-          # migration(s) Production hasn't received yet by design.
+          # never against the full Git replay, which already includes the
+          # migration(s) Production has not received yet by design.
           node scripts/p1/compare-migration-history.mjs \
             docs/p1/git_migrations.csv \
             p1-artifacts/production/db_migrations.csv \
@@ -700,8 +1125,8 @@ jobs:
             > p1-artifacts/production/git-vs-production-migrations.md 2>&1
           git_prod_status=$?
 
-          # This one intentionally stays unflagged: it proves the full
-          # 30/30 replay (not the prefix) matches Git exactly, independent
+          # This one intentionally stays unflagged: it proves the full Git
+          # replay (not the prefix) matches Git exactly, independent
           # of whatever Production currently lags behind by.
           node scripts/p1/compare-migration-history.mjs \
             docs/p1/git_migrations.csv \
@@ -867,6 +1292,7 @@ jobs:
         shell: bash
         run: |
           precondition_status="${{ steps.migration_030_precondition.outputs.status }}"
+          personal_words_precondition_status="${{ steps.personal_words_precondition.outputs.status }}"
           git_prod_status="${{ steps.production_compare.outputs.git_prod_status }}"
           git_replay_status="${{ steps.production_compare.outputs.git_replay_status }}"
           full_schema_status="${{ steps.production_compare.outputs.full_schema_status }}"
@@ -876,9 +1302,10 @@ jobs:
           unresolved_project_acl_status="${{ steps.production_compare.outputs.unresolved_project_acl_status }}"
           unresolved_acl_status="${{ steps.production_compare.outputs.unresolved_acl_status }}"
           echo "Migration 30 precondition (evidence + gate): $precondition_status"
+          echo "Personal Word Library predecessor precondition (evidence + gate): $personal_words_precondition_status"
           echo "Raw diff status (evidence only): full-schema=$full_schema_status project-schema=$project_schema_status project-ACL=$project_acl_status"
           echo "ACL-aware full application diff (evidence only): project-with-ACL=$unresolved_project_acl_status"
-          if [[ "$precondition_status" != "0" || "$git_prod_status" != "0" || "$git_replay_status" != "0" || "$unresolved_project_schema_status" != "0" || "$unresolved_acl_status" != "0" ]]; then
-            echo "P-1 unresolved drift gate failed: migration-030-precondition=$precondition_status git/prod=$git_prod_status git/replay=$git_replay_status project-schema=$unresolved_project_schema_status ACL=$unresolved_acl_status"
+          if [[ "$precondition_status" != "0" || "$personal_words_precondition_status" != "0" || "$git_prod_status" != "0" || "$git_replay_status" != "0" || "$unresolved_project_schema_status" != "0" || "$unresolved_acl_status" != "0" ]]; then
+            echo "P-1 unresolved drift gate failed: migration-030-precondition=$precondition_status personal-words-precondition=$personal_words_precondition_status git/prod=$git_prod_status git/replay=$git_replay_status project-schema=$unresolved_project_schema_status ACL=$unresolved_acl_status"
             exit 1
           fi

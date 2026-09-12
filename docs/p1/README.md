@@ -8,10 +8,30 @@ The five unapplied Games migrations formerly dated `20260822205440` through
 `20260825200000` were intentionally removed from the active queue and preserved
 byte-for-byte under `supabase/drafts/retired-games-unapplied/`. They were never
 applied to Production and must never be included in `db push` or Production
-replay expectations. The active inventory now contains 32 migrations: the 30
-known Production migrations, the independent audit-log restriction migration,
-and the forward Games teardown. Earlier 31-35 replay findings below remain
-historical evidence of why that unapplied queue was retired.
+replay expectations. Before the Personal Word Library branch, the active
+inventory contained 32 migrations: the 30 known Production migrations, the
+independent audit-log restriction migration, and the forward Games teardown.
+Earlier 31–35 replay findings below remain historical evidence of why that
+unapplied queue was retired.
+
+## 2026-09-11 Personal Word Library Phase 1 status
+
+The feature branch adds migration 33,
+`20260911213841_personal_words_core.sql`. Its migration, pgTAP suite,
+application surface, replay-generated type check, application-verification job,
+aggregate gate, and read-only Production predecessor precondition are drafted.
+The inventory hash is generated and the Docker-free static checks are recorded
+in the implementation handoff. The current 32-migration baseline workflow,
+[run 34673059863](https://github.com/ShuaiLn/NingAcademy/actions/runs/34673059863)
+on `main` commit `1e8aa9a1ed0bbf66e58ac70d04c8a79cce475445`, passed on
+2026-09-11 local time with successful full replay, Games-retirement catalog,
+schema/history, convergence, prefix replay, evidence upload, and final replay
+gate steps. Its Production job was disabled/skipped. Baseline status: **PASS**.
+No 33-migration Phase 1 replay, Personal English pgTAP run, replay-generated
+type artifact, hosted browser verification, or protected Production read-only
+preflight has run. Phase 1 status: **UNVERIFIED**. No Phase 1 `PASS`,
+approved-pending disposition, merge, deployment, or Production change is
+claimed.
 
 The post-audit staging baseline and Scheme B implementation are complete as
 historical verification evidence. See

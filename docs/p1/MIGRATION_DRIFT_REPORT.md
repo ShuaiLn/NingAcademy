@@ -7,7 +7,20 @@ never applied to Production and are not Production-pending migrations. The
 2026-08-29 status and detailed failed-replay analysis below remain historical
 audit evidence. Production remains at the confirmed 30-migration boundary.**
 
-Status: **Production's fresh protected read-only evidence is 30 versions. The active local inventory is 35: migrations 31–35 are unapproved and unapplied. Final run `32926070717` actually executed both empty replay and Production read-only jobs; the Production/post-30-prefix schema and ACL comparison has zero unresolved drift, but the overall gate FAILED because migration 31 cannot create in schema `game` as the canonical `postgres` migration executor (`SQLSTATE 42501`). This is not a replay-harness/runtime-role mismatch. Migrations 33 and 34 contain the same class of later owner-role DDL defect. Migration 35 is forward-only final-state hardening and cannot repair an earlier frozen statement. No queue entry is approved-pending and Production was not changed.**
+Status (2026-09-11): **The active inventory is now 33 migrations: the 30
+known Production migrations, migration 31's independent audit-log restriction,
+migration 32's forward Games retirement, and migration 33's Personal Word
+Library Phase 1. Current-head baseline
+[`34673059863`](https://github.com/ShuaiLn/NingAcademy/actions/runs/34673059863)
+passed the 32/32 full replay, Games-retirement catalog, schema/history,
+convergence, prefix replay, artifact upload, and final replay gate; its
+Production job was skipped. The 32-migration baseline is **PASS**. No 33/33
+Phase 1 replay has run. Phase 1's Personal English pgTAP, replay-generated types,
+hosted browser
+verification, and protected Production predecessor precondition remain
+UNVERIFIED. No queue entry is approved-pending and Production was not
+changed.** The 35-migration failure described below is historical evidence from
+the now-retired unapplied Games queue, not the current active inventory.
 
 ## 2026-08-29 final protected run 32926070717 and migration 35
 

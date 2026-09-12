@@ -8,6 +8,7 @@ import { logout } from "@/app/actions/auth";
 const LINKS = [
   { href: "/student", label: "首页" },
   { href: "/student/assignments", label: "作业" },
+  { href: "/student/personal-english", label: "生词库" },
   { href: "/student/exams", label: "考试成绩" },
   { href: "/student/summaries", label: "课后总结" },
 ];
