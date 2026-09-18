@@ -1,5 +1,39 @@
 # P-1 Migration Drift Report
 
+## 2026-09-18 current disposition
+
+Protected workflow
+[`34716278632`](https://github.com/ShuaiLn/NingAcademy/actions/runs/34716278632)
+audited exact `main` SHA
+`b7dbeb1986f37b3724d15f0ab45a95f71dd797aa`. Its replay, application,
+aggregate, and Production read-only jobs all passed. The dedicated Production
+role was `p1_readonly_audit_v2`. Git matched Production 33/33 and replay 33/33.
+Raw full-schema, project-schema, and ACL-aware project-schema diffs were
+nonzero; the existing hash-pinned approved-drift filters produced zero
+unresolved project-schema and ACL drift.
+
+The run retained these digest-pinned artifacts:
+
+- `p1-migration-replay-34716278632` —
+  `sha256:64544c1206776094372f21439ec8c00e0cb78971653fcfaf124324d5a5bec792`
+- `p1-application-verification-34716278632` —
+  `sha256:8c152f0127ff59d8124e80cf37d1b702b9c1deca31abff7620e72090179cae14`
+- `p1-production-read-only-audit-34716278632` —
+  `sha256:9db5a0aa1d4c1f7d24fe251ef348369b3da03ffe3411cca90fef64292bc2d4a5`
+
+Migration 30 and Personal Word Library predecessor preconditions were skipped
+because nothing was pending. Their former states remain non-reconstructable;
+the skips are not retroactive passes. The audit proves convergence for
+`b7dbeb` only. The deployment sequencing exception and owner decision remain
+open. Branch-protection and required-reviewer configuration remains
+**UNVERIFIED** because the available integration could not inspect legacy
+protection settings. The current Production application deployment is READY at
+the same `b7dbeb` SHA, but that does not close fresh hosted acceptance or the
+post-patch release sequence. The verdict remains **NOT READY FOR PHASE 2**.
+
+The previously dated disposition and the detailed sections below are retained
+as historical evidence; this section supersedes their present-tense status.
+
 Current disposition (2026-09-12): **The active inventory contains 33
 migrations. Merge commit
 [`6fa3f1820852af27852e63c815bbba17c070ae44`](https://github.com/ShuaiLn/NingAcademy/commit/6fa3f1820852af27852e63c815bbba17c070ae44)
