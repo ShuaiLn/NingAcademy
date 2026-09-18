@@ -3,6 +3,26 @@
 This directory contains the P-1 migration-replay, drift, and closure evidence
 used by the repository's database-audit gate.
 
+## 2026-09-18 protected-audit and security-patch update
+
+Protected workflow
+[`34716278632`](https://github.com/ShuaiLn/NingAcademy/actions/runs/34716278632)
+audited exact `main` SHA
+`b7dbeb1986f37b3724d15f0ab45a95f71dd797aa`. Replay, application,
+aggregate, and Production read-only jobs passed. Git matched both Production
+and replay 33/33. Raw full/project/ACL diffs were nonzero and retained; the
+existing hash-pinned approved-drift filters left zero unresolved project-schema
+or ACL drift. The Production artifact digest is
+`sha256:9db5a0aa1d4c1f7d24fe251ef348369b3da03ffe3411cca90fef64292bc2d4a5`.
+This is evidence for `b7dbeb` only and does not retroactively prove the intended
+deployment sequence.
+
+The canonical role and operator procedure are documented in
+[`PRODUCTION_READ_ONLY_AUDIT_SETUP.md`](./PRODUCTION_READ_ONLY_AUDIT_SETUP.md).
+The historical sequencing exception, branch-protection/reviewer confirmation,
+fresh hosted acceptance, the Next.js `16.3.5` patch release sequence, and final
+owner closure remain open. The current verdict is **NOT READY FOR PHASE 2**.
+
 ## 2026-09-12 Personal Word Library Phase 1 closure status
 
 The active inventory contains 33 migrations and ends at
@@ -168,11 +188,16 @@ read-only audit below.
 
 ## Production read-only setup
 
+For the complete canonical-role, verification-query, connection, Environment,
+and artifact procedure, use
+[`PRODUCTION_READ_ONLY_AUDIT_SETUP.md`](./PRODUCTION_READ_ONLY_AUDIT_SETUP.md).
+
 Production export is manual only. In GitHub:
 
 1. Create or use the protected Environment `production-read-only-audit`.
 2. Add Environment secret `PRODUCTION_DATABASE_READ_ONLY_URL` for a dedicated PostgreSQL read-only login.
-3. Require an appropriate reviewer for that Environment.
+3. Require an appropriate reviewer for that Environment; the current setting
+   remains owner-**UNVERIFIED**.
 4. Run **P-1 database audit** with `run_production_audit=true`.
 
 Do not use the Supabase service-role key, a normal application JWT, or an owner/postgres connection string. The workflow rejects elevated roles, object-creation privilege, table write privilege, and sequence write privilege before it exports data. It also forces every transaction into read-only mode.
