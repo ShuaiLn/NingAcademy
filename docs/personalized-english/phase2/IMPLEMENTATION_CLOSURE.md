@@ -70,8 +70,8 @@ feature, vocabulary engine, or retired Games contract was changed for Phase 2.
 
 - Governance/preparation generators and registration/legacy-ACL/migration
   checks.
-- Vitest unit/component suite: 166 tests in 13 files.
-- PGlite database suite: 152 assertions using actual Phase 1/Phase 2 migration
+- Vitest unit/component suite: 167 tests in 13 files.
+- PGlite database suite: 138 assertions using actual Phase 1/Phase 2 migration
   source and actual helpers.
 - Protected precondition source executed successfully in the supplemental
   database both before and after applying the Phase 2 migration.
@@ -85,9 +85,11 @@ feature, vocabulary engine, or retired Games contract was changed for Phase 2.
 These are the final observed local outcomes. The Playwright run completed in
 67.6 seconds with four expected passes and no skipped, unexpected, or flaky
 tests. ESLint reported zero errors and three pre-existing warnings outside the
-Phase 2 implementation. PGlite remains supplemental; neither its 152 assertions
-nor its two precondition executions are labeled as canonical replay,
-Production-catalog evidence, or concurrency evidence.
+Phase 2 implementation. PGlite remains supplemental and excludes the 15
+Unicode normalization assertions whose engine behavior differs from canonical
+Supabase PostgreSQL; neither its 138 assertions nor its two precondition
+executions are labeled as canonical replay, Production-catalog evidence, or
+concurrency evidence.
 
 ## Technically remaining local implementation
 

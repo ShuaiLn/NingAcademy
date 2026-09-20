@@ -154,14 +154,19 @@
       "expected": "full width"
     },
     {
-      "label": "NBSP-excluded",
+      "label": "NBSP-spacing",
       "input": "nbsp gap",
-      "expected": "nbsp gap"
+      "expected": "nbsp gap"
     },
     {
-      "label": "figure-space-excluded",
+      "label": "figure-space-spacing",
       "input": "figure space",
-      "expected": "figure space"
+      "expected": "figure space"
+    },
+    {
+      "label": "narrow-NBSP-spacing",
+      "input": "narrow space",
+      "expected": "narrow space"
     },
     {
       "label": "leading-BOM-excluded",
@@ -176,12 +181,12 @@
     {
       "label": "capital-I-dot",
       "input": "İ",
-      "expected": "i"
+      "expected": "i̇"
     },
     {
       "label": "final-sigma",
       "input": "ΟΣ",
-      "expected": "οσ"
+      "expected": "ος"
     },
     {
       "label": "interior-sigma",

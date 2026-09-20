@@ -1,6 +1,7 @@
 {
   "status": "PASS_SUPPLEMENTAL_ONLY",
   "engine": "PGlite 0.3.14",
-  "assertions": 152,
-  "scope": "Actual Phase 1 and Phase 2 migration source; actual four private helpers; minimal synthetic prerequisite schema. Not canonical replay, hosted verification, or concurrency evidence."
+  "assertions": 138,
+  "excludedCanonicalAssertions": 15,
+  "scope": "Actual Phase 1 and Phase 2 migration source; actual four private helpers; minimal synthetic prerequisite schema. Unicode normalization parity is excluded because PGlite differs from canonical Supabase PostgreSQL. Not canonical replay, hosted verification, or concurrency evidence."
 }

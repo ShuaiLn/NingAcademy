@@ -1,4 +1,4 @@
-import { readFileSync,writeFileSync } from 'node:fs';
+import { mkdirSync,readFileSync,writeFileSync } from 'node:fs';
 import pg from 'pg';
 import { createLocalDatabase } from './local-db.mjs';
 const signatures=['public.upsert_personal_word_v1(text,text)','public.attach_personal_word_source_v1(uuid,text,uuid)','public.archive_personal_word_v1(uuid)'];
@@ -20,5 +20,8 @@ for(const signature of signatures){
 }
 const path='docs/personalized-english/phase2/legacy-phase1-acl-snapshot.json';const serialized=JSON.stringify(snapshot,null,2)+'\n';
 if(process.argv.includes('--write')){if(live)throw Error('Refusing to rewrite frozen snapshot from a mutable external database');writeFileSync(path,serialized);console.log('Wrote frozen replay-generated Phase 1 ACL snapshot.');}
-else{const expected=readFileSync(path,'utf8');if(expected!==serialized)throw Error('Legacy Phase 1 ACL/security-definer snapshot drift');console.log('Legacy Phase 1 ACL/security-definer snapshot matches exactly.');}
+else{const expected=readFileSync(path,'utf8');if(expected!==serialized){
+  if(live){mkdirSync('p1-artifacts/replay',{recursive:true});writeFileSync('p1-artifacts/replay/phase2-legacy-acl.actual.json',serialized);}
+  throw Error('Legacy Phase 1 ACL/security-definer snapshot drift');
+}console.log('Legacy Phase 1 ACL/security-definer snapshot matches exactly.');}
 await database.close?.();await database.end?.();

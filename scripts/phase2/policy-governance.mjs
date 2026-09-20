@@ -22,12 +22,13 @@ const normalizationParity = [
   { label: 'NEL', input: 'nel\u0085space', expected: 'nel space' },
   { label: 'em-space', input: 'em\u2003space', expected: 'em space' },
   { label: 'ideographic-space', input: 'full\u3000width', expected: 'full width' },
-  { label: 'NBSP-excluded', input: 'nbsp\u00a0gap', expected: 'nbsp\u00a0gap' },
-  { label: 'figure-space-excluded', input: 'figure\u2007space', expected: 'figure\u2007space' },
+  { label: 'NBSP-spacing', input: 'nbsp\u00a0gap', expected: 'nbsp gap' },
+  { label: 'figure-space-spacing', input: 'figure\u2007space', expected: 'figure space' },
+  { label: 'narrow-NBSP-spacing', input: 'narrow\u202fspace', expected: 'narrow space' },
   { label: 'leading-BOM-excluded', input: '\uFEFFleading', expected: '\uFEFFleading' },
   { label: 'trailing-BOM-excluded', input: 'trailing\uFEFF', expected: 'trailing\uFEFF' },
-  { label: 'capital-I-dot', input: '\u0130', expected: 'i' },
-  { label: 'final-sigma', input: '\u039f\u03a3', expected: '\u03bf\u03c3' },
+  { label: 'capital-I-dot', input: '\u0130', expected: 'i\u0307' },
+  { label: 'final-sigma', input: '\u039f\u03a3', expected: '\u03bf\u03c2' },
   { label: 'interior-sigma', input: '\u039f\u03a3\u0391', expected: '\u03bf\u03c3\u03b1' },
 ];
 const ids = new Set(registry.fixtures.map(fixture => fixture.id));

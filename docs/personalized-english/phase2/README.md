@@ -62,7 +62,8 @@ worksheets, or explicit owner acceptance of convenience as the benefit.
   the untouched release holdout with observed OCR/NER evidence and owner review.
 - `runtime-profile.v1.json`, `privacy-policy.v1.json`, and the institution
   patterns are implemented candidates with null approval fields.
-- `local-db-evidence.json` records the supplemental 152-assertion PGlite run.
+- `local-db-evidence.json` records the supplemental 138-assertion PGlite run
+  and the 15 Unicode assertions reserved for canonical Supabase PostgreSQL.
 - `local-browser-evidence.json` records the real local OCR/NER browser suite;
   Preview/network traces and physical-device acceptance remain separate.
 - `dependency-audit-status.json` records the unresolved exact-baseline audit

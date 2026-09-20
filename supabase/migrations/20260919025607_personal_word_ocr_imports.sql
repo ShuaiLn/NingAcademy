@@ -22,6 +22,7 @@ alter table public.personal_word_ocr_imports enable row level security;
 create policy personal_word_ocr_imports_select_own on public.personal_word_ocr_imports
   for select to authenticated using (private.is_ready_profile() and student_id = private.current_student_id());
 revoke all on public.personal_word_ocr_imports from public, anon, authenticated;
+revoke truncate, references, trigger, maintain on public.personal_word_ocr_imports from service_role;
 grant select on public.personal_word_ocr_imports to authenticated;
 grant select, insert, update, delete on public.personal_word_ocr_imports to service_role;
 comment on table public.personal_word_ocr_imports is

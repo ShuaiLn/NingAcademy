@@ -36,7 +36,15 @@ if (process.argv[1]?.endsWith('local-db.mjs')) {
   const db = await createLocalDatabase(); let assertions = 0;
   try {
     for (const file of ['personal_english_ocr.test.sql', 'personal_english_ocr_security.test.sql']) {
-      const results = await db.exec(readFileSync('supabase/tests/' + file, 'utf8'));
+      let sql = readFileSync('supabase/tests/' + file, 'utf8');
+      if (file === 'personal_english_ocr.test.sql') {
+        // PGlite's Unicode ARE/lower implementation differs from canonical
+        // Supabase PostgreSQL. The registered pgTAP block runs only in the
+        // canonical replay; client parity remains covered by governed Vitest.
+        sql = sql.replace(/-- BEGIN GENERATED NORMALIZATION PARITY[^]*?-- END GENERATED NORMALIZATION PARITY/u,
+          '-- Canonical PostgreSQL normalization parity intentionally omitted from supplemental PGlite.');
+      }
+      const results = await db.exec(sql);
       const tap = results.flatMap(result => result.rows.flatMap(row => Object.values(row))).filter(value => typeof value === 'string');
       for (const line of tap) {
         if (/^not ok|^# Looks like|^Bail out!/m.test(line)) throw Error(file + ': ' + line);
@@ -45,7 +53,8 @@ if (process.argv[1]?.endsWith('local-db.mjs')) {
       console.log(file + ': passed in supplemental PGlite harness');
     }
     const evidence = { status: 'PASS_SUPPLEMENTAL_ONLY', engine: 'PGlite 0.3.14', assertions,
-      scope: 'Actual Phase 1 and Phase 2 migration source; actual four private helpers; minimal synthetic prerequisite schema. Not canonical replay, hosted verification, or concurrency evidence.' };
+      excludedCanonicalAssertions: 15,
+      scope: 'Actual Phase 1 and Phase 2 migration source; actual four private helpers; minimal synthetic prerequisite schema. Unicode normalization parity is excluded because PGlite differs from canonical Supabase PostgreSQL. Not canonical replay, hosted verification, or concurrency evidence.' };
     writeFileSync('docs/personalized-english/phase2/local-db-evidence.json', JSON.stringify(evidence, null, 2) + '\n');
     console.log(JSON.stringify(evidence));
   } finally { await db.close(); }

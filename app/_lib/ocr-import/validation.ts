@@ -1,15 +1,11 @@
 import { PHASE2_LIMITS as limits } from "../local-ai/phase2-limits.generated";
 import type { ConfirmedWord } from "./contracts";
 import { textHasObviousPii } from "./stage1";
-// PostgreSQL's ARE `\s` under the project's UTF-8 locale differs from
-// JavaScript `\s` for a few Unicode spaces. Keep this explicit class aligned
-// with private.normalize_spelling(text), excluding BOM, NBSP, figure space,
-// and narrow NBSP from the spacing class.
-const POSTGRES_SPACING = /[\u0009-\u000D\u0020\u0085\u2000-\u2006\u2008-\u200A\u2028\u2029\u205F\u3000]+/gu;
+// Keep this explicit class aligned with PostgreSQL ARE `\s` in the canonical
+// UTF-8 replay. U+FEFF is deliberately absent because PostgreSQL preserves it.
+const POSTGRES_SPACING = /[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+/gu;
 export const trimPostgresSpaces = (value: string) => value.replace(POSTGRES_SPACING, " ").replace(/^ +| +$/gu, "");
-export const normalizePersonalTerm = (term: string) => [...trimPostgresSpaces(term)]
-  .map(character => character === "\u0130" ? "i" : character.toLowerCase())
-  .join("");
+export const normalizePersonalTerm = (term: string) => trimPostgresSpaces(term).toLowerCase();
 export function validateConfirmation(id: unknown, input: unknown): ConfirmedWord[] | null {
   if (typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
     || !Array.isArray(input) || !input.length || input.length > limits.maxBulkItems) return null;
