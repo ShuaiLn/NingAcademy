@@ -18,12 +18,14 @@
     "test:phase2-db-local": "node scripts/phase2/local-db.mjs",
     "test:phase2-browser": "node scripts/phase2/build-browser.mjs && playwright test -c playwright.phase2.config.ts",
     "test:phase2-concurrency": "node scripts/phase2/test-concurrency.mjs",
+    "audit:phase2-dependencies": "npm audit --omit=dev --audit-level=high && node scripts/phase2/check-dependency-security.mjs",
+    "check:phase2-dependency-bundle": "node scripts/phase2/check-dependency-security.mjs --build",
     "test:unit": "vitest run --passWithNoTests=false",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "study:phase2": "node scripts/phase2/serve-study.mjs",
     "check:phase2-preparation": "node scripts/phase2/check-preparation.mjs && node scripts/phase2/governance.mjs",
-    "check:phase2-governance": "node scripts/phase2/check-preparation.mjs && node scripts/phase2/governance.mjs && node scripts/phase2/build-dictionary.mjs --check && node scripts/phase2/generate-evaluation-fixtures.mjs --check && node scripts/phase2/evaluate-privacy.mjs && node scripts/phase2/policy-governance.mjs && node scripts/phase2/check-migration-order.mjs && node scripts/phase2/check-sql-test-registration.mjs && node scripts/phase2/check-legacy-acl.mjs",
+    "check:phase2-governance": "node scripts/phase2/check-preparation.mjs && node scripts/phase2/governance.mjs && node scripts/phase2/build-dictionary.mjs --check && node scripts/phase2/generate-evaluation-fixtures.mjs --check && node scripts/phase2/evaluate-privacy.mjs && node scripts/phase2/policy-governance.mjs && node scripts/phase2/check-migration-order.mjs && node scripts/phase2/check-sql-test-registration.mjs && node scripts/phase2/check-legacy-acl.mjs && node scripts/phase2/check-dependency-security.mjs",
     "test:phase2-preparation": "node --test scripts/phase2/preparation.test.mjs"
   },
   "dependencies": {
@@ -37,6 +39,10 @@
     "react-dom": "19.2.8",
     "server-only": "^0.0.1",
     "tesseract.js": "7.0.0"
+  },
+  "overrides": {
+    "adm-zip": "0.6.1",
+    "sharp": "0.35.4"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.11.1",

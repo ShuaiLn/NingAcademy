@@ -81,6 +81,10 @@ feature, vocabulary engine, or retired Games contract was changed for Phase 2.
   mobile layout.
 - TypeScript typecheck, ESLint, optimized Next.js build, migration inventory,
   JavaScript syntax checks, workflow YAML parse, and whitespace validation.
+- Production dependency audit reports zero findings. Exact transitive overrides,
+  the sole Worker import boundary, browser export, and emitted production bundle
+  are mechanically checked without changing Transformers, ONNX Runtime Web,
+  model, tokenizer, or asset bytes.
 
 These are the final observed local outcomes. The Playwright run completed in
 67.6 seconds with four expected passes and no skipped, unexpected, or flaky
@@ -128,7 +132,7 @@ request `#4` without requesting the protected Production job.
 | Next.js security baseline | PASS | Patched `16.3.5` build/tests pass |
 | Replay ACL snapshot | PASS | Canonical catalog comparison in run `35481305466` |
 | Vercel asset/header/offline behavior | NOT VERIFIED | Isolated Preview acceptance evidence |
-| Dependency audit disposition | NOT VERIFIED | Owner/security disposition of four high findings in the pinned model dependency chain |
+| Dependency audit disposition | PASS | Safe transitive overrides retain Transformers 4.2.0 and the pinned browser runtime; production audit reports zero findings and the bundle boundary is mechanically checked |
 | Untouched release holdout | NOT VERIFIED | Execute the 300-line holdout and obtain owner review |
 | Production precondition/deployment/convergence | NOT VERIFIED | Protected read-only precondition, explicit authorization, deployment, and post-deployment convergence |
 
@@ -147,8 +151,6 @@ matches the committed type shape after line-ending/end-of-file normalization.
   screen-reader, lifecycle, and offline evidence.
 - FrequencyWords attribution/provenance approval and NeuroBERT conversion
   provenance/redistribution approval.
-- Resolution or explicit acceptance of dependency audit findings while keeping
-  the exact plan-pinned model baseline.
 - Isolated Preview browser/RLS/runtime/offline/network acceptance.
 - Protected Production precondition and approval, authorized deployment, and
   read-only convergence. Production remains unchanged.

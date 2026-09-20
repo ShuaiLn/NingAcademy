@@ -5,6 +5,25 @@ or Supabase deployment was performed.
 
 ## Dependency audit
 
+### Phase 2 transitive resolution (2026-09-19)
+
+The Phase 2 security review retained `@huggingface/transformers@4.2.0`, the
+pinned ONNX Runtime Web build, NeuroBERT model, tokenizer, and asset hashes.
+Exact npm overrides move the unused Node-only dependency path to
+`adm-zip@0.6.1` and `sharp@0.35.4`. The former remains compatible with the
+constructor, `getEntry`, and `extractEntryTo` calls used by the ONNX Runtime
+Node Linux install script. The latter loads with Transformers 4.2.0 and passes
+a native transform, although the Phase 2 browser architecture never imports
+that Node image path.
+
+`npm audit --omit=dev --audit-level=high` now reports zero vulnerabilities.
+The production build contains ONNX Runtime Web and contains no
+`onnxruntime-node`, `adm-zip`, nested Transformers sharp, or libvips marker in
+application chunks. The repository checks the exact lockfile versions, sole
+NER-Worker import boundary, Transformers browser export, and emitted bundle.
+This supersedes the unresolved dependency finding below; it does not resolve
+the separate owner/legal model-distribution gates.
+
 `npm audit --omit=dev --json` reported 5 production findings: 1 critical and
 4 high (`info=0`, `low=0`, `moderate=0`, `high=4`, `critical=1`). The installed
 and registry versions were re-read rather than inferred from an older report.
@@ -32,10 +51,10 @@ and registry versions were re-read rather than inferred from an older report.
   `16.3.5`—and a complete application test/build pass is mandatory before any
   later deployment.
 
-### Transformers dependency tree
+### Historical Phase 0 Transformers finding
 
-- Installed direct dependency: `@huggingface/transformers@4.2.0`, which is also
-  the current registry release. Its Node-only dependencies are
+- At the Phase 0 capture, the installed direct dependency was
+  `@huggingface/transformers@4.2.0`. Its Node-only dependencies were
   `onnxruntime-node@1.24.3` and `sharp@0.34.5`.
 - `onnxruntime-node@1.24.3` installs `adm-zip@0.5.18`. npm reports the chain as
   high severity. `GHSA-xcpc-8h2w-3j85` affects `adm-zip <0.6.0` and has a
@@ -56,12 +75,12 @@ and registry versions were re-read rather than inferred from an older report.
   `@img/sharp` marker, and none of 46 server trace manifests includes `sharp`.
   The client bundle's `toSharp` method names are browser-library code, not the
   native Node package.
-- Reachability conclusion: the reported Transformers transitive vulnerabilities
-  are not in the exercised browser inference/runtime bundle. They remain
-  install-time/supply-chain and accidental-server-import risk because npm still
-  installs the packages. Do not add a server-side Transformers import. Track an
-  upstream Transformers release that moves to patched Node dependencies; do not
-  force incompatible overrides without a dedicated regression/security review.
+- Phase 0 reachability conclusion: the reported Transformers transitive
+  vulnerabilities were not in the exercised browser inference/runtime bundle.
+  They remained install-time/supply-chain and accidental-server-import risks.
+  The later Phase 2 resolution above completed the required dedicated
+  compatibility, regression, and security review without changing the browser
+  model/runtime baseline.
 
 ## Vercel/static deployment feasibility
 

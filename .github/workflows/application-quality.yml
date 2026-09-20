@@ -26,12 +26,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run audit:phase2-dependencies
       - run: npm run check:phase2-governance
       - run: npm run test:unit
       - run: npm run test:phase2-db-local
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
+      - run: npm run check:phase2-dependency-bundle
       - run: npx playwright install --with-deps chromium
       - run: npm run test:phase2-browser
       - name: Upload Phase 2 browser evidence

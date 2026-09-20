@@ -35,6 +35,7 @@ There is no OCR “Send once” bypass and no Phase 2 Storage path.
 ```powershell
 npm run check:phase2-preparation
 npm run check:phase2-governance
+npm run audit:phase2-dependencies
 npm run test:phase2-preparation
 npm run test:unit
 npm run test:phase2-db-local
@@ -43,6 +44,7 @@ npm run audit:p1:git-migrations
 npm run typecheck
 npm run lint
 npm run build
+npm run check:phase2-dependency-bundle
 ```
 
 `npm run test:phase2-db-local` uses PGlite with the actual Phase 1 and Phase 2
