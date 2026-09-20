@@ -7,7 +7,6 @@ interface Props {
   onRetry?: () => void;
   onCancel?: () => void;
 }
-
 export function ModelDownloadProgress({
   snapshot,
   label,
@@ -58,4 +57,3 @@ function phaseLabel(phase: ProgressSnapshot["phase"]) {
   };
   return labels[phase];
 }
-

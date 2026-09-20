@@ -1,6 +1,6 @@
 # Phase 0 local runtime evidence
 
-Date: 2026-09-13  
+Date: 2026-09-13
 Integration base: `feature/personal-word-library-phase-1-5` at
 `069ba18d3e405f71b4dc48a841467851242382ab`
 
