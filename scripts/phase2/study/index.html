@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 2 本地研究</title><link rel="stylesheet" href="/study.css"></head>
+<body><main>
+<h1>拍照导入 · 本地研究</h1>
+<p>只使用内置虚构练习纸。此原型用于测试识别和校对，不会保存到生词库。</p>
+<p>计时终点是本地确认，尚未包含相机拍摄及数据库保存；不能据此判定速度门槛通过。</p>
+<label for="sheet">练习纸</label><select id="sheet"></select>
+<label for="observer">测试方式</label><select id="observer"><option value="human">人工操作</option><option value="automated">自动化技术验证（不计入用户速度研究）</option></select>
+<div class="buttons"><button id="ocr">开始 OCR 研究</button><button id="manual">开始手动输入</button><button id="cancel">取消并清除内容</button></div>
+<p id="status" role="status" aria-live="polite">请选择一张虚构练习纸。</p>
+<canvas id="worksheet" aria-label="虚构练习纸"></canvas>
+<section id="review" hidden aria-labelledby="review-title"><h2 id="review-title" tabindex="-1">校对单词</h2>
+<p>已识别内容仅暂存在此页面。原型不包含释义、例句或生产隐私分类。</p>
+<div id="rows"></div><button id="confirm">确认本地结果（不保存）</button></section>
+<h2>本地计时记录</h2><p>记录仅含练习纸编号、测试方式和耗时；刷新页面即清除。</p>
+<pre id="results">[]</pre><button id="clear-results">清除计时记录</button>
+</main><script type="module" src="/study.js"></script></body></html>

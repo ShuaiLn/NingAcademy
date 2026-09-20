@@ -1,0 +1,45 @@
+name: Application quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: application-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run audit:phase2-dependencies
+      - run: npm run check:phase2-governance
+      - run: npm run test:unit
+      - run: npm run test:phase2-db-local
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: npm run check:phase2-dependency-bundle
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:phase2-browser
+      - name: Upload Phase 2 browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-browser-${{ github.run_id }}
+          path: test-results/phase2-browser.json
+          if-no-files-found: error

@@ -1,0 +1,174 @@
+{
+  "version": "draft-1",
+  "status": "FIXTURE_DESIGN_NOT_EXECUTED",
+  "fixtures": [
+    {
+      "id": "COR-RELABEL-001",
+      "category": "relabel",
+      "input": "Microsoft",
+      "raw": {
+        "label": "GPE",
+        "start": 0,
+        "end": 9
+      },
+      "expected": "ORG",
+      "assertion": "Preserve original label, score, span and evidence",
+      "observed": null
+    },
+    {
+      "id": "COR-OMITTED-001",
+      "category": "omitted-addition",
+      "input": "Google",
+      "raw": null,
+      "expected": "ORG",
+      "assertion": "Context and exact bounded match required; record no fabricated raw evidence",
+      "observed": null
+    },
+    {
+      "id": "COR-SPLIT-001",
+      "category": "split-merge",
+      "input": "OpenAI",
+      "raw": [
+        {
+          "label": "ORG",
+          "start": 0,
+          "end": 4
+        },
+        {
+          "label": "MISC",
+          "start": 4,
+          "end": 6
+        }
+      ],
+      "expected": "ORG",
+      "assertion": "Preserve both source entities",
+      "observed": null
+    },
+    {
+      "id": "COR-UNICODE-001",
+      "category": "unicode-boundary",
+      "input": "?Microsoft?",
+      "raw": null,
+      "expected": "unchanged",
+      "assertion": "Embedded substring must not match",
+      "observed": null
+    },
+    {
+      "id": "COR-NFKC-001",
+      "category": "nfkc",
+      "input": "?icrosoft",
+      "raw": {
+        "label": "ORG",
+        "start": 0,
+        "end": 9
+      },
+      "expected": "ORG",
+      "assertion": "Map normalized span to complete original OCR words",
+      "observed": null
+    },
+    {
+      "id": "MAP-NFKC-001",
+      "category": "nfkc-ligature",
+      "input": "o?ce   supplies",
+      "raw": null,
+      "expected": "mapped",
+      "assertion": "office supplies: map ffi expansion and collapsed whitespace without ambiguity",
+      "observed": null
+    },
+    {
+      "id": "COR-SPACE-001",
+      "category": "whitespace",
+      "input": "Maria\t  Garcia",
+      "raw": {
+        "label": "PERSON",
+        "start": 0,
+        "end": 12
+      },
+      "expected": "PERSON",
+      "assertion": "Mapping retains original tab boundary",
+      "observed": null
+    },
+    {
+      "id": "COR-MALFORMED-001",
+      "category": "malformed",
+      "input": "Maria",
+      "raw": {
+        "label": "PERSON",
+        "start": 9,
+        "end": 2
+      },
+      "expected": "never_offer",
+      "assertion": "Do not erase malformed privacy evidence",
+      "observed": null
+    },
+    {
+      "id": "COR-EMPTY-001",
+      "category": "empty",
+      "input": "",
+      "raw": [],
+      "expected": "empty",
+      "assertion": "No invented entity",
+      "observed": null
+    },
+    {
+      "id": "COR-IMMUTABLE-001",
+      "category": "immutability",
+      "input": "Microsoft",
+      "raw": {
+        "label": "GPE",
+        "start": 0,
+        "end": 9
+      },
+      "expected": "ORG",
+      "assertion": "Mutation of output cannot mutate raw input; deep freeze raw capture",
+      "observed": null
+    },
+    {
+      "id": "COR-PROVENANCE-001",
+      "category": "provenance",
+      "input": "Microsoft",
+      "raw": {
+        "label": "GPE",
+        "start": 0,
+        "end": 9
+      },
+      "expected": "ORG",
+      "assertion": "Stable rule ID/version, operation, reason, raw evidence required",
+      "observed": null
+    },
+    {
+      "id": "COR-OVERLAP-001",
+      "category": "overlap",
+      "input": "Maria Microsoft",
+      "raw": {
+        "label": "PERSON",
+        "start": 0,
+        "end": 15
+      },
+      "expected": "never_offer",
+      "assertion": "Organization correction must not erase the wider PERSON span",
+      "observed": null
+    }
+  ],
+  "rules": [
+    {
+      "id": "organization-correction.draft-1",
+      "version": "draft-1",
+      "status": "PROPOSED_NOT_APPROVED",
+      "reason": "Review narrow organization correction without suppressing PERSON evidence",
+      "fixtureIds": [
+        "COR-RELABEL-001",
+        "COR-OMITTED-001",
+        "COR-SPLIT-001",
+        "COR-UNICODE-001",
+        "COR-NFKC-001",
+        "COR-SPACE-001",
+        "COR-MALFORMED-001",
+        "COR-EMPTY-001",
+        "COR-IMMUTABLE-001",
+        "COR-PROVENANCE-001",
+        "COR-OVERLAP-001"
+      ]
+    }
+  ]
+}

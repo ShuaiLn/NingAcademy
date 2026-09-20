@@ -11,27 +11,59 @@
     "test": "npm run test:auth && npm run test:personal-english",
     "test:auth": "supabase test db --local supabase/tests/authorization.test.sql",
     "test:personal-english": "supabase test db --local supabase/tests/personal_english.test.sql",
+    "test:phase2-ocr-db": "supabase test db --local supabase/tests/personal_english_ocr.test.sql",
+    "test:phase2-ocr-security": "supabase test db --local supabase/tests/personal_english_ocr_security.test.sql",
+    "test:phase2-ocr-order": "supabase test db --local supabase/tests/personal_english_ocr_migration_order.test.sql",
+    "test:phase2-db": "npm run test:phase2-ocr-db && npm run test:phase2-ocr-security && npm run test:phase2-ocr-order",
+    "test:phase2-db-local": "node scripts/phase2/local-db.mjs",
+    "test:phase2-browser": "node scripts/phase2/build-browser.mjs && playwright test -c playwright.phase2.config.ts",
+    "test:phase2-concurrency": "node scripts/phase2/test-concurrency.mjs",
+    "audit:phase2-dependencies": "npm audit --omit=dev --audit-level=high && node scripts/phase2/check-dependency-security.mjs",
+    "check:phase2-dependency-bundle": "node scripts/phase2/check-dependency-security.mjs --build",
+    "test:unit": "vitest run --passWithNoTests=false",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "study:phase2": "node scripts/phase2/serve-study.mjs",
+    "check:phase2-preparation": "node scripts/phase2/check-preparation.mjs && node scripts/phase2/governance.mjs",
+    "check:phase2-governance": "node scripts/phase2/check-preparation.mjs && node scripts/phase2/governance.mjs && node scripts/phase2/build-dictionary.mjs --check && node scripts/phase2/generate-evaluation-fixtures.mjs --check && node scripts/phase2/evaluate-privacy.mjs && node scripts/phase2/policy-governance.mjs && node scripts/phase2/check-migration-order.mjs && node scripts/phase2/check-sql-test-registration.mjs && node scripts/phase2/check-legacy-acl.mjs && node scripts/phase2/check-dependency-security.mjs",
+    "test:phase2-preparation": "node --test scripts/phase2/preparation.test.mjs"
   },
   "dependencies": {
+    "@huggingface/transformers": "4.2.0",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.2",
     "@vercel/speed-insights": "^2.0.0",
+    "kitten-tts-webgpu": "0.1.1",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "server-only": "^0.0.1"
+    "server-only": "^0.0.1",
+    "tesseract.js": "7.0.0"
+  },
+  "overrides": {
+    "adm-zip": "0.6.1",
+    "sharp": "0.35.4"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.11.1",
+    "@electric-sql/pglite": "0.3.14",
+    "@playwright/test": "1.58.2",
     "@tailwindcss/postcss": "^4.3.3",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.2",
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "esbuild": "0.28.2",
     "eslint": "^9.39.5",
-    "eslint-config-next": "^16.3.5",
+    "eslint-config-next": "16.3.5",
+    "js-yaml": "4.3.2",
+    "jsdom": "26.1.0",
+    "pg": "8.16.3",
+    "playwright-core": "1.58.2",
     "supabase": "^2.114.0",
     "tailwindcss": "^4.3.3",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "vitest": "4.1.11"
   }
 }

@@ -1,0 +1,3 @@
+{ "version": 1, "rules": [
+  { "id": "organization-exact-v1", "version": 1, "reason": "Exact Unicode-bounded gazetteer span; preserve PERSON and ambiguous overlap", "operations": ["relabel", "omitted-addition", "split-merge"], "fixtureIds": ["relabel", "omitted-addition", "split-merge", "unicode-boundary", "nfkc", "whitespace", "malformed", "empty", "immutability", "provenance", "person-overlap"] }
+] }

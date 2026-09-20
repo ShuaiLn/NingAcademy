@@ -1,0 +1,12 @@
+{
+  "status": "PENDING_EXECUTION",
+  "fixtureCount": 300,
+  "thresholds": {
+    "sensitiveBlocked": 148,
+    "wilsonLower95": 0.95,
+    "falseSuppressionMax": 0.15,
+    "teachingRecallMin": 0.75,
+    "cleanPersonSuppressionMax": 0.03
+  },
+  "metrics": null
+}

@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "irregulars": {
+    "children": "child",
+    "men": "man",
+    "women": "woman",
+    "people": "person",
+    "mice": "mouse",
+    "teeth": "tooth",
+    "feet": "foot",
+    "went": "go",
+    "gone": "go",
+    "ran": "run",
+    "written": "write",
+    "wrote": "write",
+    "bought": "buy",
+    "better": "good",
+    "best": "good",
+    "was": "be",
+    "were": "be"
+  },
+  "rules": [
+    { "kind": "strip", "suffix": "'s", "minimumStemLength": 1 },
+    { "kind": "replace", "suffix": "ies", "replacement": "y", "minimumStemLength": 1 },
+    { "kind": "strip", "suffix": "s", "minimumStemLength": 1 },
+    { "kind": "strip", "suffix": "es", "minimumStemLength": 1 },
+    { "kind": "stem_variants", "suffix": "ing", "minimumStemLength": 3 },
+    { "kind": "stem_variants", "suffix": "ed", "minimumStemLength": 3 },
+    { "kind": "stem_variants", "suffix": "er", "minimumStemLength": 3 },
+    { "kind": "stem_variants", "suffix": "est", "minimumStemLength": 3 }
+  ]
+}

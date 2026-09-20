@@ -1,0 +1,4360 @@
+{
+  "version": 1,
+  "status": "SYNTHETIC_FIXTURES_READY_EVIDENCE_PENDING",
+  "sourcePlanSha256": "7bd35176435c104e2966c44f50b22f141d7fb2dfebe7fadb89a44300f8bf798e",
+  "provenance": "Generated fictional product-shaped material only; no learner or third-party personal data.",
+  "sensitive": [
+    {
+      "id": "S-001",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 1 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-002",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 2 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-003",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 3 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-004",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 4 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-005",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 5 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-006",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 6 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-007",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 7 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-008",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 8 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-009",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 9 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-010",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 10 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-011",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 11 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-012",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 12 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-013",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 13 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-014",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 14 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-015",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 15 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-016",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 16 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-017",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 17 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-018",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 18 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-019",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 19 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-020",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 20 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-021",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 21 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-022",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 22 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-023",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 23 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-024",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 24 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-025",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 25 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-026",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 26 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-027",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 27 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-028",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 28 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-029",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 29 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-030",
+      "kind": "institution-edge",
+      "text": "Fictional Lantern 30 Academy",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "header_footer_institution"
+      }
+    },
+    {
+      "id": "S-031",
+      "kind": "stage1",
+      "text": "Name: Fictional Learner 31",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-032",
+      "kind": "stage1",
+      "text": "Student ID: SYN-1032",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-033",
+      "kind": "stage1",
+      "text": "Employee: Fictional Worker 33 / Costco Wholesale",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-034",
+      "kind": "stage1",
+      "text": "Teacher: Fictional Tutor 34",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-035",
+      "kind": "stage1",
+      "text": "Account #: TEST-9035",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-036",
+      "kind": "stage1",
+      "text": "DOB: 2000-01-09",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-037",
+      "kind": "stage1",
+      "text": "137 Lantern Street",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-038",
+      "kind": "stage1",
+      "text": "Phone: 555-123-1038",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-039",
+      "kind": "stage1",
+      "text": "Email: fictional39@example.invalid",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-040",
+      "kind": "stage1",
+      "text": "https://example.invalid/users/fictional-40",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-041",
+      "kind": "stage1",
+      "text": "Name: Fictional Learner 41",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-042",
+      "kind": "stage1",
+      "text": "Student ID: SYN-1042",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-043",
+      "kind": "stage1",
+      "text": "Employee: Fictional Worker 43 / Costco Wholesale",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-044",
+      "kind": "stage1",
+      "text": "Teacher: Fictional Tutor 44",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-045",
+      "kind": "stage1",
+      "text": "Account #: TEST-9045",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-046",
+      "kind": "stage1",
+      "text": "DOB: 2000-01-19",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-047",
+      "kind": "stage1",
+      "text": "147 Lantern Street",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-048",
+      "kind": "stage1",
+      "text": "Phone: 555-123-1048",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-049",
+      "kind": "stage1",
+      "text": "Email: fictional49@example.invalid",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-050",
+      "kind": "stage1",
+      "text": "https://example.invalid/users/fictional-50",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-051",
+      "kind": "stage1",
+      "text": "Name: Fictional Learner 51",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-052",
+      "kind": "stage1",
+      "text": "Student ID: SYN-1052",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-053",
+      "kind": "stage1",
+      "text": "Employee: Fictional Worker 53 / Costco Wholesale",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-054",
+      "kind": "stage1",
+      "text": "Teacher: Fictional Tutor 54",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-055",
+      "kind": "stage1",
+      "text": "Account #: TEST-9055",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-056",
+      "kind": "stage1",
+      "text": "DOB: 2000-01-01",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-057",
+      "kind": "stage1",
+      "text": "157 Lantern Street",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-058",
+      "kind": "stage1",
+      "text": "Phone: 555-123-1058",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-059",
+      "kind": "stage1",
+      "text": "Email: fictional59@example.invalid",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-060",
+      "kind": "stage1",
+      "text": "https://example.invalid/users/fictional-60",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-061",
+      "kind": "stage1",
+      "text": "Name: Fictional Learner 61",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-062",
+      "kind": "stage1",
+      "text": "Student ID: SYN-1062",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-063",
+      "kind": "stage1",
+      "text": "Employee: Fictional Worker 63 / Costco Wholesale",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-064",
+      "kind": "stage1",
+      "text": "Teacher: Fictional Tutor 64",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-065",
+      "kind": "stage1",
+      "text": "Account #: TEST-9065",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-066",
+      "kind": "stage1",
+      "text": "DOB: 2000-01-11",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-067",
+      "kind": "stage1",
+      "text": "167 Lantern Street",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-068",
+      "kind": "stage1",
+      "text": "Phone: 555-123-1068",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-069",
+      "kind": "stage1",
+      "text": "Email: fictional69@example.invalid",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-070",
+      "kind": "stage1",
+      "text": "https://example.invalid/users/fictional-70",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-071",
+      "kind": "stage1",
+      "text": "Name: Fictional Learner 71",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-072",
+      "kind": "stage1",
+      "text": "Student ID: SYN-1072",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-073",
+      "kind": "stage1",
+      "text": "Employee: Fictional Worker 73 / Costco Wholesale",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-074",
+      "kind": "stage1",
+      "text": "Teacher: Fictional Tutor 74",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-075",
+      "kind": "stage1",
+      "text": "Account #: TEST-9075",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-076",
+      "kind": "stage1",
+      "text": "DOB: 2000-01-21",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-077",
+      "kind": "stage1",
+      "text": "177 Lantern Street",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-078",
+      "kind": "stage1",
+      "text": "Phone: 555-123-1078",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-079",
+      "kind": "stage1",
+      "text": "Email: fictional79@example.invalid",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-080",
+      "kind": "stage1",
+      "text": "https://example.invalid/users/fictional-80",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-081",
+      "kind": "stage1",
+      "text": "Name: Fictional Learner 81",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-082",
+      "kind": "stage1",
+      "text": "Student ID: SYN-1082",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-083",
+      "kind": "stage1",
+      "text": "Employee: Fictional Worker 83 / Costco Wholesale",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-084",
+      "kind": "stage1",
+      "text": "Teacher: Fictional Tutor 84",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-085",
+      "kind": "stage1",
+      "text": "Account #: TEST-9085",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-086",
+      "kind": "stage1",
+      "text": "DOB: 2000-01-03",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-087",
+      "kind": "stage1",
+      "text": "187 Lantern Street",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-088",
+      "kind": "stage1",
+      "text": "Phone: 555-123-1088",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-089",
+      "kind": "stage1",
+      "text": "Email: fictional89@example.invalid",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-090",
+      "kind": "stage1",
+      "text": "https://example.invalid/users/fictional-90",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-091",
+      "kind": "stage1",
+      "text": "Name: Fictional Learner 91",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-092",
+      "kind": "stage1",
+      "text": "Student ID: SYN-1092",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-093",
+      "kind": "stage1",
+      "text": "Employee: Fictional Worker 93 / Costco Wholesale",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-094",
+      "kind": "stage1",
+      "text": "Teacher: Fictional Tutor 94",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-095",
+      "kind": "stage1",
+      "text": "Account #: TEST-9095",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-096",
+      "kind": "stage1",
+      "text": "DOB: 2000-01-13",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-097",
+      "kind": "stage1",
+      "text": "197 Lantern Street",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-098",
+      "kind": "stage1",
+      "text": "Phone: 555-123-1098",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-099",
+      "kind": "stage1",
+      "text": "Email: fictional99@example.invalid",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-100",
+      "kind": "stage1",
+      "text": "https://example.invalid/users/fictional-100",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-101",
+      "kind": "stage1",
+      "text": "Name: Fictional Learner 101",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-102",
+      "kind": "stage1",
+      "text": "Student ID: SYN-1102",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-103",
+      "kind": "stage1",
+      "text": "Employee: Fictional Worker 103 / Costco Wholesale",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-104",
+      "kind": "stage1",
+      "text": "Teacher: Fictional Tutor 104",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-105",
+      "kind": "stage1",
+      "text": "Account #: TEST-9105",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-106",
+      "kind": "stage1",
+      "text": "DOB: 2000-01-23",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-107",
+      "kind": "stage1",
+      "text": "207 Lantern Street",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-108",
+      "kind": "stage1",
+      "text": "Phone: 555-123-1108",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-109",
+      "kind": "stage1",
+      "text": "Email: fictional109@example.invalid",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-110",
+      "kind": "stage1",
+      "text": "https://example.invalid/users/fictional-110",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-111",
+      "kind": "stage1",
+      "text": "Name: Fictional Learner 111",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-112",
+      "kind": "stage1",
+      "text": "Student ID: SYN-1112",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-113",
+      "kind": "stage1",
+      "text": "Employee: Fictional Worker 113 / Costco Wholesale",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-114",
+      "kind": "stage1",
+      "text": "Teacher: Fictional Tutor 114",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-115",
+      "kind": "stage1",
+      "text": "Account #: TEST-9115",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-116",
+      "kind": "stage1",
+      "text": "DOB: 2000-01-05",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-117",
+      "kind": "stage1",
+      "text": "217 Lantern Street",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-118",
+      "kind": "stage1",
+      "text": "Phone: 555-123-1118",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-119",
+      "kind": "stage1",
+      "text": "Email: fictional119@example.invalid",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-120",
+      "kind": "stage1",
+      "text": "https://example.invalid/users/fictional-120",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-121",
+      "kind": "stage1",
+      "text": "Name: Fictional Learner 121",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-122",
+      "kind": "stage1",
+      "text": "Student ID: SYN-1122",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-123",
+      "kind": "stage1",
+      "text": "Employee: Fictional Worker 123 / Costco Wholesale",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-124",
+      "kind": "stage1",
+      "text": "Teacher: Fictional Tutor 124",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-125",
+      "kind": "stage1",
+      "text": "Account #: TEST-9125",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-126",
+      "kind": "stage1",
+      "text": "DOB: 2000-01-15",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-127",
+      "kind": "stage1",
+      "text": "227 Lantern Street",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-128",
+      "kind": "stage1",
+      "text": "Phone: 555-123-1128",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-129",
+      "kind": "stage1",
+      "text": "Email: fictional129@example.invalid",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-130",
+      "kind": "stage1",
+      "text": "https://example.invalid/users/fictional-130",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-131",
+      "kind": "stage1",
+      "text": "Name: Fictional Learner 131",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-132",
+      "kind": "stage1",
+      "text": "Student ID: SYN-1132",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-133",
+      "kind": "stage1",
+      "text": "Employee: Fictional Worker 133 / Costco Wholesale",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-134",
+      "kind": "stage1",
+      "text": "Teacher: Fictional Tutor 134",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-135",
+      "kind": "stage1",
+      "text": "Account #: TEST-9135",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-136",
+      "kind": "stage1",
+      "text": "DOB: 2000-01-25",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-137",
+      "kind": "stage1",
+      "text": "237 Lantern Street",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-138",
+      "kind": "stage1",
+      "text": "Phone: 555-123-1138",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-139",
+      "kind": "stage1",
+      "text": "Email: fictional139@example.invalid",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-140",
+      "kind": "stage1",
+      "text": "https://example.invalid/users/fictional-140",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-141",
+      "kind": "stage1",
+      "text": "Name: Fictional Learner 141",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-142",
+      "kind": "stage1",
+      "text": "Student ID: SYN-1142",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-143",
+      "kind": "stage1",
+      "text": "Employee: Fictional Worker 143 / Costco Wholesale",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-144",
+      "kind": "stage1",
+      "text": "Teacher: Fictional Tutor 144",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-145",
+      "kind": "stage1",
+      "text": "Account #: TEST-9145",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-146",
+      "kind": "stage1",
+      "text": "DOB: 2000-01-07",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-147",
+      "kind": "stage1",
+      "text": "247 Lantern Street",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-148",
+      "kind": "stage1",
+      "text": "Phone: 555-123-1148",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-149",
+      "kind": "stage1",
+      "text": "Email: fictional149@example.invalid",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    },
+    {
+      "id": "S-150",
+      "kind": "stage1",
+      "text": "https://example.invalid/users/fictional-150",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "expected": {
+        "blocked": true,
+        "reason": "deterministic_high_risk_pii"
+      }
+    }
+  ],
+  "clean": [
+    {
+      "id": "C-001",
+      "kind": "clean-cropped",
+      "text": "read the book 1",
+      "image": {
+        "validNonblankLines": 3,
+        "midpointFraction": 0.92
+      },
+      "teachingTerms": [
+        "read",
+        "book"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-002",
+      "kind": "clean-cropped",
+      "text": "write the river 2",
+      "image": {
+        "validNonblankLines": 4,
+        "midpointFraction": 0.08
+      },
+      "teachingTerms": [
+        "write",
+        "river"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-003",
+      "kind": "clean-cropped",
+      "text": "describe the planet 3",
+      "image": {
+        "validNonblankLines": 5,
+        "midpointFraction": 0.92
+      },
+      "teachingTerms": [
+        "describe",
+        "planet"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-004",
+      "kind": "clean-cropped",
+      "text": "compare the garden 4",
+      "image": {
+        "validNonblankLines": 3,
+        "midpointFraction": 0.08
+      },
+      "teachingTerms": [
+        "compare",
+        "garden"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-005",
+      "kind": "clean-cropped",
+      "text": "practice the window 5",
+      "image": {
+        "validNonblankLines": 4,
+        "midpointFraction": 0.92
+      },
+      "teachingTerms": [
+        "practice",
+        "window"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-006",
+      "kind": "clean-cropped",
+      "text": "review the pencil 6",
+      "image": {
+        "validNonblankLines": 5,
+        "midpointFraction": 0.08
+      },
+      "teachingTerms": [
+        "review",
+        "pencil"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-007",
+      "kind": "clean-cropped",
+      "text": "choose the market 7",
+      "image": {
+        "validNonblankLines": 3,
+        "midpointFraction": 0.92
+      },
+      "teachingTerms": [
+        "choose",
+        "market"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-008",
+      "kind": "clean-cropped",
+      "text": "explain the camera 8",
+      "image": {
+        "validNonblankLines": 4,
+        "midpointFraction": 0.08
+      },
+      "teachingTerms": [
+        "explain",
+        "camera"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-009",
+      "kind": "clean-cropped",
+      "text": "complete the lesson 9",
+      "image": {
+        "validNonblankLines": 5,
+        "midpointFraction": 0.92
+      },
+      "teachingTerms": [
+        "complete",
+        "lesson"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-010",
+      "kind": "clean-cropped",
+      "text": "remember the bridge 10",
+      "image": {
+        "validNonblankLines": 3,
+        "midpointFraction": 0.08
+      },
+      "teachingTerms": [
+        "remember",
+        "bridge"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-011",
+      "kind": "clean-cropped",
+      "text": "read the book 11",
+      "image": {
+        "validNonblankLines": 4,
+        "midpointFraction": 0.92
+      },
+      "teachingTerms": [
+        "read",
+        "book"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-012",
+      "kind": "clean-cropped",
+      "text": "write the river 12",
+      "image": {
+        "validNonblankLines": 5,
+        "midpointFraction": 0.08
+      },
+      "teachingTerms": [
+        "write",
+        "river"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-013",
+      "kind": "clean-cropped",
+      "text": "describe the planet 13",
+      "image": {
+        "validNonblankLines": 3,
+        "midpointFraction": 0.92
+      },
+      "teachingTerms": [
+        "describe",
+        "planet"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-014",
+      "kind": "clean-cropped",
+      "text": "compare the garden 14",
+      "image": {
+        "validNonblankLines": 4,
+        "midpointFraction": 0.08
+      },
+      "teachingTerms": [
+        "compare",
+        "garden"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-015",
+      "kind": "clean-cropped",
+      "text": "practice the window 15",
+      "image": {
+        "validNonblankLines": 5,
+        "midpointFraction": 0.92
+      },
+      "teachingTerms": [
+        "practice",
+        "window"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-016",
+      "kind": "clean-edge",
+      "text": "review the pencil 16",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "teachingTerms": [
+        "review",
+        "pencil"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-017",
+      "kind": "clean-edge",
+      "text": "choose the market 17",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "teachingTerms": [
+        "choose",
+        "market"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-018",
+      "kind": "clean-edge",
+      "text": "explain the camera 18",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "teachingTerms": [
+        "explain",
+        "camera"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-019",
+      "kind": "clean-edge",
+      "text": "complete the lesson 19",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "teachingTerms": [
+        "complete",
+        "lesson"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-020",
+      "kind": "clean-edge",
+      "text": "remember the bridge 20",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "teachingTerms": [
+        "remember",
+        "bridge"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-021",
+      "kind": "clean-edge",
+      "text": "read the book 21",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "teachingTerms": [
+        "read",
+        "book"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-022",
+      "kind": "clean-edge",
+      "text": "write the river 22",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "teachingTerms": [
+        "write",
+        "river"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-023",
+      "kind": "clean-edge",
+      "text": "describe the planet 23",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "teachingTerms": [
+        "describe",
+        "planet"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-024",
+      "kind": "clean-edge",
+      "text": "compare the garden 24",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "teachingTerms": [
+        "compare",
+        "garden"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-025",
+      "kind": "clean-edge",
+      "text": "practice the window 25",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "teachingTerms": [
+        "practice",
+        "window"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-026",
+      "kind": "clean-edge",
+      "text": "review the pencil 26",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "teachingTerms": [
+        "review",
+        "pencil"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-027",
+      "kind": "clean-edge",
+      "text": "choose the market 27",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "teachingTerms": [
+        "choose",
+        "market"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-028",
+      "kind": "clean-edge",
+      "text": "explain the camera 28",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "teachingTerms": [
+        "explain",
+        "camera"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-029",
+      "kind": "clean-edge",
+      "text": "complete the lesson 29",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.92
+      },
+      "teachingTerms": [
+        "complete",
+        "lesson"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-030",
+      "kind": "clean-edge",
+      "text": "remember the bridge 30",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.08
+      },
+      "teachingTerms": [
+        "remember",
+        "bridge"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-031",
+      "kind": "clean-interior",
+      "text": "read the book 31",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "read",
+        "book"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-032",
+      "kind": "clean-interior",
+      "text": "write the river 32",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "write",
+        "river"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-033",
+      "kind": "clean-interior",
+      "text": "describe the planet 33",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "describe",
+        "planet"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-034",
+      "kind": "clean-interior",
+      "text": "compare the garden 34",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "compare",
+        "garden"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-035",
+      "kind": "clean-interior",
+      "text": "practice the window 35",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "practice",
+        "window"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-036",
+      "kind": "clean-interior",
+      "text": "review the pencil 36",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "review",
+        "pencil"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-037",
+      "kind": "clean-interior",
+      "text": "choose the market 37",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "choose",
+        "market"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-038",
+      "kind": "clean-interior",
+      "text": "explain the camera 38",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "explain",
+        "camera"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-039",
+      "kind": "clean-interior",
+      "text": "complete the lesson 39",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "complete",
+        "lesson"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-040",
+      "kind": "clean-interior",
+      "text": "remember the bridge 40",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "remember",
+        "bridge"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-041",
+      "kind": "clean-interior",
+      "text": "read the book 41",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "read",
+        "book"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-042",
+      "kind": "clean-interior",
+      "text": "write the river 42",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "write",
+        "river"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-043",
+      "kind": "clean-interior",
+      "text": "describe the planet 43",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "describe",
+        "planet"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-044",
+      "kind": "clean-interior",
+      "text": "compare the garden 44",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "compare",
+        "garden"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-045",
+      "kind": "clean-interior",
+      "text": "practice the window 45",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "practice",
+        "window"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-046",
+      "kind": "clean-interior",
+      "text": "review the pencil 46",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "review",
+        "pencil"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-047",
+      "kind": "clean-interior",
+      "text": "choose the market 47",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "choose",
+        "market"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-048",
+      "kind": "clean-interior",
+      "text": "explain the camera 48",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "explain",
+        "camera"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-049",
+      "kind": "clean-interior",
+      "text": "complete the lesson 49",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "complete",
+        "lesson"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-050",
+      "kind": "clean-interior",
+      "text": "remember the bridge 50",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "remember",
+        "bridge"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-051",
+      "kind": "clean-interior",
+      "text": "read the book 51",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "read",
+        "book"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-052",
+      "kind": "clean-interior",
+      "text": "write the river 52",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "write",
+        "river"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-053",
+      "kind": "clean-interior",
+      "text": "describe the planet 53",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "describe",
+        "planet"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-054",
+      "kind": "clean-interior",
+      "text": "compare the garden 54",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "compare",
+        "garden"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-055",
+      "kind": "clean-interior",
+      "text": "practice the window 55",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "practice",
+        "window"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-056",
+      "kind": "clean-interior",
+      "text": "review the pencil 56",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "review",
+        "pencil"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-057",
+      "kind": "clean-interior",
+      "text": "choose the market 57",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "choose",
+        "market"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-058",
+      "kind": "clean-interior",
+      "text": "explain the camera 58",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "explain",
+        "camera"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-059",
+      "kind": "clean-interior",
+      "text": "complete the lesson 59",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "complete",
+        "lesson"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-060",
+      "kind": "clean-interior",
+      "text": "remember the bridge 60",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "remember",
+        "bridge"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-061",
+      "kind": "clean-interior",
+      "text": "read the book 61",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "read",
+        "book"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-062",
+      "kind": "clean-interior",
+      "text": "write the river 62",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "write",
+        "river"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-063",
+      "kind": "clean-interior",
+      "text": "describe the planet 63",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "describe",
+        "planet"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-064",
+      "kind": "clean-interior",
+      "text": "compare the garden 64",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "compare",
+        "garden"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-065",
+      "kind": "clean-interior",
+      "text": "practice the window 65",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "practice",
+        "window"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-066",
+      "kind": "clean-interior",
+      "text": "review the pencil 66",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "review",
+        "pencil"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-067",
+      "kind": "clean-interior",
+      "text": "choose the market 67",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "choose",
+        "market"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-068",
+      "kind": "clean-interior",
+      "text": "explain the camera 68",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "explain",
+        "camera"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-069",
+      "kind": "clean-interior",
+      "text": "complete the lesson 69",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "complete",
+        "lesson"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-070",
+      "kind": "clean-interior",
+      "text": "remember the bridge 70",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "remember",
+        "bridge"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-071",
+      "kind": "clean-interior",
+      "text": "read the book 71",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "read",
+        "book"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-072",
+      "kind": "clean-interior",
+      "text": "write the river 72",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "write",
+        "river"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-073",
+      "kind": "clean-interior",
+      "text": "describe the planet 73",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "describe",
+        "planet"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-074",
+      "kind": "clean-interior",
+      "text": "compare the garden 74",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "compare",
+        "garden"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-075",
+      "kind": "clean-interior",
+      "text": "practice the window 75",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "practice",
+        "window"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-076",
+      "kind": "clean-interior",
+      "text": "review the pencil 76",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "review",
+        "pencil"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-077",
+      "kind": "clean-interior",
+      "text": "choose the market 77",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "choose",
+        "market"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-078",
+      "kind": "clean-interior",
+      "text": "explain the camera 78",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "explain",
+        "camera"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-079",
+      "kind": "clean-interior",
+      "text": "complete the lesson 79",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "complete",
+        "lesson"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-080",
+      "kind": "clean-interior",
+      "text": "remember the bridge 80",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "remember",
+        "bridge"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-081",
+      "kind": "clean-interior",
+      "text": "read the book 81",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "read",
+        "book"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-082",
+      "kind": "clean-interior",
+      "text": "write the river 82",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "write",
+        "river"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-083",
+      "kind": "clean-interior",
+      "text": "describe the planet 83",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "describe",
+        "planet"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-084",
+      "kind": "clean-interior",
+      "text": "compare the garden 84",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "compare",
+        "garden"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-085",
+      "kind": "clean-interior",
+      "text": "practice the window 85",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "practice",
+        "window"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-086",
+      "kind": "clean-interior",
+      "text": "review the pencil 86",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "review",
+        "pencil"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-087",
+      "kind": "clean-interior",
+      "text": "choose the market 87",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "choose",
+        "market"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-088",
+      "kind": "clean-interior",
+      "text": "explain the camera 88",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "explain",
+        "camera"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-089",
+      "kind": "clean-interior",
+      "text": "complete the lesson 89",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "complete",
+        "lesson"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-090",
+      "kind": "clean-interior",
+      "text": "remember the bridge 90",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "remember",
+        "bridge"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-091",
+      "kind": "clean-interior",
+      "text": "read the book 91",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "read",
+        "book"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-092",
+      "kind": "clean-interior",
+      "text": "write the river 92",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "write",
+        "river"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-093",
+      "kind": "clean-interior",
+      "text": "describe the planet 93",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "describe",
+        "planet"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-094",
+      "kind": "clean-interior",
+      "text": "compare the garden 94",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "compare",
+        "garden"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-095",
+      "kind": "clean-interior",
+      "text": "practice the window 95",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "practice",
+        "window"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-096",
+      "kind": "clean-interior",
+      "text": "review the pencil 96",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "review",
+        "pencil"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-097",
+      "kind": "clean-interior",
+      "text": "choose the market 97",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "choose",
+        "market"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-098",
+      "kind": "clean-interior",
+      "text": "explain the camera 98",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "explain",
+        "camera"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-099",
+      "kind": "clean-interior",
+      "text": "complete the lesson 99",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "complete",
+        "lesson"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-100",
+      "kind": "clean-interior",
+      "text": "remember the bridge 100",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "remember",
+        "bridge"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-101",
+      "kind": "clean-interior",
+      "text": "read the book 101",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "read",
+        "book"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-102",
+      "kind": "clean-interior",
+      "text": "write the river 102",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "write",
+        "river"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-103",
+      "kind": "clean-interior",
+      "text": "describe the planet 103",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "describe",
+        "planet"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-104",
+      "kind": "clean-interior",
+      "text": "compare the garden 104",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "compare",
+        "garden"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-105",
+      "kind": "clean-interior",
+      "text": "practice the window 105",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "practice",
+        "window"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-106",
+      "kind": "clean-interior",
+      "text": "review the pencil 106",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "review",
+        "pencil"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-107",
+      "kind": "clean-interior",
+      "text": "choose the market 107",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "choose",
+        "market"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-108",
+      "kind": "clean-interior",
+      "text": "explain the camera 108",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "explain",
+        "camera"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-109",
+      "kind": "clean-interior",
+      "text": "complete the lesson 109",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "complete",
+        "lesson"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-110",
+      "kind": "clean-interior",
+      "text": "remember the bridge 110",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "remember",
+        "bridge"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-111",
+      "kind": "clean-interior",
+      "text": "read the book 111",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "read",
+        "book"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-112",
+      "kind": "clean-interior",
+      "text": "write the river 112",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "write",
+        "river"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-113",
+      "kind": "clean-interior",
+      "text": "describe the planet 113",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "describe",
+        "planet"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-114",
+      "kind": "clean-interior",
+      "text": "compare the garden 114",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "compare",
+        "garden"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-115",
+      "kind": "clean-interior",
+      "text": "practice the window 115",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "practice",
+        "window"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-116",
+      "kind": "clean-interior",
+      "text": "review the pencil 116",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "review",
+        "pencil"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-117",
+      "kind": "clean-interior",
+      "text": "choose the market 117",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "choose",
+        "market"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-118",
+      "kind": "clean-interior",
+      "text": "explain the camera 118",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "explain",
+        "camera"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-119",
+      "kind": "clean-interior",
+      "text": "complete the lesson 119",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "complete",
+        "lesson"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-120",
+      "kind": "clean-interior",
+      "text": "remember the bridge 120",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "remember",
+        "bridge"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-121",
+      "kind": "clean-interior",
+      "text": "read the book 121",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "read",
+        "book"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-122",
+      "kind": "clean-interior",
+      "text": "write the river 122",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "write",
+        "river"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-123",
+      "kind": "clean-interior",
+      "text": "describe the planet 123",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "describe",
+        "planet"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-124",
+      "kind": "clean-interior",
+      "text": "compare the garden 124",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "compare",
+        "garden"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-125",
+      "kind": "clean-interior",
+      "text": "practice the window 125",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "practice",
+        "window"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-126",
+      "kind": "clean-interior",
+      "text": "review the pencil 126",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "review",
+        "pencil"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-127",
+      "kind": "clean-interior",
+      "text": "choose the market 127",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "choose",
+        "market"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-128",
+      "kind": "clean-interior",
+      "text": "explain the camera 128",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "explain",
+        "camera"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-129",
+      "kind": "clean-interior",
+      "text": "complete the lesson 129",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "complete",
+        "lesson"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-130",
+      "kind": "clean-interior",
+      "text": "remember the bridge 130",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "remember",
+        "bridge"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-131",
+      "kind": "clean-interior",
+      "text": "read the book 131",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "read",
+        "book"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-132",
+      "kind": "clean-interior",
+      "text": "write the river 132",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "write",
+        "river"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-133",
+      "kind": "clean-interior",
+      "text": "describe the planet 133",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "describe",
+        "planet"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-134",
+      "kind": "clean-interior",
+      "text": "compare the garden 134",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "compare",
+        "garden"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-135",
+      "kind": "clean-interior",
+      "text": "practice the window 135",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "practice",
+        "window"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-136",
+      "kind": "clean-interior",
+      "text": "review the pencil 136",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "review",
+        "pencil"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-137",
+      "kind": "clean-interior",
+      "text": "choose the market 137",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "choose",
+        "market"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-138",
+      "kind": "clean-interior",
+      "text": "explain the camera 138",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "explain",
+        "camera"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-139",
+      "kind": "clean-interior",
+      "text": "complete the lesson 139",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "complete",
+        "lesson"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-140",
+      "kind": "clean-interior",
+      "text": "remember the bridge 140",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "remember",
+        "bridge"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-141",
+      "kind": "clean-interior",
+      "text": "read the book 141",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "read",
+        "book"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-142",
+      "kind": "clean-interior",
+      "text": "write the river 142",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "write",
+        "river"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-143",
+      "kind": "clean-interior",
+      "text": "describe the planet 143",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "describe",
+        "planet"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-144",
+      "kind": "clean-interior",
+      "text": "compare the garden 144",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "compare",
+        "garden"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-145",
+      "kind": "clean-interior",
+      "text": "practice the window 145",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "practice",
+        "window"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-146",
+      "kind": "clean-interior",
+      "text": "review the pencil 146",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "review",
+        "pencil"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-147",
+      "kind": "clean-interior",
+      "text": "choose the market 147",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "choose",
+        "market"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-148",
+      "kind": "clean-interior",
+      "text": "explain the camera 148",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "explain",
+        "camera"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-149",
+      "kind": "clean-interior",
+      "text": "complete the lesson 149",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "complete",
+        "lesson"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    },
+    {
+      "id": "C-150",
+      "kind": "clean-interior",
+      "text": "remember the bridge 150",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.5
+      },
+      "teachingTerms": [
+        "remember",
+        "bridge"
+      ],
+      "expected": {
+        "blocked": false
+      }
+    }
+  ]
+}

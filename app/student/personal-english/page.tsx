@@ -1,6 +1,8 @@
 import { createClient } from "@/utils/supabase/server";
 import { WordForm } from "./_components/word-form";
 import { WordCard } from "./_components/word-card";
+import Link from "next/link";
+import { PERSONAL_WORD_OCR_ENABLED } from "@/app/_lib/ocr-import/feature";
 
 export default async function PersonalEnglishPage() {
   const supabase = await createClient();
@@ -20,6 +22,7 @@ export default async function PersonalEnglishPage() {
       </div>
 
       <WordForm />
+      {PERSONAL_WORD_OCR_ENABLED && <Link href="/student/personal-english/import" prefetch={false} className="inline-flex min-h-11 items-center text-blue-800 underline">拍照导入生词</Link>}
 
       <section aria-labelledby="personal-word-list-heading">
         <h2 id="personal-word-list-heading" className="mb-3 font-medium">

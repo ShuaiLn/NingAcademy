@@ -1,0 +1,102 @@
+{
+  "capturedAt": "2026-09-19",
+  "command": "npm audit --omit=dev --audit-level=high",
+  "status": "PASS_SAFE_TRANSITIVE_FIX",
+  "summary": { "info": 0, "low": 0, "moderate": 0, "high": 0, "critical": 0, "total": 0 },
+  "baseline": {
+    "transformers": "4.2.0",
+    "onnxruntimeWeb": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntimeNode": "1.24.3",
+    "model": "onnx-community/NeuroBERT-NER-ONNX@e3a6a290e438a506d2ba7bbb0f5875b7f034cebf",
+    "modelAssetsChanged": false,
+    "tokenizerAssetsChanged": false
+  },
+  "overrides": { "adm-zip": "0.6.1", "sharp": "0.35.4" },
+  "priorNpmPackageSummary": {
+    "vulnerablePackageEntries": 4,
+    "entries": ["@huggingface/transformers", "onnxruntime-node", "adm-zip", "sharp"],
+    "underlyingAdvisories": 5,
+    "note": "Transformers and onnxruntime-node were inherited npm package summaries, not additional advisory IDs."
+  },
+  "advisories": [
+    {
+      "id": "GHSA-xcpc-8h2w-3j85",
+      "package": "adm-zip",
+      "severity": "high",
+      "installedBefore": "0.5.18",
+      "affected": "<0.6.0",
+      "patched": ">=0.6.0",
+      "dependencyPath": "@huggingface/transformers@4.2.0 > onnxruntime-node@1.24.3 > adm-zip@0.5.18",
+      "reachabilityBeforeFix": "BUILD/CI ONLY",
+      "precondition": "The ONNX Runtime Node Linux install script must read or extract an attacker-controlled ZIP/NuGet archive.",
+      "applicationExposure": "Phase 2 never invokes ONNX Runtime Node. The install script downloads a fixed Microsoft NuGet URL during Linux dependency installation; no learner archive enters this path.",
+      "resolution": "adm-zip@0.6.1 override"
+    },
+    {
+      "id": "GHSA-vwc7-r8mq-g2x9",
+      "package": "adm-zip",
+      "severity": "moderate",
+      "installedBefore": "0.5.18",
+      "affected": ">=0.5.9 <=0.6.0",
+      "patched": "No patched version is listed; 0.6.1 is outside the affected range.",
+      "dependencyPath": "@huggingface/transformers@4.2.0 > onnxruntime-node@1.24.3 > adm-zip@0.5.18",
+      "reachabilityBeforeFix": "BUILD/CI ONLY",
+      "precondition": "An attacker must control both extracted archive content and a symlink in the reused extraction destination while overwrite is enabled.",
+      "applicationExposure": "The ONNX installer uses a new timestamped temporary directory and a Microsoft NuGet archive. It is absent from emitted browser and server runtime bundles.",
+      "resolution": "adm-zip@0.6.1 override"
+    },
+    {
+      "id": "GHSA-7q85-xj36-vmfc",
+      "package": "adm-zip",
+      "severity": "high",
+      "installedBefore": "0.5.18",
+      "affected": "<0.6.1",
+      "patched": ">=0.6.1",
+      "dependencyPath": "@huggingface/transformers@4.2.0 > onnxruntime-node@1.24.3 > adm-zip@0.5.18",
+      "reachabilityBeforeFix": "BUILD/CI ONLY",
+      "precondition": "The ONNX installer must decode a crafted archive entry with a malicious declared uncompressed size.",
+      "applicationExposure": "No application upload or OCR image is passed to adm-zip; the only repository dependency call is the ONNX Runtime Node install script.",
+      "resolution": "adm-zip@0.6.1 override"
+    },
+    {
+      "id": "GHSA-f88m-g3jw-g9cj",
+      "package": "sharp",
+      "severity": "high",
+      "installedBefore": "0.34.5",
+      "affected": "<0.35.0",
+      "patched": ">=0.35.0",
+      "dependencyPath": "@huggingface/transformers@4.2.0 > sharp@0.34.5",
+      "reachabilityBeforeFix": "PRESENT BUT NOT REACHABLE IN PRODUCTION",
+      "precondition": "Vulnerable native sharp/libvips code must process an attacker-controlled image.",
+      "applicationExposure": "The sole Transformers import is the browser NER Worker. Conditional exports select transformers.web.js, where sharp is stubbed; Phase 2 image decoding uses browser APIs and Tesseract, not native sharp.",
+      "resolution": "sharp@0.35.4 override"
+    },
+    {
+      "id": "GHSA-rgj7-g3m4-5g8c",
+      "package": "sharp",
+      "severity": "high",
+      "installedBefore": "0.34.5",
+      "affected": "<0.35.4",
+      "patched": ">=0.35.4",
+      "dependencyPath": "@huggingface/transformers@4.2.0 > sharp@0.34.5",
+      "reachabilityBeforeFix": "PRESENT BUT NOT REACHABLE IN PRODUCTION",
+      "precondition": "Vulnerable native sharp/libheif code must process an attacker-controlled HEIF/AVIF image.",
+      "applicationExposure": "Phase 2 accepts JPEG, PNG, and WebP in browser code, and the vulnerable Transformers sharp package was absent from all production trace manifests.",
+      "resolution": "sharp@0.35.4 override"
+    }
+  ],
+  "verification": {
+    "audit": "PASS: zero vulnerabilities",
+    "overrideCompatibility": "PASS: ONNX install-script AdmZip constructor/getEntry/extractEntryTo API, sharp native transform, and Transformers 4.2.0 Node import",
+    "browserBoundary": "PASS: only the NER Worker imports Transformers; its web export uses ONNX Runtime Web and stubs Node sharp",
+    "bundleBoundary": "PASS: no onnxruntime-node, adm-zip, vulnerable nested sharp, or libvips marker in emitted application chunks",
+    "browserChunkComparison": "PASS: all five emitted NeuroBERT/ONNX browser chunks are byte-identical before and after the overrides",
+    "licenseChange": false,
+    "productionModelRuntimeChange": false
+  },
+  "upgradeOption": {
+    "minimumAuditSuggestedVersion": "@huggingface/transformers@4.3.0",
+    "notApplied": true,
+    "reason": "It changes Transformers, ONNX Runtime Web/Node, tokenizers, jinja, and the approved runtime baseline, reopening P2-RUN-008 gates."
+  }
+}

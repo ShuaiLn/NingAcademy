@@ -1,0 +1,8 @@
+{
+  "exemptions": [
+    {
+      "path": "supabase/tests/game_unlock_scheme_b.sql",
+      "reason": "Historical Scheme B suite is exempt after the main-site Games retirement; retained as audit evidence under the Games/P-1 contract."
+    }
+  ]
+}
