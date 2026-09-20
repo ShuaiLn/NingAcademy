@@ -389,8 +389,10 @@ jobs:
               > p1-artifacts/replay/database-types.diff
             type_status=125
           else
-            sed 's/\r$//' "$generated_types" > "$generated_normalized"
-            sed 's/\r$//' supabase/database.types.ts > "$committed_normalized"
+            node -e 'const fs=require("fs");const [src,dst]=process.argv.slice(1);fs.writeFileSync(dst,fs.readFileSync(src,"utf8").replace(/\r\n?/g,"\n").trimEnd()+"\n")' \
+              "$generated_types" "$generated_normalized"
+            node -e 'const fs=require("fs");const [src,dst]=process.argv.slice(1);fs.writeFileSync(dst,fs.readFileSync(src,"utf8").replace(/\r\n?/g,"\n").trimEnd()+"\n")' \
+              supabase/database.types.ts "$committed_normalized"
             diff -u \
               --label committed/supabase/database.types.ts \
               --label replay/generated.database.types.ts \
@@ -900,10 +902,10 @@ jobs:
             type_match_status=125
           else
             artifact_status=0
-            sed 's/\r$//' "$generated_types" \
-              > p1-artifacts/application/generated.database.types.normalized.ts
-            sed 's/\r$//' supabase/database.types.ts \
-              > p1-artifacts/application/committed.database.types.normalized.ts
+            node -e 'const fs=require("fs");const [src,dst]=process.argv.slice(1);fs.writeFileSync(dst,fs.readFileSync(src,"utf8").replace(/\r\n?/g,"\n").trimEnd()+"\n")' \
+              "$generated_types" p1-artifacts/application/generated.database.types.normalized.ts
+            node -e 'const fs=require("fs");const [src,dst]=process.argv.slice(1);fs.writeFileSync(dst,fs.readFileSync(src,"utf8").replace(/\r\n?/g,"\n").trimEnd()+"\n")' \
+              supabase/database.types.ts p1-artifacts/application/committed.database.types.normalized.ts
             diff -u \
               --label committed/supabase/database.types.ts \
               --label replay/generated.database.types.ts \
