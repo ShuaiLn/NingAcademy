@@ -9,7 +9,7 @@ const query=(text,params=[])=>database.query(text,params);
 const snapshot={version:1,origin:'Actual Phase 1 migration replay; values are effective privileges and catalog security metadata.',tables:[],functions:[]};
 for(const table of tables){
   const catalog=await query("select relrowsecurity,relforcerowsecurity from pg_class where oid=$1::regclass",[table]);
-  const policies=await query("select polname,polcmd,polpermissive,(select array_agg(r.rolname order by r.rolname) from unnest(polroles) x(oid) join pg_roles r on r.oid=x.oid) roles from pg_policy where polrelid=$1::regclass order by polname",[table]);
+  const policies=await query("select polname,polcmd,polpermissive,(select jsonb_agg(r.rolname order by r.rolname) from unnest(polroles) x(oid) join pg_roles r on r.oid=x.oid) roles from pg_policy where polrelid=$1::regclass order by polname",[table]);
   const privileges={};for(const role of roles){privileges[role]={};for(const privilege of ['SELECT','INSERT','UPDATE','DELETE']) privileges[role][privilege]=(await query('select has_table_privilege($1,$2,$3) allowed',[role,table,privilege])).rows[0].allowed;}
   snapshot.tables.push({table,...catalog.rows[0],policies:policies.rows,privileges});
 }
