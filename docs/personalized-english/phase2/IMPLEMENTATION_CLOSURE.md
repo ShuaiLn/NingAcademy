@@ -40,14 +40,14 @@ feature, vocabulary engine, or retired Games contract was changed for Phase 2.
 
 ## Acceptance criteria disposition
 
-| Criterion | Local disposition | Remaining evidence, if any |
+| Criterion | Disposition | Remaining evidence, if any |
 | --- | --- | --- |
-| P2-AC-001–004 | Implemented; SQL source/order checks and 129-assertion supplemental DB run pass | Canonical clean replay/pgTAP |
-| P2-AC-005 | Implementation and real two-session harness authored | Real Postgres concurrency run |
-| P2-AC-006 | Implemented; ownership denial covered by SQL and supplemental DB run | Canonical pgTAP |
-| P2-AC-007 | Atomic lock/quota implementation and race harness authored | Real Postgres concurrency run |
-| P2-AC-008–011 | Implemented; quota, rollback, and three-field server PII cases pass supplemental DB run | Canonical pgTAP |
-| P2-AC-012–014 | Design/catalog preservation implemented and SQL assertions authored | Canonical pgTAP/catalog replay |
+| P2-AC-001–004 | PASS in canonical clean replay and OCR pgTAP | None |
+| P2-AC-005 | PASS in canonical two-session PostgreSQL concurrency harness | None |
+| P2-AC-006 | PASS in canonical ownership pgTAP | None |
+| P2-AC-007 | PASS in canonical atomic quota concurrency harness | None |
+| P2-AC-008–011 | PASS in canonical quota, rollback, and three-field server PII pgTAP | None |
+| P2-AC-012–014 | PASS in canonical design/catalog and legacy-RPC assertions | None |
 | P2-AC-015–020 | Unit/component/browser suites pass locally | Hosted browser repetition where required |
 | P2-AC-021 | Local real-browser pre-confirmation allowlist passes | Isolated Preview trace |
 | P2-AC-022 | Unit and browser teardown/cancel/pagehide checks pass | Physical browser memory evidence |
@@ -57,12 +57,12 @@ feature, vocabulary engine, or retired Games contract was changed for Phase 2.
 | P2-AC-026 | Ning-Privacy-Classifier is absent and explicitly deferred | None for local implementation |
 | P2-AC-027 | axe, focus, target-size, keyboard, and narrow-mobile checks pass locally | Required physical/manual accessibility evidence |
 | P2-AC-028 | No implementation dependency remains | Owner Phase 1.5 closure before merge |
-| P2-AC-029 | Named fail-closed workflows and aggregation authored | Hosted CI run with every status zero |
+| P2-AC-029 | PASS; every named replay/application substatus and aggregate is zero in run `35481305466` | None |
 | P2-AC-030 | Precondition/convergence source authored; no Production operation performed | Authorized deployment and read-only convergence |
 | P2-AC-031–037 | Frozen manifests and unit/fixture/equivalence/precedence suites pass locally | Owner policy/runtime approval where specified |
 | P2-AC-038 | Private helper and bulk delegation implemented/tested | Phase 6 later creates/tests its public wrapper |
 | P2-AC-039–040 | Fixture registration and all-field client validation suites pass | None for local implementation |
-| P2-AC-041 | Exact FK order checker and supplemental DB assertions pass | Canonical zero-to-latest replay |
+| P2-AC-041 | PASS in canonical zero-to-latest replay and named FK/order pgTAP | None |
 | P2-AC-042 | OCR has no bypass; Phase 1 manual add remains unchanged; UI/regression checks pass | None for local implementation |
 | P2-AC-043 | Direct-entry and client-navigation telemetry silence pass locally; Speed Insights globally disabled | Isolated Preview network trace |
 
@@ -91,17 +91,54 @@ Supabase PostgreSQL; neither its 138 assertions nor its two precondition
 executions are labeled as canonical replay, Production-catalog evidence, or
 concurrency evidence.
 
+## Canonical CI verification
+
+Commit `65ca4f93b49a5215c8decec613bc564705101fb3` was verified through pull
+request `#4` without requesting the protected Production job.
+
+- P-1 database audit run `35481305466`: **PASS**. Job `105999508996`
+  replayed all 34 migrations from zero and passed migration history/order,
+  schema convergence, authorization and Phase 1 regression pgTAP, 119 OCR
+  contract assertions, 34 OCR security/ACL assertions, legacy ACL comparison,
+  rollback/cascade/idempotency/quota behavior, two-session concurrency, type
+  generation, and type drift. Job `105999890633` passed application checks
+  against replay-generated types, and aggregate job `106000137944` passed.
+  Production job `106000158749` was skipped.
+- Replay artifact: `p1-migration-replay-35481305466` (artifact
+  `10595184881`). Application artifact:
+  `p1-application-verification-35481305466` (artifact `10596230243`).
+- Independent Application quality run `35481305432`: **PASS**, with browser
+  artifact `phase2-browser-35481305432` (artifact `10595563603`).
+
+## Remaining gate register
+
+| Gate | Status after canonical verification | Required closure |
+| --- | --- | --- |
+| Phase 1.5 formal closure | NOT VERIFIED | Owner-approved closure against current GitHub evidence |
+| Phase 0 dependency in GitHub | NOT VERIFIED | Dedicated owner review/approval of the reused Phase 0 files and CI evidence |
+| Local Phase 0 worktree reuse | PARTIAL | Diff, provenance, and tests exist; owner review remains |
+| Untouched zero-to-latest replay | PASS | Run `35481305466` and artifact `10595184881` |
+| Thin-slice product-value check | NOT VERIFIED | Human ten-worksheet capture-to-save study and owner review |
+| 50-line calibration and policy approval | NOT VERIFIED | Execute calibration, record observations, and obtain owner approval |
+| NeuroBERT provenance/license | NOT VERIFIED | Written owner/legal acceptance or approved replacement plus revalidation |
+| Wordlist provenance/redistribution | NOT VERIFIED | Attribution/provenance review and owner approval |
+| Runtime/device profile | NOT VERIFIED | Reference and low-end physical-browser timing/memory evidence and approval |
+| Mandatory-NER device availability | NOT VERIFIED | Approved 9/10 target-device matrix |
+| OCR telemetry isolation | PARTIAL | Local and hosted CI browser tests pass; isolated Preview trace remains |
+| Next.js security baseline | PASS | Patched `16.3.5` build/tests pass |
+| Replay ACL snapshot | PASS | Canonical catalog comparison in run `35481305466` |
+| Vercel asset/header/offline behavior | NOT VERIFIED | Isolated Preview acceptance evidence |
+| Dependency audit disposition | NOT VERIFIED | Owner/security disposition of four high findings in the pinned model dependency chain |
+| Untouched release holdout | NOT VERIFIED | Execute the 300-line holdout and obtain owner review |
+| Production precondition/deployment/convergence | NOT VERIFIED | Protected read-only precondition, explicit authorization, deployment, and post-deployment convergence |
+
 ## Technically remaining local implementation
 
-None identified. The generated `supabase/database.types.ts` shape is reconciled
-locally, but canonical regeneration is coupled to the unavailable clean
-Supabase replay and remains an evidence item rather than unfinished source code.
+None identified. Canonical replay-generated `supabase/database.types.ts`
+matches the committed type shape after line-ending/end-of-file normalization.
 
 ## External and release-only gates
 
-- Fresh P-1 zero-to-latest replay, named pgTAP suites, two-session Postgres
-  concurrency, canonical database type generation/drift, ACL snapshot, and
-  hosted fail-closed aggregation.
 - Phase 1.5 closure and dedicated review/CI of the reused local Phase 0 work.
 - Human ten-worksheet product-value study or explicit convenience acceptance;
   50-line calibration execution and approval; untouched 300-line release
