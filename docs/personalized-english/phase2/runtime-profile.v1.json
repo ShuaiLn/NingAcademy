@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "status": "CANDIDATE_AWAITING_OWNER_AND_DEVICE_APPROVAL",
+  "confidenceBands": { "normalMinimum": 90, "confirmMinimum": 70, "minimum": 0, "maximum": 100 },
+  "referenceTargetMs": 6000,
+  "lowEndTargetMs": 15000,
+  "incrementalPeakMemoryBytes": 301989888,
+  "language": "eng",
+  "chiSim": "REQUIRES_MEASURED_BENEFIT",
+  "position": { "minimumValidNonblankLines": 6, "edgeFraction": 0.15 },
+  "model": {
+    "name": "onnx-community/NeuroBERT-NER-ONNX",
+    "revision": "e3a6a290e438a506d2ba7bbb0f5875b7f034cebf",
+    "dtype": "q8",
+    "transformers": "4.2.0",
+    "maxPositionEmbeddings": 512
+  },
+  "approval": null
+}

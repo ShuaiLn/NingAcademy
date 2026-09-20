@@ -1,0 +1,35 @@
+{
+  "status": "PASS_LOCAL_ONLY",
+  "capturedAt": "2026-09-20T00:59:34.360Z",
+  "planSha256": "7bd35176435c104e2966c44f50b22f141d7fb2dfebe7fadb89a44300f8bf798e",
+  "runner": "Playwright 1.58.2",
+  "browser": "Microsoft Edge 153.0.4234.32",
+  "productionBuild": true,
+  "summary": {
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0,
+    "durationMs": 67623.681
+  },
+  "coverage": [
+    "direct entry and idle network silence",
+    "real OCR and mandatory NeuroBERT NER",
+    "Employee whole-line rejection",
+    "confirmed-only Server Action payload",
+    "warm-cache offline OCR and NER",
+    "client navigation and telemetry silence",
+    "invalid image and pagehide teardown",
+    "JPEG EXIF and WebP input",
+    "magic-byte/MIME mismatch rejection before model acquisition",
+    "axe, focus, mobile target size and no horizontal overflow",
+    "fatal asset failure, retry and cancellation",
+    "zero active OCR/NER Workers after review, failure and cancellation"
+  ],
+  "contentBearingEvidence": false,
+  "limitations": [
+    "local loopback environment, not isolated Preview",
+    "headless browser, not physical-device or screen-reader acceptance",
+    "does not authorize deployment"
+  ]
+}

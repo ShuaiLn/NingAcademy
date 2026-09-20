@@ -1,0 +1,1 @@
+{ "version": 1, "organizations": ["Amazon", "Apple", "Google", "Microsoft", "OpenAI", "Costco", "Costco Wholesale"], "locations": ["Seattle", "London", "New York"], "contextRule": "Entity evidence only. Never overrides PERSON, identifying labels, or other higher-priority policy." }

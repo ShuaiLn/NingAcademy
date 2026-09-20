@@ -20,13 +20,13 @@ export function StudentNav({ fullName }: { fullName: string | null }) {
     <header className="border-b border-slate-200">
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-6">
-          <Link href="/student" className="flex items-center gap-2 font-semibold">
+          <Link prefetch={false} href="/student" className="flex min-h-11 items-center gap-2 font-semibold">
             <Image src="/logo.png" alt="NingAcademy" width={24} height={24} />
             NingAcademy · 学生端
           </Link>
           <nav className="hidden items-center gap-6 sm:flex">
             {LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className="text-sm text-slate-600 hover:text-slate-900">
+              <Link prefetch={false} key={link.href} href={link.href} className="text-sm text-slate-600 hover:text-slate-900">
                 {link.label}
               </Link>
             ))}
@@ -34,7 +34,7 @@ export function StudentNav({ fullName }: { fullName: string | null }) {
         </div>
         <div className="flex items-center gap-4">
           {fullName ? (
-            <Link href="/student" className="hidden text-sm text-slate-600 hover:text-slate-900 sm:inline">
+            <Link prefetch={false} href="/student" className="hidden text-sm text-slate-600 hover:text-slate-900 sm:inline">
               {fullName}
             </Link>
           ) : null}
@@ -46,7 +46,7 @@ export function StudentNav({ fullName }: { fullName: string | null }) {
           <button
             type="button"
             onClick={() => setOpen((prev) => !prev)}
-            className="text-sm text-slate-600 sm:hidden"
+            className="min-h-11 min-w-11 text-sm text-slate-600 sm:hidden"
             aria-label={open ? "关闭菜单" : "打开菜单"}
           >
             {open ? "✕" : "☰"}
@@ -56,7 +56,7 @@ export function StudentNav({ fullName }: { fullName: string | null }) {
       {open ? (
         <nav className="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 sm:hidden">
           {LINKS.map((link) => (
-            <Link
+            <Link prefetch={false}
               key={link.href}
               href={link.href}
               onClick={() => setOpen(false)}
@@ -66,7 +66,7 @@ export function StudentNav({ fullName }: { fullName: string | null }) {
             </Link>
           ))}
           {fullName ? (
-            <Link href="/student" onClick={() => setOpen(false)} className="text-sm text-slate-600 hover:text-slate-900">
+            <Link prefetch={false} href="/student" onClick={() => setOpen(false)} className="text-sm text-slate-600 hover:text-slate-900">
               {fullName}
             </Link>
           ) : null}

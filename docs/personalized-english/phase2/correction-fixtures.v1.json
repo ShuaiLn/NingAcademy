@@ -1,0 +1,17 @@
+{ "version": 1, "fixtures": [
+  { "id": "relabel", "text": "Microsoft", "label": "LOC", "start": 0, "end": 9, "expected": "ORG" },
+  { "id": "omitted-addition", "text": "Google", "expected": "ORG" },
+  { "id": "split-merge", "text": "OpenAI", "tokens": [{"label":"ORG","start":0,"end":4},{"label":"MISC","start":4,"end":6}], "expected": "ORG" },
+  { "id": "unicode-boundary", "text": "éMicrosofté", "expected": "empty" },
+  { "id": "nfkc", "text": "Ｍicrosoft", "expected": "ORG" },
+  { "id": "whitespace", "text": "Maria\t  Garcia", "expected": "mapped" },
+  { "id": "malformed", "text": "Maria", "label": "PERSON", "start": 9, "end": 2, "expected": "ambiguous" },
+  { "id": "empty", "text": "", "expected": "empty" },
+  { "id": "immutability", "text": "Microsoft", "label": "LOC", "start": 0, "end": 9, "expected": "ORG" },
+  { "id": "provenance", "text": "Microsoft", "label": "LOC", "start": 0, "end": 9, "expected": "ORG" },
+  { "id": "person-overlap", "text": "Maria Microsoft", "label": "PERSON", "start": 0, "end": 15, "expected": "ambiguous" },
+  { "id": "institution-header", "text": "Oak School", "lineCount": 6, "y": 5, "expected": "header_footer_institution" },
+  { "id": "institution-middle", "text": "Oak School", "lineCount": 6, "y": 45, "expected": "no_privacy_signal" },
+  { "id": "institution-cropped", "text": "Oak School", "lineCount": 5, "y": 5, "expected": "no_privacy_signal" },
+  { "id": "edge-no-institution", "text": "Read carefully", "lineCount": 6, "y": 5, "expected": "no_privacy_signal" }
+] }

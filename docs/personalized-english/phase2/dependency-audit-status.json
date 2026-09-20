@@ -1,0 +1,41 @@
+{
+  "capturedAt": "2026-09-19",
+  "command": "npm audit --json",
+  "status": "REVIEW_REQUIRED",
+  "summary": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 4,
+    "critical": 0,
+    "total": 4
+  },
+  "findings": [
+    {
+      "package": "@huggingface/transformers",
+      "direct": true,
+      "severity": "high",
+      "range": "<=4.2.0"
+    },
+    {
+      "package": "onnxruntime-node",
+      "direct": false,
+      "severity": "high",
+      "path": "@huggingface/transformers > onnxruntime-node > adm-zip"
+    },
+    {
+      "package": "adm-zip",
+      "direct": false,
+      "severity": "high"
+    },
+    {
+      "package": "sharp",
+      "direct": false,
+      "severity": "high",
+      "path": "@huggingface/transformers > sharp"
+    }
+  ],
+  "npmSuggestedFix": "@huggingface/transformers@4.3.0",
+  "disposition": "Not upgraded automatically. P2-RUN-007 pins 4.2.0 exactly and P2-RUN-008 requires a replacement to repeat provenance, license, calibration, regressions, browser/runtime, performance, cache/offline, device and deployment evidence.",
+  "releaseGate": "Owner/security review must accept the exact baseline or authorize and fully revalidate a replacement before release."
+}

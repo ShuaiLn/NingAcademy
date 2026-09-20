@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "revision": "525f9b560de45753a5ea01069454e72e9aa541c6",
+  "source": "https://raw.githubusercontent.com/hermitdave/FrequencyWords/525f9b560de45753a5ea01069454e72e9aa541c6/content/2018/en/en_50k.txt",
+  "sourceSha256": "5351ff405b1126ef555791dd4d9798a48e3e9a501a9fc481a9da957752cfb458",
+  "count": 48412,
+  "transformation": "NFKC; lowercase; ASCII letters with internal apostrophe/hyphen; deduplicate; byte sort; LF including final LF; little-endian uint32 offsets with terminal offset",
+  "license": "CC-BY-SA-4.0",
+  "attributionApproval": null,
+  "provenanceApproval": null,
+  "distributionApproved": false,
+  "assets": [
+    {
+      "id": "dictionary-words.utf8",
+      "kind": "ocr",
+      "version": "1",
+      "source": "hermitdave/FrequencyWords@525f9b560de45753a5ea01069454e72e9aa541c6",
+      "bytes": 390710,
+      "sha256": "e103fcb8a9de805d862806523703bf9298e6cb6fd5aeafb81abfb8a16a696e93",
+      "license": "CC-BY-SA-4.0",
+      "url": "/local-ai-assets/dictionary/frequencywords-v1/words.utf8",
+      "cacheSchemaVersion": 1
+    },
+    {
+      "id": "dictionary-offsets.u32le",
+      "kind": "ocr",
+      "version": "1",
+      "source": "hermitdave/FrequencyWords@525f9b560de45753a5ea01069454e72e9aa541c6",
+      "bytes": 193652,
+      "sha256": "646906baf4077cce70e1388072394c9d1054b4cd99e8826845c1598d698b040f",
+      "license": "CC-BY-SA-4.0",
+      "url": "/local-ai-assets/dictionary/frequencywords-v1/offsets.u32le",
+      "cacheSchemaVersion": 1
+    }
+  ]
+}

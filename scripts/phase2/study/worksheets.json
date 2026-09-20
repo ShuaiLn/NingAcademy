@@ -1,0 +1,12 @@
+[
+  { "id": "worksheet-01", "topic": "Kitchen", "layout": "list", "words": ["bread", "butter", "plate", "spoon", "water"] },
+  { "id": "worksheet-02", "topic": "Travel", "layout": "columns", "words": ["ticket", "station", "journey", "luggage", "window", "arrival"] },
+  { "id": "worksheet-03", "topic": "Nature", "layout": "list", "words": ["forest", "river", "flower", "garden", "branch", "insect", "shadow"] },
+  { "id": "worksheet-04", "topic": "Learning", "layout": "columns", "words": ["pencil", "paper", "lesson", "question", "answer", "chapter", "reading", "practice"] },
+  { "id": "worksheet-05", "topic": "Workplace", "layout": "list", "words": ["safety", "helmet", "ladder", "gloves", "repair", "toolbox", "inspect", "measure", "careful"] },
+  { "id": "worksheet-06", "topic": "Shopping", "layout": "columns", "words": ["basket", "market", "receipt", "price", "change", "bottle", "packet", "fresh", "choose", "return"] },
+  { "id": "worksheet-07", "topic": "Weather", "layout": "list", "words": ["cloud", "rain", "wind", "snow", "storm"] },
+  { "id": "worksheet-08", "topic": "Cooking", "layout": "columns", "words": ["slice", "stir", "boil", "bake", "roast", "serve"] },
+  { "id": "worksheet-09", "topic": "Community", "layout": "list", "words": ["library", "hospital", "museum", "playground", "crossing", "pavement", "recycle"] },
+  { "id": "worksheet-10", "topic": "Science", "layout": "columns", "words": ["energy", "gravity", "liquid", "solid", "oxygen", "planet", "motion", "experiment", "observe", "compare"] }
+]

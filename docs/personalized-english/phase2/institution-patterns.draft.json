@@ -1,0 +1,24 @@
+{
+  "version": "draft-1",
+  "status": "PROPOSED_NOT_APPROVED",
+  "patterns": [
+    {
+      "id": "institution-title.draft-1",
+      "pattern": "\\b(?:Academy|School|College|University|Institute)\\b",
+      "flags": "iu",
+      "reason": "Institution title; only suppress with position and six-line precondition",
+      "fixtureIds": [
+        "CAL-001",
+        "CAL-002",
+        "CAL-003",
+        "CAL-004",
+        "CAL-005",
+        "CAL-006",
+        "CAL-007",
+        "CAL-008",
+        "CAL-009",
+        "CAL-010"
+      ]
+    }
+  ]
+}

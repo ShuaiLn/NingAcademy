@@ -675,10 +675,47 @@ export type Database = {
           },
         ]
       }
+      personal_word_ocr_imports: {
+        Row: {
+          confirmed_at: string
+          confirmed_count: number
+          created_at: string
+          id: string
+          payload_hash: string
+          student_id: string
+        }
+        Insert: {
+          confirmed_at: string
+          confirmed_count: number
+          created_at?: string
+          id: string
+          payload_hash: string
+          student_id: string
+        }
+        Update: {
+          confirmed_at?: string
+          confirmed_count?: number
+          created_at?: string
+          id?: string
+          payload_hash?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_word_ocr_imports_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       personal_word_sources: {
         Row: {
           created_at: string
           id: string
+          ocr_import_id: string | null
+          ocr_item_index: number | null
           personal_word_id: string
           pronunciation_task_word_id: string | null
           source_type: string
@@ -687,6 +724,8 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          ocr_import_id?: string | null
+          ocr_item_index?: number | null
           personal_word_id: string
           pronunciation_task_word_id?: string | null
           source_type: string
@@ -695,12 +734,21 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          ocr_import_id?: string | null
+          ocr_item_index?: number | null
           personal_word_id?: string
           pronunciation_task_word_id?: string | null
           source_type?: string
           vocabulary_word_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "personal_word_sources_ocr_import_id_fkey"
+            columns: ["ocr_import_id"]
+            isOneToOne: false
+            referencedRelation: "personal_word_ocr_imports"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "personal_word_sources_personal_word_id_fkey"
             columns: ["personal_word_id"]
@@ -2175,6 +2223,15 @@ export type Database = {
         Args: { p_meaning?: string; p_term: string }
         Returns: string
       }
+      upsert_personal_words_bulk_v1: {
+        Args: { p_ocr_import_id: string; p_words: Json }
+        Returns: {
+          ocr_item_index: number
+          personal_word_id: string
+          source_id: string
+          term: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
@@ -2307,4 +2364,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

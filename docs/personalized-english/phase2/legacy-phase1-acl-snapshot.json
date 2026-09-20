@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "origin": "Actual Phase 1 migration replay; values are effective privileges and catalog security metadata.",
+  "tables": [
+    {
+      "table": "public.personal_words",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false,
+      "policies": [
+        {
+          "polname": "personal_words_select_own",
+          "polcmd": "r",
+          "polpermissive": true,
+          "roles": [
+            "authenticated"
+          ]
+        }
+      ],
+      "privileges": {
+        "anon": {
+          "SELECT": false,
+          "INSERT": false,
+          "UPDATE": false,
+          "DELETE": false
+        },
+        "authenticated": {
+          "SELECT": true,
+          "INSERT": false,
+          "UPDATE": false,
+          "DELETE": false
+        },
+        "service_role": {
+          "SELECT": true,
+          "INSERT": true,
+          "UPDATE": true,
+          "DELETE": true
+        }
+      }
+    },
+    {
+      "table": "public.personal_word_sources",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false,
+      "policies": [
+        {
+          "polname": "personal_word_sources_select_own",
+          "polcmd": "r",
+          "polpermissive": true,
+          "roles": [
+            "authenticated"
+          ]
+        }
+      ],
+      "privileges": {
+        "anon": {
+          "SELECT": false,
+          "INSERT": false,
+          "UPDATE": false,
+          "DELETE": false
+        },
+        "authenticated": {
+          "SELECT": true,
+          "INSERT": false,
+          "UPDATE": false,
+          "DELETE": false
+        },
+        "service_role": {
+          "SELECT": true,
+          "INSERT": true,
+          "UPDATE": true,
+          "DELETE": true
+        }
+      }
+    }
+  ],
+  "functions": [
+    {
+      "signature": "public.upsert_personal_word_v1(text,text)",
+      "prosecdef": true,
+      "provolatile": "v",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "execute": {
+        "anon": false,
+        "authenticated": true,
+        "service_role": false
+      }
+    },
+    {
+      "signature": "public.attach_personal_word_source_v1(uuid,text,uuid)",
+      "prosecdef": true,
+      "provolatile": "v",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "execute": {
+        "anon": false,
+        "authenticated": true,
+        "service_role": false
+      }
+    },
+    {
+      "signature": "public.archive_personal_word_v1(uuid)",
+      "prosecdef": true,
+      "provolatile": "v",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "execute": {
+        "anon": false,
+        "authenticated": true,
+        "service_role": false
+      }
+    }
+  ]
+}

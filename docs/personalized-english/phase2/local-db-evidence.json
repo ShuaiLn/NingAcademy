@@ -1,0 +1,6 @@
+{
+  "status": "PASS_SUPPLEMENTAL_ONLY",
+  "engine": "PGlite 0.3.14",
+  "assertions": 152,
+  "scope": "Actual Phase 1 and Phase 2 migration source; actual four private helpers; minimal synthetic prerequisite schema. Not canonical replay, hosted verification, or concurrency evidence."
+}

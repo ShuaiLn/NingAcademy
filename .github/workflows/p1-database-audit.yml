@@ -62,6 +62,13 @@ jobs:
       games_retirement_status: ${{ steps.runtime_privileges.outputs.status }}
       authorization_test_status: ${{ steps.authorization_tests.outputs.status }}
       personal_english_test_status: ${{ steps.personal_english_tests.outputs.status }}
+      phase2_registration_status: ${{ steps.phase2_registration.outputs.status }}
+      phase2_dependency_status: ${{ steps.phase2_dependencies.outputs.status }}
+      phase2_ocr_test_status: ${{ steps.phase2_ocr_tests.outputs.status }}
+      phase2_ocr_security_status: ${{ steps.phase2_ocr_security.outputs.status }}
+      phase2_migration_order_status: ${{ steps.phase2_migration_order.outputs.status }}
+      phase2_legacy_acl_status: ${{ steps.phase2_legacy_acl.outputs.status }}
+      phase2_concurrency_status: ${{ steps.phase2_concurrency.outputs.status }}
       type_generation_status: ${{ steps.type_generation.outputs.status }}
       type_drift_status: ${{ steps.type_drift.outputs.status }}
       snapshot_status: ${{ steps.replay_snapshot.outputs.status }}
@@ -74,6 +81,37 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Set up Node.js for Phase 2 database harnesses
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify every SQL test is registered or exempted
+        id: phase2_registration
+        shell: bash
+        run: |
+          set +e
+          mkdir -p p1-artifacts/replay
+          node scripts/phase2/check-sql-test-registration.mjs \
+            2>&1 | tee p1-artifacts/replay/phase2-sql-registration.log
+          check_status=${PIPESTATUS[0]}
+          printf '%s\n' "$check_status" > p1-artifacts/replay/phase2_registration_status.txt
+          echo "status=$check_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Install pinned Phase 2 harness dependencies
+        id: phase2_dependencies
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          npm ci --ignore-scripts 2>&1 | tee p1-artifacts/replay/phase2-npm-ci.log
+          install_status=${PIPESTATUS[0]}
+          printf '%s\n' "$install_status" > p1-artifacts/replay/phase2_dependency_status.txt
+          echo "status=$install_status" >> "$GITHUB_OUTPUT"
+          exit 0
 
       - name: Set up pinned Supabase CLI
         # supabase/setup-cli v3.0.0; pin the action and CLI for reproducible service images.
@@ -205,6 +243,108 @@ jobs:
           fi
           printf '%s\n' "$test_status" \
             > p1-artifacts/replay/personal_english_pgtap_status.txt
+          echo "status=$test_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Run Phase 2 OCR contract pgTAP suite
+        id: phase2_ocr_tests
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          if [[ "${{ steps.replay.outputs.replay_status }}" != "0" || "${{ steps.runtime_privileges.outputs.status }}" != "0" ]]; then
+            echo 'SKIPPED: full replay or catalog assertion unavailable.' | tee p1-artifacts/replay/phase2-ocr-pgtap.log
+            test_status=125
+          else
+            supabase test db --local supabase/tests/personal_english_ocr.test.sql \
+              2>&1 | tee p1-artifacts/replay/phase2-ocr-pgtap.log
+            test_status=${PIPESTATUS[0]}
+          fi
+          printf '%s\n' "$test_status" > p1-artifacts/replay/phase2_ocr_pgtap_status.txt
+          echo "status=$test_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Run Phase 2 OCR security and ACL pgTAP suite
+        id: phase2_ocr_security
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          if [[ "${{ steps.replay.outputs.replay_status }}" != "0" || "${{ steps.runtime_privileges.outputs.status }}" != "0" ]]; then
+            echo 'SKIPPED: full replay or catalog assertion unavailable.' | tee p1-artifacts/replay/phase2-ocr-security-pgtap.log
+            test_status=125
+          else
+            supabase test db --local supabase/tests/personal_english_ocr_security.test.sql \
+              2>&1 | tee p1-artifacts/replay/phase2-ocr-security-pgtap.log
+            test_status=${PIPESTATUS[0]}
+          fi
+          printf '%s\n' "$test_status" > p1-artifacts/replay/phase2_ocr_security_status.txt
+          echo "status=$test_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Run Phase 2 OCR migration-order contract
+        id: phase2_migration_order
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          if [[ "${{ steps.replay.outputs.replay_status }}" != "0" || "${{ steps.runtime_privileges.outputs.status }}" != "0" ]]; then
+            echo 'SKIPPED: full replay or catalog assertion unavailable.' | tee p1-artifacts/replay/phase2-migration-order.log
+            test_status=125
+          else
+            node scripts/phase2/check-migration-order.mjs \
+              2>&1 | tee p1-artifacts/replay/phase2-migration-order.log
+            static_status=${PIPESTATUS[0]}
+            supabase test db --local supabase/tests/personal_english_ocr_migration_order.test.sql \
+              2>&1 | tee -a p1-artifacts/replay/phase2-migration-order.log
+            sql_status=${PIPESTATUS[0]}
+            [[ "$static_status" == "0" && "$sql_status" == "0" ]]
+            test_status=$?
+          fi
+          printf '%s\n' "$test_status" > p1-artifacts/replay/phase2_migration_order_status.txt
+          echo "status=$test_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Compare frozen Phase 1 security-definer and ACL snapshot
+        id: phase2_legacy_acl
+        if: always()
+        shell: bash
+        env:
+          PHASE2_LOCAL_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          set +e
+          set -o pipefail
+          if [[ "${{ steps.replay.outputs.replay_status }}" != "0" || "${{ steps.phase2_dependencies.outputs.status }}" != "0" ]]; then
+            echo 'SKIPPED: replay or harness dependencies unavailable.' | tee p1-artifacts/replay/phase2-legacy-acl.log
+            test_status=125
+          else
+            node scripts/phase2/check-legacy-acl.mjs 2>&1 | tee p1-artifacts/replay/phase2-legacy-acl.log
+            test_status=${PIPESTATUS[0]}
+          fi
+          printf '%s\n' "$test_status" > p1-artifacts/replay/phase2_legacy_acl_status.txt
+          echo "status=$test_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Run Phase 2 two-session concurrency harness
+        id: phase2_concurrency
+        if: always()
+        shell: bash
+        env:
+          PHASE2_LOCAL_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          set +e
+          set -o pipefail
+          if [[ "${{ steps.replay.outputs.replay_status }}" != "0" || "${{ steps.phase2_dependencies.outputs.status }}" != "0" ]]; then
+            echo 'SKIPPED: replay or harness dependencies unavailable.' | tee p1-artifacts/replay/phase2-concurrency.log
+            test_status=125
+          else
+            node scripts/phase2/test-concurrency.mjs 2>&1 | tee p1-artifacts/replay/phase2-concurrency.log
+            test_status=${PIPESTATUS[0]}
+          fi
+          printf '%s\n' "$test_status" > p1-artifacts/replay/phase2_concurrency_status.txt
           echo "status=$test_status" >> "$GITHUB_OUTPUT"
           exit 0
 
@@ -697,10 +837,17 @@ jobs:
           games_retirement_status="${{ steps.runtime_privileges.outputs.status }}"
           authorization_status="${{ steps.authorization_tests.outputs.status }}"
           personal_english_status="${{ steps.personal_english_tests.outputs.status }}"
+          phase2_registration_status="${{ steps.phase2_registration.outputs.status }}"
+          phase2_dependency_status="${{ steps.phase2_dependencies.outputs.status }}"
+          phase2_ocr_status="${{ steps.phase2_ocr_tests.outputs.status }}"
+          phase2_security_status="${{ steps.phase2_ocr_security.outputs.status }}"
+          phase2_order_status="${{ steps.phase2_migration_order.outputs.status }}"
+          phase2_legacy_acl_status="${{ steps.phase2_legacy_acl.outputs.status }}"
+          phase2_concurrency_status="${{ steps.phase2_concurrency.outputs.status }}"
           type_generation_status="${{ steps.type_generation.outputs.status }}"
           type_drift_status="${{ steps.type_drift.outputs.status }}"
-          if [[ "$baseline_status" != "0" || "$replay_status" != "0" || "$snapshot_status" != "0" || "$history_status" != "0" || "$convergence_status" != "0" || "$prefix_status" != "0" || "$prefix_snapshot_status" != "0" || "$prefix_history_status" != "0" || "$games_retirement_status" != "0" || "$authorization_status" != "0" || "$personal_english_status" != "0" || "$type_generation_status" != "0" || "$type_drift_status" != "0" ]]; then
-            echo "P-1 replay gate failed: baseline=$baseline_status replay=$replay_status snapshot=$snapshot_status history=$history_status convergence=$convergence_status prefix=$prefix_status prefix_snapshot=$prefix_snapshot_status prefix_history=$prefix_history_status games_retirement=$games_retirement_status authorization_pgtap=$authorization_status personal_english_pgtap=$personal_english_status type_generation=$type_generation_status type_drift=$type_drift_status"
+          if [[ "$baseline_status" != "0" || "$replay_status" != "0" || "$snapshot_status" != "0" || "$history_status" != "0" || "$convergence_status" != "0" || "$prefix_status" != "0" || "$prefix_snapshot_status" != "0" || "$prefix_history_status" != "0" || "$games_retirement_status" != "0" || "$authorization_status" != "0" || "$personal_english_status" != "0" || "$type_generation_status" != "0" || "$type_drift_status" != "0" || "$phase2_registration_status" != "0" || "$phase2_dependency_status" != "0" || "$phase2_ocr_status" != "0" || "$phase2_security_status" != "0" || "$phase2_order_status" != "0" || "$phase2_legacy_acl_status" != "0" || "$phase2_concurrency_status" != "0" ]]; then
+            echo "P-1 replay gate failed: baseline=$baseline_status replay=$replay_status snapshot=$snapshot_status history=$history_status convergence=$convergence_status prefix=$prefix_status prefix_snapshot=$prefix_snapshot_status prefix_history=$prefix_history_status games_retirement=$games_retirement_status authorization_pgtap=$authorization_status personal_english_pgtap=$personal_english_status phase2_registration=$phase2_registration_status phase2_dependencies=$phase2_dependency_status phase2_ocr=$phase2_ocr_status phase2_security=$phase2_security_status phase2_order=$phase2_order_status phase2_legacy_acl=$phase2_legacy_acl_status phase2_concurrency=$phase2_concurrency_status type_generation=$type_generation_status type_drift=$type_drift_status"
             exit 1
           fi
 
@@ -723,6 +870,8 @@ jobs:
       lint_status: ${{ steps.lint.outputs.status }}
       tests_status: ${{ steps.app_tests.outputs.status }}
       build_status: ${{ steps.build.outputs.status }}
+      phase2_governance_status: ${{ steps.phase2_governance.outputs.status }}
+      phase2_browser_status: ${{ steps.phase2_browser.outputs.status }}
 
     steps:
       - name: Check out repository
@@ -794,6 +943,24 @@ jobs:
           echo "status=$install_status" >> "$GITHUB_OUTPUT"
           exit 0
 
+      - name: Verify Phase 2 generated artifacts and governed fixtures
+        id: phase2_governance
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          if [[ "${{ steps.npm_install.outputs.status }}" != "0" ]]; then
+            echo 'SKIPPED: dependency installation unavailable.' | tee p1-artifacts/application/phase2-governance.log
+            check_status=125
+          else
+            npm run check:phase2-governance 2>&1 | tee p1-artifacts/application/phase2-governance.log
+            check_status=${PIPESTATUS[0]}
+          fi
+          printf '%s\n' "$check_status" > p1-artifacts/application/phase2_governance_status.txt
+          echo "status=$check_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
       - name: Type-check application
         id: typecheck
         if: always()
@@ -846,7 +1013,7 @@ jobs:
               | tee p1-artifacts/application/non-database-tests.log
             check_status=125
           else
-            npm run test:unit --if-present \
+            npm run test:unit \
               2>&1 | tee p1-artifacts/application/non-database-tests.log
             check_status=${PIPESTATUS[0]}
           fi
@@ -875,6 +1042,33 @@ jobs:
           echo "status=$check_status" >> "$GITHUB_OUTPUT"
           exit 0
 
+      - name: Run Phase 2 browser, accessibility, lifecycle, and network isolation suite
+        id: phase2_browser
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          if [[ "${{ steps.build.outputs.status }}" != "0" || "${{ steps.npm_install.outputs.status }}" != "0" ]]; then
+            echo 'SKIPPED: build or dependency installation unavailable.' | tee p1-artifacts/application/phase2-browser.log
+            check_status=125
+          else
+            npx playwright install --with-deps chromium 2>&1 | tee p1-artifacts/application/phase2-browser-install.log
+            browser_install_status=${PIPESTATUS[0]}
+            if [[ "$browser_install_status" == "0" ]]; then
+              npm run test:phase2-browser 2>&1 | tee p1-artifacts/application/phase2-browser.log
+              check_status=${PIPESTATUS[0]}
+              if [[ -f test-results/phase2-browser.json ]]; then
+                cp test-results/phase2-browser.json p1-artifacts/application/phase2-browser.json
+              fi
+            else
+              check_status="$browser_install_status"
+            fi
+          fi
+          printf '%s\n' "$check_status" > p1-artifacts/application/phase2_browser_status.txt
+          echo "status=$check_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
       - name: Upload application verification evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -895,8 +1089,10 @@ jobs:
           lint_status="${{ steps.lint.outputs.status }}"
           tests_status="${{ steps.app_tests.outputs.status }}"
           build_status="${{ steps.build.outputs.status }}"
-          if [[ "$artifact_status" != "0" || "$type_match_status" != "0" || "$install_status" != "0" || "$typecheck_status" != "0" || "$lint_status" != "0" || "$tests_status" != "0" || "$build_status" != "0" ]]; then
-            echo "Application verification failed: artifact=$artifact_status type_match=$type_match_status npm_ci=$install_status typecheck=$typecheck_status lint=$lint_status tests=$tests_status build=$build_status"
+          phase2_governance_status="${{ steps.phase2_governance.outputs.status }}"
+          phase2_browser_status="${{ steps.phase2_browser.outputs.status }}"
+          if [[ "$artifact_status" != "0" || "$type_match_status" != "0" || "$install_status" != "0" || "$typecheck_status" != "0" || "$lint_status" != "0" || "$tests_status" != "0" || "$build_status" != "0" || "$phase2_governance_status" != "0" || "$phase2_browser_status" != "0" ]]; then
+            echo "Application verification failed: artifact=$artifact_status type_match=$type_match_status npm_ci=$install_status typecheck=$typecheck_status lint=$lint_status tests=$tests_status build=$build_status phase2_governance=$phase2_governance_status phase2_browser=$phase2_browser_status"
             exit 1
           fi
 
@@ -918,6 +1114,13 @@ jobs:
           history_status="${{ needs.replay.outputs.history_status }}"
           authorization_status="${{ needs.replay.outputs.authorization_test_status }}"
           personal_english_status="${{ needs.replay.outputs.personal_english_test_status }}"
+          phase2_registration_status="${{ needs.replay.outputs.phase2_registration_status }}"
+          phase2_dependency_status="${{ needs.replay.outputs.phase2_dependency_status }}"
+          phase2_ocr_status="${{ needs.replay.outputs.phase2_ocr_test_status }}"
+          phase2_security_status="${{ needs.replay.outputs.phase2_ocr_security_status }}"
+          phase2_order_status="${{ needs.replay.outputs.phase2_migration_order_status }}"
+          phase2_legacy_acl_status="${{ needs.replay.outputs.phase2_legacy_acl_status }}"
+          phase2_concurrency_status="${{ needs.replay.outputs.phase2_concurrency_status }}"
           type_generation_status="${{ needs.replay.outputs.type_generation_status }}"
           type_drift_status="${{ needs.replay.outputs.type_drift_status }}"
           convergence_status="${{ needs.replay.outputs.convergence_status }}"
@@ -931,15 +1134,21 @@ jobs:
           lint_status="${{ needs.application_verification.outputs.lint_status }}"
           tests_status="${{ needs.application_verification.outputs.tests_status }}"
           build_status="${{ needs.application_verification.outputs.build_status }}"
+          phase2_governance_status="${{ needs.application_verification.outputs.phase2_governance_status }}"
+          phase2_browser_status="${{ needs.application_verification.outputs.phase2_browser_status }}"
 
           statuses=(
             "$baseline_status" "$replay_status" "$games_retirement_status"
             "$snapshot_status" "$history_status" "$authorization_status"
             "$personal_english_status" "$type_generation_status"
+            "$phase2_registration_status" "$phase2_dependency_status"
+            "$phase2_ocr_status" "$phase2_security_status" "$phase2_order_status"
+            "$phase2_legacy_acl_status" "$phase2_concurrency_status"
             "$type_drift_status" "$convergence_status" "$prefix_status"
             "$prefix_snapshot_status" "$prefix_history_status"
             "$artifact_status" "$app_type_match_status" "$install_status"
             "$typecheck_status" "$lint_status" "$tests_status" "$build_status"
+            "$phase2_governance_status" "$phase2_browser_status"
           )
           if [[ "$replay_result" != "success" || "$application_result" != "success" ]]; then
             echo "P-1 aggregate gate failed: replay job=$replay_result application job=$application_result"
@@ -947,7 +1156,7 @@ jobs:
           fi
           for status in "${statuses[@]}"; do
             if [[ "$status" != "0" ]]; then
-              echo "P-1 aggregate gate failed. Replay: baseline=$baseline_status replay=$replay_status games_retirement=$games_retirement_status snapshot=$snapshot_status history=$history_status authorization=$authorization_status personal_english=$personal_english_status type_generation=$type_generation_status type_drift=$type_drift_status convergence=$convergence_status prefix=$prefix_status prefix_snapshot=$prefix_snapshot_status prefix_history=$prefix_history_status. Application: artifact=$artifact_status type_match=$app_type_match_status npm_ci=$install_status typecheck=$typecheck_status lint=$lint_status tests=$tests_status build=$build_status"
+              echo "P-1 aggregate gate failed. Replay: baseline=$baseline_status replay=$replay_status games_retirement=$games_retirement_status snapshot=$snapshot_status history=$history_status authorization=$authorization_status personal_english=$personal_english_status phase2_registration=$phase2_registration_status phase2_dependencies=$phase2_dependency_status phase2_ocr=$phase2_ocr_status phase2_security=$phase2_security_status phase2_order=$phase2_order_status phase2_legacy_acl=$phase2_legacy_acl_status phase2_concurrency=$phase2_concurrency_status type_generation=$type_generation_status type_drift=$type_drift_status convergence=$convergence_status prefix=$prefix_status prefix_snapshot=$prefix_snapshot_status prefix_history=$prefix_history_status. Application: artifact=$artifact_status type_match=$app_type_match_status npm_ci=$install_status typecheck=$typecheck_status lint=$lint_status tests=$tests_status build=$build_status phase2_governance=$phase2_governance_status phase2_browser=$phase2_browser_status"
               exit 1
             fi
           done
@@ -1059,6 +1268,28 @@ jobs:
           printf '%s\n' "$precondition_status" \
             > p1-artifacts/production/personal_words_phase1_precondition_status.txt
           echo "status=$precondition_status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Measure Personal Word OCR Phase 2 Production precondition
+        id: phase2_precondition
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          mkdir -p p1-artifacts/production
+          docker run --rm \
+            --env PGCONNECT_TIMEOUT \
+            --env PGOPTIONS \
+            --volume "$PWD/scripts/p1:/audit-scripts:ro" \
+            postgres:17 \
+            psql "$PRODUCTION_DATABASE_READ_ONLY_URL" \
+              --no-psqlrc \
+              --file /audit-scripts/assert-personal-word-ocr-phase2-precondition.sql \
+            > p1-artifacts/production/personal-word-ocr-phase2-precondition.log 2>&1
+          phase2_precondition_status=$?
+          printf '%s\n' "$phase2_precondition_status" \
+            > p1-artifacts/production/phase2_precondition_status.txt
+          echo "status=$phase2_precondition_status" >> "$GITHUB_OUTPUT"
           exit 0
 
       - name: Export Production migration history and schema
@@ -1293,6 +1524,7 @@ jobs:
         run: |
           precondition_status="${{ steps.migration_030_precondition.outputs.status }}"
           personal_words_precondition_status="${{ steps.personal_words_precondition.outputs.status }}"
+          phase2_precondition_status="${{ steps.phase2_precondition.outputs.status }}"
           git_prod_status="${{ steps.production_compare.outputs.git_prod_status }}"
           git_replay_status="${{ steps.production_compare.outputs.git_replay_status }}"
           full_schema_status="${{ steps.production_compare.outputs.full_schema_status }}"
@@ -1303,9 +1535,10 @@ jobs:
           unresolved_acl_status="${{ steps.production_compare.outputs.unresolved_acl_status }}"
           echo "Migration 30 precondition (evidence + gate): $precondition_status"
           echo "Personal Word Library predecessor precondition (evidence + gate): $personal_words_precondition_status"
+          echo "Personal Word OCR Phase 2 precondition (evidence + gate): $phase2_precondition_status"
           echo "Raw diff status (evidence only): full-schema=$full_schema_status project-schema=$project_schema_status project-ACL=$project_acl_status"
           echo "ACL-aware full application diff (evidence only): project-with-ACL=$unresolved_project_acl_status"
-          if [[ "$precondition_status" != "0" || "$personal_words_precondition_status" != "0" || "$git_prod_status" != "0" || "$git_replay_status" != "0" || "$unresolved_project_schema_status" != "0" || "$unresolved_acl_status" != "0" ]]; then
-            echo "P-1 unresolved drift gate failed: migration-030-precondition=$precondition_status personal-words-precondition=$personal_words_precondition_status git/prod=$git_prod_status git/replay=$git_replay_status project-schema=$unresolved_project_schema_status ACL=$unresolved_acl_status"
+          if [[ "$precondition_status" != "0" || "$personal_words_precondition_status" != "0" || "$phase2_precondition_status" != "0" || "$git_prod_status" != "0" || "$git_replay_status" != "0" || "$unresolved_project_schema_status" != "0" || "$unresolved_acl_status" != "0" ]]; then
+            echo "P-1 unresolved drift gate failed: migration-030-precondition=$precondition_status personal-words-precondition=$personal_words_precondition_status phase2-precondition=$phase2_precondition_status git/prod=$git_prod_status git/replay=$git_replay_status project-schema=$unresolved_project_schema_status ACL=$unresolved_acl_status"
             exit 1
           fi

@@ -1,0 +1,3 @@
+{ "version": 1, "approval": null, "patterns": [
+  { "id": "institution-title-1", "version": 1, "source": "(^|[^a-z])(school|academy|university|college|institute|department|hospital)([^a-z]|$)", "reason": "Institution title only in an eligible positional region", "fixtureIds": ["institution-header", "institution-middle", "institution-cropped", "edge-no-institution"] }
+] }

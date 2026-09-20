@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SpeedInsightsGate } from "./_components/speed-insights-gate";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,10 +16,10 @@ export default function RootLayout({
     <html lang="zh-CN">
       <body className="min-h-screen antialiased">
         {children}
-        <footer className="fixed bottom-2 right-3 text-xs text-slate-400">
+        <footer className="fixed bottom-2 right-3 text-xs text-slate-600">
           Developed by Ning 鲁宁
         </footer>
-        <SpeedInsights />
+        <SpeedInsightsGate />
       </body>
     </html>
   );

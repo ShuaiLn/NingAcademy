@@ -1,0 +1,988 @@
+{
+  "version": "draft-1",
+  "status": "PREPARED_NOT_RUN_NOT_APPROVED",
+  "sourcePlanSha256": "7bd35176435c104e2966c44f50b22f141d7fb2dfebe7fadb89a44300f8bf798e",
+  "allocation": {
+    "institution-edge": 10,
+    "clean-edge": 8,
+    "cropped-org": 8,
+    "stage1": 8,
+    "interior-org-loc": 8,
+    "boundary-mapping-size": 8
+  },
+  "cases": [
+    {
+      "id": "CAL-001",
+      "group": "institution-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Maple Lantern Academy",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.07
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ],
+        "institutionPattern": "institution-title.draft-1"
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "header_footer_institution"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-002",
+      "group": "institution-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Copper Finch School",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.07
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ],
+        "institutionPattern": "institution-title.draft-1"
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "header_footer_institution"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-003",
+      "group": "institution-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Willow Bridge College",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.07
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ],
+        "institutionPattern": "institution-title.draft-1"
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "header_footer_institution"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-004",
+      "group": "institution-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Quiet Meadow University",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.07
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ],
+        "institutionPattern": "institution-title.draft-1"
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "header_footer_institution"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-005",
+      "group": "institution-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Silver Leaf Institute",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.07
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ],
+        "institutionPattern": "institution-title.draft-1"
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "header_footer_institution"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-006",
+      "group": "institution-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Maple Lantern Academy",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.93
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ],
+        "institutionPattern": "institution-title.draft-1"
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "header_footer_institution"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-007",
+      "group": "institution-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Copper Finch School",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.93
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ],
+        "institutionPattern": "institution-title.draft-1"
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "header_footer_institution"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-008",
+      "group": "institution-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Willow Bridge College",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.93
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ],
+        "institutionPattern": "institution-title.draft-1"
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "header_footer_institution"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-009",
+      "group": "institution-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Quiet Meadow University",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.93
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ],
+        "institutionPattern": "institution-title.draft-1"
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "header_footer_institution"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-010",
+      "group": "institution-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Silver Leaf Institute",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.93
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ],
+        "institutionPattern": "institution-title.draft-1"
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "header_footer_institution"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-011",
+      "group": "clean-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Read the next question carefully",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.07
+      },
+      "signals": {},
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "no_privacy_signal"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-012",
+      "group": "clean-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Underline the unfamiliar words",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.07
+      },
+      "signals": {},
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "no_privacy_signal"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-013",
+      "group": "clean-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Compare your notes with the diagram",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.07
+      },
+      "signals": {},
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "no_privacy_signal"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-014",
+      "group": "clean-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Write a short example sentence",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.07
+      },
+      "signals": {},
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "no_privacy_signal"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-015",
+      "group": "clean-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Choose the correct verb below",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.93
+      },
+      "signals": {},
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "no_privacy_signal"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-016",
+      "group": "clean-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Match each picture to a word",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.93
+      },
+      "signals": {},
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "no_privacy_signal"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-017",
+      "group": "clean-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Review the vocabulary before starting",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.93
+      },
+      "signals": {},
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "no_privacy_signal"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-018",
+      "group": "clean-edge",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Complete the exercise in pencil",
+      "image": {
+        "validNonblankLines": 8,
+        "midpointFraction": 0.93
+      },
+      "signals": {},
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "no_privacy_signal"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-019",
+      "group": "cropped-org",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Costco stocks useful supplies",
+      "image": {
+        "validNonblankLines": 3,
+        "midpointFraction": 0.08
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-020",
+      "group": "cropped-org",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Microsoft provides computer software",
+      "image": {
+        "validNonblankLines": 4,
+        "midpointFraction": 0.08
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-021",
+      "group": "cropped-org",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Seattle has many public parks",
+      "image": {
+        "validNonblankLines": 5,
+        "midpointFraction": 0.08
+      },
+      "signals": {
+        "correctedEntities": [
+          "LOC"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-022",
+      "group": "cropped-org",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Maple Lantern Academy teaches reading",
+      "image": {
+        "validNonblankLines": 3,
+        "midpointFraction": 0.08
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-023",
+      "group": "cropped-org",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Costco stocks useful supplies",
+      "image": {
+        "validNonblankLines": 4,
+        "midpointFraction": 0.92
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-024",
+      "group": "cropped-org",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Microsoft provides computer software",
+      "image": {
+        "validNonblankLines": 5,
+        "midpointFraction": 0.92
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-025",
+      "group": "cropped-org",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Seattle has many public parks",
+      "image": {
+        "validNonblankLines": 3,
+        "midpointFraction": 0.92
+      },
+      "signals": {
+        "correctedEntities": [
+          "LOC"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-026",
+      "group": "cropped-org",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Maple Lantern Academy teaches reading",
+      "image": {
+        "validNonblankLines": 4,
+        "midpointFraction": 0.92
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-027",
+      "group": "stage1",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Name: Mara Vale",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "stage1": true
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "deterministic_high_risk_pii"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-028",
+      "group": "stage1",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Student ID: ST-20481",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "stage1": true
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "deterministic_high_risk_pii"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-029",
+      "group": "stage1",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Employee: John Smith / Costco Wholesale",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "stage1": true
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "deterministic_high_risk_pii"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-030",
+      "group": "stage1",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Teacher: Mara Vale / grammar",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "stage1": true
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "deterministic_high_risk_pii"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-031",
+      "group": "stage1",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Account #: 48392015",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "stage1": true
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "deterministic_high_risk_pii"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-032",
+      "group": "stage1",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "DOB: 2001-04-19",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "stage1": true
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "deterministic_high_risk_pii"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-033",
+      "group": "stage1",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Address: 123 Fictional Lane",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "stage1": true
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "deterministic_high_risk_pii"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-034",
+      "group": "stage1",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Phone: +1 202-555-0148 / Email: learner@example.invalid",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "stage1": true
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "deterministic_high_risk_pii"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-035",
+      "group": "interior-org-loc",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Costco sells household supplies",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "gazetteer": [
+          "ORG"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-036",
+      "group": "interior-org-loc",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Microsoft makes software",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "gazetteer": [
+          "ORG"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-037",
+      "group": "interior-org-loc",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Seattle has green parks",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "gazetteer": [
+          "LOC"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-038",
+      "group": "interior-org-loc",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "The lesson describes the Pacific Ocean",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "gazetteer": [
+          "LOC"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-039",
+      "group": "interior-org-loc",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Costco sells household supplies",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-040",
+      "group": "interior-org-loc",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Microsoft makes software",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "correctedEntities": [
+          "ORG"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-041",
+      "group": "interior-org-loc",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Seattle has green parks",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "correctedEntities": [
+          "LOC"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-042",
+      "group": "interior-org-loc",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "The lesson describes the Pacific Ocean",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "correctedEntities": [
+          "LOC"
+        ]
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "public_entity_only"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-043",
+      "group": "boundary-mapping-size",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "Maria Garcia | complete the workplace safety checklist",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "correctedPerson": {
+          "start": 0,
+          "end": 12
+        },
+        "delimiter": "|",
+        "suppressedWords": [
+          "Maria",
+          "Garcia"
+        ],
+        "excludeFromSanitizedText": true
+      },
+      "expected": {
+        "disposition": "word_only",
+        "reason": "person_segment_removed"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-044",
+      "group": "boundary-mapping-size",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "one two three four five Maria Garcia six seven eight nine ten",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "correctedPerson": {
+          "start": 24,
+          "end": 36
+        },
+        "maxAdjacentOcrWordsPerSide": 4
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "person_boundary_uncertain"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-045",
+      "group": "boundary-mapping-size",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "o?ce   supplies",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "normalized": "office supplies",
+        "mappingFixture": "MAP-NFKC-001"
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "no_privacy_signal"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-046",
+      "group": "boundary-mapping-size",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "office supplies",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "malformedOriginalRange": [
+          10,
+          3
+        ]
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "unsafe_span_mapping"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-047",
+      "group": "boundary-mapping-size",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "tokenizerCalls": 0,
+        "nerRequired": false
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "input_too_large"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-048",
+      "group": "boundary-mapping-size",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "boundary token fixture",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "encodedLengthIncludingSpecialTokens": 511,
+        "backend": "controlled boundary test, not real tokenizer evidence",
+        "inferenceCalls": 1,
+        "nerRequired": true
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "no_privacy_signal"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-049",
+      "group": "boundary-mapping-size",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "boundary token fixture",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "encodedLengthIncludingSpecialTokens": 512,
+        "backend": "controlled boundary test, not real tokenizer evidence",
+        "inferenceCalls": 1,
+        "nerRequired": true
+      },
+      "expected": {
+        "disposition": "full_offer",
+        "reason": "no_privacy_signal"
+      },
+      "observed": null
+    },
+    {
+      "id": "CAL-050",
+      "group": "boundary-mapping-size",
+      "provenance": "new synthetic reproduction; no learner or third-party personal data",
+      "text": "boundary token fixture",
+      "image": {
+        "validNonblankLines": 10,
+        "midpointFraction": 0.5
+      },
+      "signals": {
+        "encodedLengthIncludingSpecialTokens": 513,
+        "backend": "controlled boundary test, not real tokenizer evidence",
+        "inferenceCalls": 0,
+        "nerRequired": false
+      },
+      "expected": {
+        "disposition": "never_offer",
+        "reason": "ner_input_too_large"
+      },
+      "observed": null
+    }
+  ]
+}

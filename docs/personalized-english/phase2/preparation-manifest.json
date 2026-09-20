@@ -1,0 +1,29 @@
+{
+  "version": "preparation-1",
+  "status": "LOCAL_IMPLEMENTATION_COMPLETE_EXTERNAL_EVIDENCE_PENDING",
+  "policyFreeze": false,
+  "deployed": false,
+  "sqlGeneration": "IMPLEMENTED_LOCALLY_BY_EXPLICIT_OWNER_DIRECTION_REPLAY_PENDING",
+  "artifacts": [
+    {
+      "path": "docs/personalized-english/phase2/limits.v1.json",
+      "sha256": "2b8bede6566a13d55813dde9725cb9b8f71f32825df6fc0f14ba0eb564ffbacb"
+    },
+    {
+      "path": "docs/personalized-english/phase2/runtime-profile.provisional.json",
+      "sha256": "1fe7eed8c7787a5a55e7247f035e963b2178c990a6358da196f17ae5df370180"
+    },
+    {
+      "path": "docs/personalized-english/phase2/calibration.draft.json",
+      "sha256": "d2c4127369bfcce69b5e9a39ea90cd6aeae6c7130ae5216b6bdd3fd01c427391"
+    },
+    {
+      "path": "docs/personalized-english/phase2/correction-fixtures.draft.json",
+      "sha256": "3baca2b2b5c8aefc547a690ce2410190529c90c9c18d86b27a26a6586ba234fa"
+    },
+    {
+      "path": "docs/personalized-english/phase2/institution-patterns.draft.json",
+      "sha256": "537dc2f5f22b12cd263f3351d93462728a2bcfc40284c554ce711b0aeace2aa9"
+    }
+  ]
+}

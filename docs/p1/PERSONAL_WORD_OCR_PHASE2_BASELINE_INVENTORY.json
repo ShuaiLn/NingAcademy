@@ -1,0 +1,705 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-09-18T23:31:18.156Z",
+  "purpose": "Pre-implementation evidence only; no gate approval or Phase 2 completion claim.",
+  "specification": {
+    "path": "docs/p1/PERSONAL_WORD_OCR_PHASE2_IMPLEMENTATION_PLAN.md",
+    "sha256": "7bd35176435c104e2966c44f50b22f141d7fb2dfebe7fadb89a44300f8bf798e",
+    "copiedByteForByte": true
+  },
+  "github": {
+    "repository": "ShuaiLn/NingAcademy",
+    "branch": "main",
+    "head": "9b156d81807bcf73c4ffb47cd9ef39a480feb4db",
+    "tree": "972c884637354159fdba7aa7e9047bd90f6dc904",
+    "next": "16.3.5",
+    "activeMigrationCount": 33,
+    "latestMigration": "20260911213841_personal_words_core.sql",
+    "phase0Committed": false
+  },
+  "local": {
+    "branch": "feature/personal-word-library-phase-1-5",
+    "head": "069ba18d3e405f71b4dc48a841467851242382ab",
+    "next": "16.3.0",
+    "statusBeforeAuditFiles": "M .env.example\n M .github/workflows/p1-database-audit.yml\n M README.md\n M eslint.config.mjs\n M next.config.ts\n M package-lock.json\n M package.json\n M proxy.ts\n?? .github/workflows/application-quality.yml\n?? ai-progress-my-plan-is-to-parsed-newell.md\n?? app/_components/local-ai/\n?? app/_hooks/\n?? app/_lib/local-ai/\n?? app/student/personal-english/local-runtime-diagnostics/\n?? docs/personalized-english/\n?? public/local-ai-assets/\n?? public/local-ai-diagnostics/\n?? vitest.config.ts"
+  },
+  "checks": {
+    "unitTests": {
+      "exitCode": 0,
+      "files": 4,
+      "tests": 41,
+      "scope": "Existing uncommitted Phase 0 unit tests only"
+    },
+    "typecheck": {
+      "exitCode": 0
+    },
+    "lint": {
+      "exitCode": 0,
+      "errors": 0,
+      "preexistingWarnings": 3
+    },
+    "migrationInventory": {
+      "exitCode": 0,
+      "count": 33
+    },
+    "retiredGames": {
+      "exitCode": 0,
+      "count": 5
+    },
+    "assetBytesAndHashes": {
+      "matched": 13,
+      "total": 13
+    },
+    "diffCheck": {
+      "exitCode": 0
+    }
+  },
+  "replay": {
+    "existingRunId": 35404722773,
+    "head": "9b156d81807bcf73c4ffb47cd9ef39a480feb4db",
+    "existingReplayJobId": 105791988718,
+    "existingConclusion": "success",
+    "productionJob": "skipped",
+    "freshRerun": {
+      "attempted": true,
+      "httpStatus": 403,
+      "message": "Resource not accessible by integration",
+      "status": "BLOCKED"
+    },
+    "gateClosed": false
+  },
+  "phase0FileComparison": [
+    {
+      "path": ".env.example",
+      "localBytes": 209,
+      "localSha256": "6ef841f4b32d5c5e9fcbb0aa2a86f3420334489bb4f2437bcf26b3103d4e52f2",
+      "baselineBlob": "baa4f9a83ee1c214fbb4f946c65b6e247b047826",
+      "baselineSha256": "2b16eabc898f6d989de42c4abc45c0bd1f7e06971ff082ef1e0efe4a457e36f0",
+      "comparison": "modified",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": ".github/workflows/application-quality.yml",
+      "localBytes": 612,
+      "localSha256": "c6b68c0dbe4a589c64234e8207736e8c1e996b02825c36d16bca61cf6a66f7c5",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": ".github/workflows/p1-database-audit.yml",
+      "localBytes": 63921,
+      "localSha256": "d729798a672b1362caf12c49ec2f10843fab033b61937a3ed07c04295c92df53",
+      "baselineBlob": "db6876f7cc6927402cc600a84400138ded30ec37",
+      "baselineSha256": "4fb8398ea1293e2ceefc022d757a26405246ed7e890f6063313f03995dedc7cb",
+      "comparison": "modified",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "README.md",
+      "localBytes": 4781,
+      "localSha256": "162ee93423fc01b0b6c43c2e4077f82c31d9bce5cdbea2ea56880465b856973d",
+      "baselineBlob": "6a7209484429ef2428bdadc8c59869c4c2fc2131",
+      "baselineSha256": "6606f5655728a48b0aa9ef060746b7319204afee7ebf5978ee635dc1d0b176b7",
+      "comparison": "modified",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_components/local-ai/model-download-progress.tsx",
+      "localBytes": 2169,
+      "localSha256": "863f132c2d3a74306f4bb66eedf455e1907ad42e5ae3d5ca5e6a6b4d94c3f817",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_hooks/use-local-ai-runtime.ts",
+      "localBytes": 4776,
+      "localSha256": "a4a9ab603f1df9000fe40859f631f613560520c765d466cc1ecee4999c86da85",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/asset-catalog.ts",
+      "localBytes": 4320,
+      "localSha256": "339c312c07ac27e937d4fd676b54034ca1c2e99964314c1c51f8cd1d8785e4bd",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/contracts.ts",
+      "localBytes": 2285,
+      "localSha256": "b1b595b1f3b07810a7baacf68e44d3bff36fb17faf0fbac4c5d2633d7cd127b5",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/device-capabilities.test.ts",
+      "localBytes": 3348,
+      "localSha256": "efc76ebc26ff2af19c15e146893cf271346df18282b20661985b9f225a610e48",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/device-capabilities.ts",
+      "localBytes": 1739,
+      "localSha256": "780a7c5cf481db197979937b4ff6ef5d72989456e4d0e966d3e7297f07d6ea47",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/device-tier-policy.ts",
+      "localBytes": 1721,
+      "localSha256": "4b0c3b5d9e92bc22309d18965cabf5a6442c4d8b4431c0fe1f8673a4e7545620",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/model-cache.test.ts",
+      "localBytes": 5926,
+      "localSha256": "6243c103064f873b646069876bcd9416dfdd186b737cfd0cdc561157db48135c",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/model-cache.ts",
+      "localBytes": 11473,
+      "localSha256": "d189930a731e577bf80fa3e326eb42cf2103109b7fe0383ba5ffe04a8eb51cf2",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/model-lifecycle.test.ts",
+      "localBytes": 4463,
+      "localSha256": "29e0c7d41bb8a1e4b09325505c63629aadfe2a8043393585001b4a66c16eb645",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/model-lifecycle.ts",
+      "localBytes": 5634,
+      "localSha256": "f5f82ac416fbf4effa3df6c888c2b84a714f429d78abc7a906dc69f3bda17dca",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/models/kitten-tts-runtime.ts",
+      "localBytes": 1131,
+      "localSha256": "8aa920c4af3e09ca524383df05cd6a63434005ff91f6e7d3c26a9c54a86fa1f9",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "Phase 0 TTS evidence only; Phase 2 TTS work excluded."
+    },
+    {
+      "path": "app/_lib/local-ai/models/model-adapters.test.ts",
+      "localBytes": 5401,
+      "localSha256": "db6f3fa93ad6a98411567a50e95879b82bf08569525d99755d241c332a667a63",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/models/ner-corrections.ts",
+      "localBytes": 4162,
+      "localSha256": "60c6b05ce3651baa1b162677533524b293fcc1f5a15745bb203df7fcfc677298",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/models/ner-runtime.ts",
+      "localBytes": 1105,
+      "localSha256": "53dae7dc3dac8905260e200e9a6af3508ab38affed5f8a9de2331076a24b638a",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/models/ocr-runtime.ts",
+      "localBytes": 2599,
+      "localSha256": "ba265f105b95a2b04b3e8ad33832608558129082f8551d5d8a1ba5bf1fbe442a",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/models/worker-model.ts",
+      "localBytes": 3705,
+      "localSha256": "b466058999102e19c6cec2b28aee93ea9cfab7fff7476019afcde3cc4e1a770d",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/worker-protocol.ts",
+      "localBytes": 833,
+      "localSha256": "cce41dde2369746d680b802c7bdc23bc596be49d5f2d9ad094c2b7c118fe8a90",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/_lib/local-ai/workers/kitten-tts.worker.ts",
+      "localBytes": 3689,
+      "localSha256": "14b3767c6599a751bb7e974e447a1ffb7afcdd6e67e12bff1abfb62f536c4163",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "Phase 0 TTS evidence only; Phase 2 TTS work excluded."
+    },
+    {
+      "path": "app/_lib/local-ai/workers/ner.worker.ts",
+      "localBytes": 3715,
+      "localSha256": "e6b1b86dbe20631a5cd0ffa489e4b5da5fdf30a4f8c199ee0418702f720ac8d1",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/student/personal-english/local-runtime-diagnostics/diagnostics-client.tsx",
+      "localBytes": 4925,
+      "localSha256": "6cb057d7f7921f6bfeb390b0000b9a5f2d5ad5b600c4b5198ad969da8472d194",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "app/student/personal-english/local-runtime-diagnostics/page.tsx",
+      "localBytes": 265,
+      "localSha256": "8a66e86b71c042339d8be61ab7a5fce7ec5b0ad4b9b89c8708fcc6a2983aa0b0",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "docs/personalized-english/PHASE0_LOCAL_RUNTIME_EVIDENCE.md",
+      "localBytes": 31263,
+      "localSha256": "afa10ade94012c5a6ddcaa59de1c699dc24bafe1f0d3ac84a5361ec83683c033",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "docs/personalized-english/PHASE0_SECURITY_DEPLOYMENT_REVIEW.md",
+      "localBytes": 6423,
+      "localSha256": "3f619c93277565cc4be6b592a573231ced029883409e9f11cd25dc080a32e12b",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "docs/personalized-english/PHASE0_THIRD_PARTY_LICENSE_REVIEW.md",
+      "localBytes": 7942,
+      "localSha256": "c761f712d52be246e84627c4dba90e6de2cbc9e1d994891046167ced5fe92fc1",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "docs/personalized-english/evidence/kitten-tts-nano-int8-listening.wav",
+      "localBytes": 352844,
+      "localSha256": "22bc17b5fa517248003f30286b8150858a8933d60018e3b24fa3744bd1bc08ab",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "Phase 0 TTS evidence only; Phase 2 TTS work excluded."
+    },
+    {
+      "path": "eslint.config.mjs",
+      "localBytes": 704,
+      "localSha256": "22f9f330fad1d5a59b9373246c738b286f64621516ab8a0315d21a03237820e9",
+      "baselineBlob": "5c0f6afe33711a799472438da225075f7c0cad58",
+      "baselineSha256": "b905a82dce11bacfcb2f9c8259093418274278bab6b611eae80079ba692ce586",
+      "comparison": "modified",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "next.config.ts",
+      "localBytes": 892,
+      "localSha256": "efb1341c85be3fe9396a009bb667891995fe3a7d916477917b8f9a8ee06e1c75",
+      "baselineBlob": "05dffe536152c725f4c7bf702cc3f9b75b805b67",
+      "baselineSha256": "96191f4f9f358370db939c02f9583ab36fa8814536d385d49dd4e2262b2fcf43",
+      "comparison": "modified",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "package-lock.json",
+      "localBytes": 343025,
+      "localSha256": "e0b72ba514bac54e674d315aaa2f49357a1d93518261298644f7587d88c236a2",
+      "baselineBlob": "2b0c99903c74fc627e815f9e4b168ebfd411ade5",
+      "baselineSha256": "e2a2c2039ecfb2ce042842783817a2ee504f46193b9f68ab3a3a93637eb0b489",
+      "comparison": "modified",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "package.json",
+      "localBytes": 1437,
+      "localSha256": "319911d30de00ebfee380757aa45cda09612bf8a547f49e45eaef3033183a785",
+      "baselineBlob": "dda0fec9b5f9e6794d140b94dfcc3b83ac81dd9e",
+      "baselineSha256": "146d2d75bb1cfa13e6dc071f0e96172f3543250a68cd0accb6ea223dd0c87491",
+      "comparison": "modified",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "proxy.ts",
+      "localBytes": 2093,
+      "localSha256": "cbbb65032b6a2a0369aa517246af3b74ec1b43ea1f9c3144b4ef51829a83b7c1",
+      "baselineBlob": "7068b38f070dcb698610ff9a5e0ae645bc045f16",
+      "baselineSha256": "1ad7b688e62ab71f3eb0d3353adb297e68339a5a9349997eff5790291a02cbd5",
+      "comparison": "modified",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "public/local-ai-assets/ner/neurobert-e3a6a29/config.json",
+      "localBytes": 2280,
+      "localSha256": "75287d17bc1b625afc686332f16aaeddaa129deb1b5fca2d128153fa4b0b17ab",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "public/local-ai-assets/ner/neurobert-e3a6a29/onnx/model_quantized.onnx",
+      "localBytes": 9659067,
+      "localSha256": "17dbf6ccfe500ee8a5da9177ebcdbb1c7394626e077e70571adebae8833c9709",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "public/local-ai-assets/ner/neurobert-e3a6a29/tokenizer.json",
+      "localBytes": 711396,
+      "localSha256": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "public/local-ai-assets/ner/neurobert-e3a6a29/tokenizer_config.json",
+      "localBytes": 1300,
+      "localSha256": "e711904cac23112776b678356ccf702cf934babaa01125f698ac43bf9ad38e73",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "public/local-ai-assets/ner/ort-1.26.0-dev/ort-wasm-simd-threaded.asyncify.mjs",
+      "localBytes": 47389,
+      "localSha256": "5959c6733039619c9af710d8e1bae8d6e84402787990637be987c2b1bd6c5fa9",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "public/local-ai-assets/ner/ort-1.26.0-dev/ort-wasm-simd-threaded.asyncify.wasm",
+      "localBytes": 23567050,
+      "localSha256": "e0c0c6d3e73d43b8a249972f8358f845b08cc16fec3c80efafdf8bed40366786",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "public/local-ai-assets/ocr/tesseract-7.0.0/eng.traineddata.gz",
+      "localBytes": 2952873,
+      "localSha256": "45b4cb346724ac1774f1c36f42f182b887bcdb28ebe63e6fff90ac41f3fcff91",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "public/local-ai-assets/ocr/tesseract-7.0.0/tesseract-core-lstm.wasm.js",
+      "localBytes": 3896484,
+      "localSha256": "eef5f8b2f8e20e150680b20adaec4a60babafee3adbe8a94583c81fee46e8680",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "public/local-ai-assets/ocr/tesseract-7.0.0/tesseract-core-relaxedsimd-lstm.wasm.js",
+      "localBytes": 3905767,
+      "localSha256": "861a536cf9ef8e63cb644d57bab39c388f37f7d6b6f60024b741c5f6b39a59b3",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "public/local-ai-assets/ocr/tesseract-7.0.0/tesseract-core-simd-lstm.wasm.js",
+      "localBytes": 3899472,
+      "localSha256": "c58b46a4c796c0b8afccf77591d5b875b6896b45d402bbce8caa6f5362447b38",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "public/local-ai-assets/ocr/tesseract-7.0.0/worker.min.js",
+      "localBytes": 111307,
+      "localSha256": "576b7df7e3393e137e51849357c9adb53fe7ac1bb69bfa06cf3d61520f182c6d",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "public/local-ai-assets/tts/kitten-nano-int8-84781d7/kitten_tts_nano_v0_8.onnx",
+      "localBytes": 24369971,
+      "localSha256": "f7b0afcbee92870b32b8e0276d855b954dc25470c9f051b376ac7eee537c76fc",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "Phase 0 TTS evidence only; Phase 2 TTS work excluded."
+    },
+    {
+      "path": "public/local-ai-assets/tts/kitten-nano-int8-84781d7/voices.npz",
+      "localBytes": 3278902,
+      "localSha256": "8aa7cee235abb0739cb51e6559685f65a4dacd95568833d05699b1633f519b3f",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "Phase 0 TTS evidence only; Phase 2 TTS work excluded."
+    },
+    {
+      "path": "public/local-ai-diagnostics/ocr-smoke-test.png",
+      "localBytes": 8276,
+      "localSha256": "eb441ba44d4355cc8216730b6f885c2b26c95492f7103db2056fdc2f283128b3",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    },
+    {
+      "path": "vitest.config.ts",
+      "localBytes": 179,
+      "localSha256": "5e1e05a7254dbd3d6569359b1981a533791ee08005f712876c390271e1f32647",
+      "baselineBlob": null,
+      "baselineSha256": null,
+      "comparison": "absent-from-main",
+      "reuseApproval": "NOT_APPROVED",
+      "note": "See baseline audit for review findings and remaining gates."
+    }
+  ],
+  "assets": [
+    {
+      "id": "ocr-worker-7.0.0",
+      "kind": "ocr",
+      "version": "7.0.0",
+      "path": "public/local-ai-assets/ocr/tesseract-7.0.0/worker.min.js",
+      "bytes": 111307,
+      "sha256": "576b7df7e3393e137e51849357c9adb53fe7ac1bb69bfa06cf3d61520f182c6d",
+      "matchesCatalog": true,
+      "distributionApproval": "NOT_ESTABLISHED"
+    },
+    {
+      "id": "ocr-core-lstm-7.0.0",
+      "kind": "ocr",
+      "version": "7.0.0",
+      "path": "public/local-ai-assets/ocr/tesseract-7.0.0/tesseract-core-lstm.wasm.js",
+      "bytes": 3896484,
+      "sha256": "eef5f8b2f8e20e150680b20adaec4a60babafee3adbe8a94583c81fee46e8680",
+      "matchesCatalog": true,
+      "distributionApproval": "NOT_ESTABLISHED"
+    },
+    {
+      "id": "ocr-core-relaxedsimd-lstm-7.0.0",
+      "kind": "ocr",
+      "version": "7.0.0",
+      "path": "public/local-ai-assets/ocr/tesseract-7.0.0/tesseract-core-relaxedsimd-lstm.wasm.js",
+      "bytes": 3905767,
+      "sha256": "861a536cf9ef8e63cb644d57bab39c388f37f7d6b6f60024b741c5f6b39a59b3",
+      "matchesCatalog": true,
+      "distributionApproval": "NOT_ESTABLISHED"
+    },
+    {
+      "id": "ocr-core-simd-lstm-7.0.0",
+      "kind": "ocr",
+      "version": "7.0.0",
+      "path": "public/local-ai-assets/ocr/tesseract-7.0.0/tesseract-core-simd-lstm.wasm.js",
+      "bytes": 3899472,
+      "sha256": "c58b46a4c796c0b8afccf77591d5b875b6896b45d402bbce8caa6f5362447b38",
+      "matchesCatalog": true,
+      "distributionApproval": "NOT_ESTABLISHED"
+    },
+    {
+      "id": "ocr-eng-fast-4.0.0",
+      "kind": "ocr",
+      "version": "4.0.0",
+      "path": "public/local-ai-assets/ocr/tesseract-7.0.0/eng.traineddata.gz",
+      "bytes": 2952873,
+      "sha256": "45b4cb346724ac1774f1c36f42f182b887bcdb28ebe63e6fff90ac41f3fcff91",
+      "matchesCatalog": true,
+      "distributionApproval": "NOT_ESTABLISHED"
+    },
+    {
+      "id": "ner-config-neurobert-e3a6a29",
+      "kind": "ner",
+      "version": "e3a6a290e438a506d2ba7bbb0f5875b7f034cebf",
+      "path": "public/local-ai-assets/ner/neurobert-e3a6a29/config.json",
+      "bytes": 2280,
+      "sha256": "75287d17bc1b625afc686332f16aaeddaa129deb1b5fca2d128153fa4b0b17ab",
+      "matchesCatalog": true,
+      "distributionApproval": "NOT_ESTABLISHED"
+    },
+    {
+      "id": "ner-tokenizer-neurobert-e3a6a29",
+      "kind": "ner",
+      "version": "e3a6a290e438a506d2ba7bbb0f5875b7f034cebf",
+      "path": "public/local-ai-assets/ner/neurobert-e3a6a29/tokenizer.json",
+      "bytes": 711396,
+      "sha256": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66",
+      "matchesCatalog": true,
+      "distributionApproval": "NOT_ESTABLISHED"
+    },
+    {
+      "id": "ner-tokenizer-config-neurobert-e3a6a29",
+      "kind": "ner",
+      "version": "e3a6a290e438a506d2ba7bbb0f5875b7f034cebf",
+      "path": "public/local-ai-assets/ner/neurobert-e3a6a29/tokenizer_config.json",
+      "bytes": 1300,
+      "sha256": "e711904cac23112776b678356ccf702cf934babaa01125f698ac43bf9ad38e73",
+      "matchesCatalog": true,
+      "distributionApproval": "NOT_ESTABLISHED"
+    },
+    {
+      "id": "ner-model-neurobert-q8-e3a6a29",
+      "kind": "ner",
+      "version": "e3a6a290e438a506d2ba7bbb0f5875b7f034cebf",
+      "path": "public/local-ai-assets/ner/neurobert-e3a6a29/onnx/model_quantized.onnx",
+      "bytes": 9659067,
+      "sha256": "17dbf6ccfe500ee8a5da9177ebcdbb1c7394626e077e70571adebae8833c9709",
+      "matchesCatalog": true,
+      "distributionApproval": "NOT_ESTABLISHED"
+    },
+    {
+      "id": "ner-ort-loader-1.26.0-dev",
+      "kind": "ner",
+      "version": "1.26.0-dev.20260416-b7804b056c",
+      "path": "public/local-ai-assets/ner/ort-1.26.0-dev/ort-wasm-simd-threaded.asyncify.mjs",
+      "bytes": 47389,
+      "sha256": "5959c6733039619c9af710d8e1bae8d6e84402787990637be987c2b1bd6c5fa9",
+      "matchesCatalog": true,
+      "distributionApproval": "NOT_ESTABLISHED"
+    },
+    {
+      "id": "ner-ort-wasm-1.26.0-dev",
+      "kind": "ner",
+      "version": "1.26.0-dev.20260416-b7804b056c",
+      "path": "public/local-ai-assets/ner/ort-1.26.0-dev/ort-wasm-simd-threaded.asyncify.wasm",
+      "bytes": 23567050,
+      "sha256": "e0c0c6d3e73d43b8a249972f8358f845b08cc16fec3c80efafdf8bed40366786",
+      "matchesCatalog": true,
+      "distributionApproval": "NOT_ESTABLISHED"
+    },
+    {
+      "id": "tts-kitten-nano-int8-model-84781d7",
+      "kind": "tts",
+      "version": "84781d74e29ee25217551556398b42f80593a813",
+      "path": "public/local-ai-assets/tts/kitten-nano-int8-84781d7/kitten_tts_nano_v0_8.onnx",
+      "bytes": 24369971,
+      "sha256": "f7b0afcbee92870b32b8e0276d855b954dc25470c9f051b376ac7eee537c76fc",
+      "matchesCatalog": true,
+      "distributionApproval": "NOT_ESTABLISHED"
+    },
+    {
+      "id": "tts-kitten-voices-84781d7",
+      "kind": "tts",
+      "version": "84781d74e29ee25217551556398b42f80593a813",
+      "path": "public/local-ai-assets/tts/kitten-nano-int8-84781d7/voices.npz",
+      "bytes": 3278902,
+      "sha256": "8aa7cee235abb0739cb51e6559685f65a4dacd95568833d05699b1633f519b3f",
+      "matchesCatalog": true,
+      "distributionApproval": "NOT_ESTABLISHED"
+    }
+  ]
+}
