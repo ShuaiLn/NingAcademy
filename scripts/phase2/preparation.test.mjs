@@ -1,8 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { worksheets, calibration, corrections, institutions, validatePreparation, checkPlanHash, evaluateStudy } from "./preparation.mjs";
+import { readFileSync } from "node:fs";
+import { worksheets, calibration, corrections, institutions, validatePreparation, checkPlanHash, canonicalPlanSha256, evaluateStudy } from "./preparation.mjs";
 
-test("final plan stays byte-identical and revised corpus remains exact", () => {
+test("final plan stays canonical-content-identical across Git line endings and revised corpus remains exact", () => {
+  const plan = readFileSync(new URL("../../docs/p1/PERSONAL_WORD_OCR_PHASE2_IMPLEMENTATION_PLAN.md", import.meta.url), "utf8");
+  assert.equal(canonicalPlanSha256(plan.replace(/\r\n/g, "\n")), calibration.sourcePlanSha256);
+  assert.equal(canonicalPlanSha256(plan.replace(/\r\n?|\n/g, "\r\n")), calibration.sourcePlanSha256);
+  assert.notEqual(canonicalPlanSha256(`${plan}\nchanged`), calibration.sourcePlanSha256);
   assert.equal(checkPlanHash(), calibration.sourcePlanSha256);
   assert.equal(validatePreparation().calibrationLines, 50);
 });

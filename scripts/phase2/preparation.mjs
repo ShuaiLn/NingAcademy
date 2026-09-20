@@ -36,9 +36,17 @@ export function validatePreparation(sheets = worksheets, corpus = calibration, r
     status: "PREPARATION_VALID_NOT_CALIBRATED" };
 }
 
+export function canonicalPlanSha256(text) {
+  // The authoritative attachment was supplied with CRLF endings. Git stores
+  // text as LF and Windows checks it out as CRLF, so hash the canonical CRLF
+  // representation while still rejecting every content change.
+  const canonicalBytes = Buffer.from(text.replace(/\r\n?|\n/g, "\n").replace(/\n/g, "\r\n"), "utf8");
+  return createHash("sha256").update(canonicalBytes).digest("hex");
+}
+
 export function checkPlanHash() {
-  const bytes = readFileSync(new URL("docs/p1/PERSONAL_WORD_OCR_PHASE2_IMPLEMENTATION_PLAN.md", root));
-  const digest = createHash("sha256").update(bytes).digest("hex");
+  const text = readFileSync(new URL("docs/p1/PERSONAL_WORD_OCR_PHASE2_IMPLEMENTATION_PLAN.md", root), "utf8");
+  const digest = canonicalPlanSha256(text);
   if (digest !== "7bd35176435c104e2966c44f50b22f141d7fb2dfebe7fadb89a44300f8bf798e") throw new Error("Authoritative plan changed");
   return digest;
 }
